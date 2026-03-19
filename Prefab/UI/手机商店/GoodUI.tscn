@@ -1,0 +1,48 @@
+[gd_scene format=3 uid="uid://bmpkd8e03fs8p"]
+
+[ext_resource type="Texture2D" uid="uid://2ry6og1uhfv" path="res://Prefab/UI/手机商店/Icon/商品展示框.png" id="1_ukjsd"]
+[ext_resource type="Script" uid="uid://bioo5j2k0c5t" path="res://Dll/Comp/GoodComp.cs" id="2_7phnc"]
+[ext_resource type="Theme" uid="uid://bbfi2qhyxvtkq" path="res://Prefab/UI/手机商店/OnlineShopTheme.theme" id="3_35l22"]
+[ext_resource type="Texture2D" uid="uid://7ghcqngnjxe3" path="res://icon.svg" id="4_mny1d"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_30vqt"]
+
+[sub_resource type="Theme" id="Theme_rooay"]
+Button/styles/normal = SubResource("StyleBoxEmpty_30vqt")
+GridContainer/constants/h_separation = 40
+GridContainer/constants/v_separation = 40
+
+[node name="GoodUI" type="Control" unique_id=1938821854 node_paths=PackedStringArray("图片栏", "价格栏")]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 172.0
+offset_bottom = 152.0
+theme = SubResource("Theme_rooay")
+script = ExtResource("2_7phnc")
+"图片栏" = NodePath("Button/TextureRect")
+"价格栏" = NodePath("Button/Label")
+
+[node name="Button" type="Button" parent="." unique_id=1769601441]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+icon = ExtResource("1_ukjsd")
+
+[node name="Label" type="Label" parent="Button" unique_id=10842591]
+layout_mode = 0
+offset_left = 56.0
+offset_top = 123.0
+offset_right = 96.0
+offset_bottom = 146.0
+theme = ExtResource("3_35l22")
+
+[node name="TextureRect" type="TextureRect" parent="Button" unique_id=1623954596]
+layout_mode = 0
+offset_left = 30.999998
+offset_top = 16.0
+offset_right = 289.18182
+offset_bottom = 270.54544
+scale = Vector2(0.4, 0.4)
+texture = ExtResource("4_mny1d")
+expand_mode = 2
+stretch_mode = 3

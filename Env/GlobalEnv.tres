@@ -1,0 +1,22 @@
+[gd_resource type="Environment" format=3 uid="uid://d38ep1mbw88sg"]
+
+[ext_resource type="Texture2D" uid="uid://clx5dgf3nn8tw" path="res://Env/kloofendal_48d_partly_cloudy_puresky_1k.hdr" id="1_dk513"]
+
+[sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_03qpp"]
+panorama = ExtResource("1_dk513")
+
+[sub_resource type="Sky" id="Sky_8m47h"]
+sky_material = SubResource("PanoramaSkyMaterial_03qpp")
+process_mode = 1
+radiance_size = 5
+
+[resource]
+background_mode = 2
+sky = SubResource("Sky_8m47h")
+ambient_light_color = Color(0.6156863, 0.7019608, 0.9254902, 1)
+reflected_light_source = 2
+ssr_enabled = true
+fog_enabled = true
+fog_light_color = Color(0.39710915, 0.39710915, 0.39710915, 1)
+fog_sky_affect = 0.015
+fog_height = 525.95

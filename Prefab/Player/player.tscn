@@ -1,0 +1,124 @@
+[gd_scene format=3 uid="uid://b5f208wiho61q"]
+
+[ext_resource type="Script" uid="uid://b45ntly2c7yxx" path="res://Dll/PlayerController.cs" id="1_ohvtk"]
+[ext_resource type="Script" uid="uid://c4r7u0wmf5aan" path="res://Dll/PlayerCamera.cs" id="2_gh5aj"]
+[ext_resource type="PackedScene" uid="uid://b5in7x6ixoh27" path="res://Asset/练手资源/Character/Player.glb" id="2_hw4ku"]
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_hw4ku"]
+animation = &"Idle"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_n7b6v"]
+animation = &"Jump_Idle"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_pphex"]
+animation = &"Running_A"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_61o5j"]
+advance_mode = 2
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_hw4ku"]
+advance_mode = 2
+advance_expression = "velocity.length() > 0"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_n7b6v"]
+advance_mode = 2
+advance_expression = "velocity.length() == 0"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_pphex"]
+advance_mode = 2
+advance_expression = "not is_on_floor()"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_r5rbo"]
+advance_mode = 2
+advance_expression = "not is_on_floor()"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_1s7jm"]
+advance_mode = 2
+advance_expression = "is_on_floor() and velocity.length() > 0"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_j4b6j"]
+advance_mode = 2
+advance_expression = "is_on_floor() and velocity.length() == 0"
+
+[sub_resource type="AnimationNodeStateMachine" id="AnimationNodeStateMachine_wutkt"]
+states/End/position = Vector2(571, 130)
+states/Idle/node = SubResource("AnimationNodeAnimation_hw4ku")
+states/Idle/position = Vector2(187.04709, 108)
+states/Jump_Idle/node = SubResource("AnimationNodeAnimation_n7b6v")
+states/Jump_Idle/position = Vector2(298.0471, 241)
+states/Running_A/node = SubResource("AnimationNodeAnimation_pphex")
+states/Running_A/position = Vector2(445.0471, 108)
+states/Start/position = Vector2(91, 116)
+transitions = ["Start", "Idle", SubResource("AnimationNodeStateMachineTransition_61o5j"), "Idle", "Running_A", SubResource("AnimationNodeStateMachineTransition_hw4ku"), "Running_A", "Idle", SubResource("AnimationNodeStateMachineTransition_n7b6v"), "Running_A", "Jump_Idle", SubResource("AnimationNodeStateMachineTransition_pphex"), "Idle", "Jump_Idle", SubResource("AnimationNodeStateMachineTransition_r5rbo"), "Jump_Idle", "Running_A", SubResource("AnimationNodeStateMachineTransition_1s7jm"), "Jump_Idle", "Idle", SubResource("AnimationNodeStateMachineTransition_j4b6j")]
+graph_offset = Vector2(-12.952911, 34)
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_cq2md"]
+height = 1.875
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_hw4ku"]
+radius = 1.1321139
+
+[node name="Player" type="CharacterBody3D" unique_id=67650192 node_paths=PackedStringArray("m_Camera3D", "m_PlayerMesh", "拾取UI", "m_CanvasLayer", "m_eye")]
+script = ExtResource("1_ohvtk")
+m_Camera3D = NodePath("SpringArm3D/Camera3D")
+m_PlayerMesh = NodePath("Player")
+"拾取UI" = NodePath("CanvasLayer/拾取提示")
+m_CanvasLayer = NodePath("CanvasLayer")
+m_eye = NodePath("Player/Marker3D")
+
+[node name="Player" parent="." unique_id=907088130 instance=ExtResource("2_hw4ku")]
+transform = Transform3D(-0.825, 0, -1.2457153e-07, 0, 0.825, 0, 1.2457153e-07, 0, -0.825, 0, 0, 0)
+
+[node name="AnimationTree" type="AnimationTree" parent="Player" unique_id=621142470]
+tree_root = SubResource("AnimationNodeStateMachine_wutkt")
+advance_expression_base_node = NodePath("../..")
+anim_player = NodePath("../AnimationPlayer")
+
+[node name="Marker3D" type="Marker3D" parent="Player" unique_id=18798420]
+transform = Transform3D(-1.2121212, 0, 1.8302522e-07, 0, 1.2121212, 0, -1.8302522e-07, 0, -1.2121212, -1.9259211e-07, 1.9127014, 1.2754799)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=291526403]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.93769574, 0)
+shape = SubResource("CapsuleShape3D_cq2md")
+
+[node name="SpringArm3D" type="SpringArm3D" parent="." unique_id=1612146926 node_paths=PackedStringArray("m_Camera3D")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4394581, 0)
+spring_length = 3.0
+script = ExtResource("2_gh5aj")
+m_Camera3D = NodePath("Camera3D")
+
+[node name="Camera3D" type="Camera3D" parent="SpringArm3D" unique_id=280520162]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1038584116]
+
+[node name="拾取提示" type="Control" parent="CanvasLayer" unique_id=369341249]
+visible = false
+layout_mode = 3
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label" parent="CanvasLayer/拾取提示" unique_id=1759166458]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+text = "拾取 -E"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Area3D" type="Area3D" parent="." unique_id=313993136]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D" unique_id=348866246]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0372314, 0)
+shape = SubResource("SphereShape3D_hw4ku")
+
+[connection signal="body_entered" from="Area3D" to="." method="DetectionAreaStart"]
+[connection signal="body_exited" from="Area3D" to="." method="DetectionAreaEnd"]

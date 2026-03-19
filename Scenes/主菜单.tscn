@@ -1,0 +1,84 @@
+[gd_scene format=3 uid="uid://brf4o0xvfmd8h"]
+
+[ext_resource type="Script" uid="uid://hy5ixgsowtf" path="res://Scripts/主菜单.cs" id="1_ckshb"]
+[ext_resource type="PackedScene" uid="uid://twtg5h2hlc42" path="res://Prefab/UI/ConsoleUI.tscn" id="2_cjyvh"]
+[ext_resource type="PackedScene" uid="uid://e7qf1e5vukk0" path="res://Prefab/UI/InventoryUI.tscn" id="3_byk0q"]
+[ext_resource type="PackedScene" uid="uid://b27k4h3pbf8mn" path="res://Prefab/UI/手机商店/OnlineShopUI.tscn" id="4_h2myj"]
+[ext_resource type="PackedScene" uid="uid://bmpkd8e03fs8p" path="res://Prefab/UI/手机商店/GoodUI.tscn" id="5_qbp03"]
+[ext_resource type="PackedScene" uid="uid://fti5x0pa48gx" path="res://Prefab/UI/手机/PhoneUI.tscn" id="6_w13ce"]
+[ext_resource type="Theme" uid="uid://ddcpo5it8afda" path="res://Theme/主菜单UI.tres" id="7_cjyvh"]
+
+[node name="主菜单" type="Node3D" unique_id=650275170]
+script = ExtResource("1_ckshb")
+"UI资源" = Array[PackedScene]([ExtResource("2_cjyvh"), ExtResource("3_byk0q"), ExtResource("4_h2myj"), ExtResource("5_qbp03"), ExtResource("6_w13ce")])
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=2130164997]
+
+[node name="主菜单_画布" type="Control" parent="CanvasLayer" unique_id=22447098]
+layout_mode = 3
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PanelContainer" type="PanelContainer" parent="CanvasLayer/主菜单_画布" unique_id=1741501806]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -160.0
+offset_top = -301.5
+offset_right = 160.0
+offset_bottom = -190.5
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("7_cjyvh")
+
+[node name="Label" type="Label" parent="CanvasLayer/主菜单_画布/PanelContainer" unique_id=1807453700]
+layout_mode = 2
+theme = ExtResource("7_cjyvh")
+text = "网吧经营"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/主菜单_画布" unique_id=1739493526]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -93.0
+offset_top = -173.5
+offset_right = 93.0
+offset_bottom = 173.5
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("7_cjyvh")
+
+[node name="Button" type="Button" parent="CanvasLayer/主菜单_画布/VBoxContainer" unique_id=529472026]
+layout_mode = 2
+theme = ExtResource("7_cjyvh")
+text = "新游戏"
+
+[node name="Button2" type="Button" parent="CanvasLayer/主菜单_画布/VBoxContainer" unique_id=1922269156]
+layout_mode = 2
+theme = ExtResource("7_cjyvh")
+text = "继续"
+
+[node name="Button4" type="Button" parent="CanvasLayer/主菜单_画布/VBoxContainer" unique_id=1978045722]
+layout_mode = 2
+theme = ExtResource("7_cjyvh")
+text = "设置"
+
+[node name="Button3" type="Button" parent="CanvasLayer/主菜单_画布/VBoxContainer" unique_id=856146456]
+layout_mode = 2
+theme = ExtResource("7_cjyvh")
+text = "退出"
+
+[connection signal="pressed" from="CanvasLayer/主菜单_画布/VBoxContainer/Button" to="." method="NewGame"]
