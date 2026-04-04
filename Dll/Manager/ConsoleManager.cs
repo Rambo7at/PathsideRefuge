@@ -3,20 +3,13 @@ using Godot.Collections;
 using System;
 using System.Collections.Generic;
 using 维修公司.Dll;
+using 途畔归所.Dll.Core;
 
 public partial class ConsoleManager : Node
 {
-    public static ConsoleManager Instance;
 
     public override void _Ready()
     {
-        // 单例加固：防止重复初始化
-        if (Instance != null && Instance != this)
-        {
-            QueueFree();
-            return;
-        }
-        Instance = this;
         GD.Print("[ConsoleManager] 初始化完成");
     }
 
@@ -24,15 +17,20 @@ public partial class ConsoleManager : Node
     {
     }
 
+    /// <summary>
+    /// 注：生成功能
+    /// </summary>
+    /// <param name="prefabName"></param>
+    /// <param name="spawnPos"></param>
     public void Spawn(string prefabName, Vector3 spawnPos)
     {
-        if (ItemManager.Instance == null)
+        if (GameCore.Instance.m_ItemManager == null)
         {
             GD.PrintErr("[ConsoleManager.Spawn] ItemManager实例为空，无法生成物品");
             return;
         }
 
-        RigidBody3D itemDrop = ItemManager.Instance.GetItemDrop(prefabName);
+        RigidBody3D itemDrop = GameCore.Instance.m_ItemManager.GetItemDrop(prefabName);
         if (itemDrop == null)
         {
             GD.PrintErr($"[ConsoleManager.Spawn] 物品[{prefabName}]生成失败（GetItemDrop返回空）");

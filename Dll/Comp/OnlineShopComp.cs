@@ -3,6 +3,7 @@ using System;
 using System.Runtime.InteropServices.JavaScript;
 using 维修公司.Dll;
 using 维修公司.Utils;
+using 途畔归所.Dll.Core;
 
 public partial class OnlineShopComp : Control
 {
@@ -20,7 +21,7 @@ public partial class OnlineShopComp : Control
 
         foreach (var good in ShopManager.Instance.OnlineShopGoods)
         {
-            var Ui = UIManager.Instance.GetUI("GoodUI");
+            var Ui = GameCore.Instance.m_UIManager.GetUI("GoodUI");
             var Scropt = ToolUtils.GetNodeScript<GoodComp>(Ui);
             Scropt.图片栏.Texture = good.m_Good.m_Icon;
             Scropt.价格栏.Text = good.m_Price.ToString();

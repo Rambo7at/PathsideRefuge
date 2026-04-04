@@ -8,17 +8,26 @@
 
 config_version=5
 
+[ambientcg]
+
+extract_path="res://AmbientCG/Extracted"
+material_file_directory="res://AmbientCG/Materials"
+environment_file_directory="res://AmbientCG/Environments"
+
 [application]
 
 config/name="途畔归所"
 run/main_scene="uid://brf4o0xvfmd8h"
 config/features=PackedStringArray("4.6", "C#", "Forward Plus")
-config/icon="res://icon.svg"
+config/icon="uid://dwfqgfvwjgure"
 
 [autoload]
 
-TimeManager="*uid://bq8lcv8t2fu3m"
-ConsoleManager="*uid://b06lsu48cewv6"
+AmbientAPI="*uid://cmbh88h6yljhy"
+AmbientParser="*uid://dcdrqnwmpgvk4"
+AmbientFileHandler="*uid://dnh8sqjyu74hs"
+AmbientMaterialMaker="*uid://nig0lamfd3mv"
+GameCore="*uid://bp1obuegbifbd"
 
 [display]
 
@@ -32,7 +41,7 @@ project/assembly_name="途畔归所"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/terrain_3d/plugin.cfg")
+enabled=PackedStringArray("res://addons/ambientcg/plugin.cfg", "res://addons/terrain_3d/plugin.cfg")
 
 [input]
 

@@ -1,8 +1,8 @@
-[gd_scene format=3 uid="uid://b5f208wiho61q"]
+[gd_scene format=3 uid="uid://b3mwkn3g8itan"]
 
-[ext_resource type="Script" uid="uid://b45ntly2c7yxx" path="res://Dll/PlayerController.cs" id="1_ohvtk"]
-[ext_resource type="Script" uid="uid://c4r7u0wmf5aan" path="res://Dll/PlayerCamera.cs" id="2_gh5aj"]
-[ext_resource type="PackedScene" uid="uid://b5in7x6ixoh27" path="res://Asset/练手资源/Character/Player.glb" id="2_hw4ku"]
+[ext_resource type="Script" uid="uid://b45ntly2c7yxx" path="res://Dll/Creature/PlayerController.cs" id="1_ohvtk"]
+[ext_resource type="Script" uid="uid://c4r7u0wmf5aan" path="res://Dll/Creature/PlayerCamera.cs" id="2_gh5aj"]
+[ext_resource type="PackedScene" uid="uid://b5in7x6ixoh27" path="res://Asset/Character/Player.glb" id="2_hw4ku"]
 
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_hw4ku"]
 animation = &"Idle"

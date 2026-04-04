@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using 维修公司.Utils;
+using 途畔归所.Dll.Core;
 using static ItemComp;
 
 namespace 维修公司.Dll.data
@@ -82,7 +83,7 @@ namespace 维修公司.Dll.data
 
         public RigidBody3D DataToDrop()
         { 
-            var drop = ItemManager.Instance.GetItemDrop(this.m_ID);
+            var drop = GameCore.Instance.m_ItemManager.GetItemDrop(this.m_ID);
             ToolUtils.GetNodeScript<ItemComp>(drop).m_ItemData = this;
             return drop;
         }

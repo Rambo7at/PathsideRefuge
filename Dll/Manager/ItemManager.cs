@@ -10,47 +10,29 @@ using 维修公司.Utils;
 namespace 维修公司.Dll
 {
     /// <summary>物品资源管理器</summary>
-    public partial class ItemManager 
+    public class ItemManager 
 	{
-		private static Lazy<ItemManager> _instance = new Lazy<ItemManager>(() => new ItemManager());
 
-		public static ItemManager Instance = _instance.Value;
-
-        private ItemManager() { }
-
-
-        public System.Collections.Generic.Dictionary<string, PackedScene>  m_ItemDict = new System.Collections.Generic.Dictionary<string, PackedScene>();
+        public Godot.Collections.Dictionary<string, PackedScene> m_ItemDict = [];
 
 
 
-        /// <summary>初始化物品管理器</summary>
-        /// <param name="packedScenes">预制件列表</param>
-        public void InitItemManager(Array<PackedScene> packedScenes)
+        /// <summary>注：加载资源</summary>
+        /// <param name="packedScene">预制件列表</param>
+        public void Init(PackedScene packedScene)
         {
-            m_ItemDict.Clear();
-            foreach (var prefab in packedScenes)
+            if (packedScene == null) return;
+            string prefabName = ToolUtils.GetResourceName(packedScene.ResourcePath);
+
+            if (prefabName == null) return;
+            if (m_ItemDict.ContainsKey(prefabName))
             {
-                if (prefab == null)
-                {
-                    GD.PrintErr("[InitItemManager] 跳过空的预制件");
-                    continue;
-                }
-
-                string prefabName = ToolUtils.GetResourceName(prefab.ResourcePath);
-
-                if (prefabName == null) continue;
-
-                if (m_ItemDict.ContainsKey(prefabName))
-                {
-                    GD.PrintErr($"[InitItemManager] 物品 {prefabName} 已存在，跳过");
-                    continue;
-                }
-
-                m_ItemDict.Add(prefabName, prefab);
+                GD.Print($"[ItemManager.InitItemDict]：物品 {prefabName} 已存在，跳过");
+                return;
             }
+
+            m_ItemDict.Add(prefabName, packedScene);
         }
-
-
 
 
         /// <summary>获取预制件</summary>

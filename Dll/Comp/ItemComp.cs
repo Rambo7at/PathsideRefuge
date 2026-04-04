@@ -1,9 +1,7 @@
 using Godot;
-using System;
-using 维修公司.Dll;
 using 维修公司.Dll.data;
 using 维修公司.Dll.Interface;
-using 维修公司.Dll.Manager;
+using 途畔归所.Dll.Core;
 
 
 /// <summary> 注：游戏场景中可拾取的物品掉落实体，包含物品基础属性和拾取逻辑</summary>
@@ -40,7 +38,7 @@ public partial class ItemComp : RigidBody3D, IInteractable
     {
         if (m_ItemData != null) return;
 
-        m_boxItem = ItemManager.Instance.GetItemData("手电筒");
+        m_boxItem = GameCore.Instance.m_ItemManager.GetItemData("手电筒");
 
        m_ItemData = new ItemData(this);  
     }

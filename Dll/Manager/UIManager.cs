@@ -1,56 +1,42 @@
 using Godot;
 using Godot.Collections;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using 维修公司.Utils;
+using 途畔归所.Dll.Base;
 
 namespace 维修公司.Dll
 {
     /// <summary>UI资源管理器</summary>
     public class UIManager
     {
-        private static Lazy<UIManager> _instance = new Lazy<UIManager>(() => new UIManager());
 
-        public static UIManager Instance = _instance.Value;
-
-        private UIManager() { }
-
-
-        public System.Collections.Generic.Dictionary<string, PackedScene> m_UiDict = new System.Collections.Generic.Dictionary<string, PackedScene>();
+        public Dictionary<string, PackedScene> m_UiDict = [];
 
 
 
         /// <summary>初始化UI资源</summary>
-        /// <param name="uiAsset"></param>
-        /// <summary>初始化UI资源</summary>
-        /// <param name="packedScenes">UI预制件列表</param>
-        public void InitUIManager(Array<PackedScene> packedScenes)
+        /// <param name="packedScene">UI预制件列表</param>
+        public void Init(PackedScene packedScene)
         {
-            m_UiDict.Clear();
-
-            foreach (var prefabUi in packedScenes)
+            if (packedScene == null)
             {
-                if (prefabUi == null)
-                {
-                    GD.PrintErr("[UIManager.InitUIManager] 跳过空的预制件");
-                    continue;
-                }
-
-                string uiName = ToolUtils.GetResourceName(prefabUi.ResourcePath);
-
-                if (uiName == null) continue;
-
-                if (m_UiDict.ContainsKey(uiName))
-                {
-                    GD.PrintErr($"[UIManager.InitUIManager] UI {uiName} 已存在，跳过");
-                    continue;
-                }
-
-                m_UiDict.Add(uiName, prefabUi);
+                GD.PrintErr("[UIManager.Init]：跳过空的预制件");
+                return;
             }
+
+            if (!(packedScene.Instantiate() is UIPanelBase)) return;
+
+            string uiName = ToolUtils.GetResourceName(packedScene.ResourcePath);
+
+            if (uiName == null) return;
+
+            if (m_UiDict.ContainsKey(uiName))
+            {
+                GD.PrintErr($"[UIManager.Init]：UI资源： {uiName} 已存在，跳过");
+                return;
+            }
+
+            m_UiDict.Add(uiName, packedScene);
         }
 
 

@@ -1,20 +1,43 @@
 [gd_scene format=3 uid="uid://brf4o0xvfmd8h"]
 
-[ext_resource type="Script" uid="uid://hy5ixgsowtf" path="res://Scripts/主菜单.cs" id="1_ckshb"]
-[ext_resource type="PackedScene" uid="uid://twtg5h2hlc42" path="res://Prefab/UI/ConsoleUI.tscn" id="2_cjyvh"]
-[ext_resource type="PackedScene" uid="uid://e7qf1e5vukk0" path="res://Prefab/UI/InventoryUI.tscn" id="3_byk0q"]
-[ext_resource type="PackedScene" uid="uid://b27k4h3pbf8mn" path="res://Prefab/UI/手机商店/OnlineShopUI.tscn" id="4_h2myj"]
-[ext_resource type="PackedScene" uid="uid://bmpkd8e03fs8p" path="res://Prefab/UI/手机商店/GoodUI.tscn" id="5_qbp03"]
-[ext_resource type="PackedScene" uid="uid://fti5x0pa48gx" path="res://Prefab/UI/手机/PhoneUI.tscn" id="6_w13ce"]
+[ext_resource type="Script" uid="uid://hy5ixgsowtf" path="res://Dll/Scene/MainMenu.cs" id="1_ckshb"]
 [ext_resource type="Theme" uid="uid://ddcpo5it8afda" path="res://Theme/主菜单UI.tres" id="7_cjyvh"]
 
-[node name="主菜单" type="Node3D" unique_id=650275170]
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ckshb"]
+sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
+ground_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
+
+[sub_resource type="Sky" id="Sky_4lmad"]
+sky_material = SubResource("ProceduralSkyMaterial_ckshb")
+
+[sub_resource type="Environment" id="Environment_7d8j3"]
+background_mode = 2
+sky = SubResource("Sky_4lmad")
+tonemap_mode = 2
+glow_enabled = true
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ckshb"]
+albedo_color = Color(0.08321554, 8.928254e-06, 0.39188647, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_4lmad"]
+material = SubResource("StandardMaterial3D_ckshb")
+
+[node name="主菜单" type="Node3D" unique_id=650275170 node_paths=PackedStringArray("m_MainMenuUI", "m_StartGameUI")]
 script = ExtResource("1_ckshb")
-"UI资源" = Array[PackedScene]([ExtResource("2_cjyvh"), ExtResource("3_byk0q"), ExtResource("4_h2myj"), ExtResource("5_qbp03"), ExtResource("6_w13ce")])
+m_MainMenuUI = NodePath("CanvasLayer/主菜单_画布")
+m_StartGameUI = NodePath("CanvasLayer/大厅界面")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=991670717]
+environment = SubResource("Environment_7d8j3")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1092823855]
+transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, 0, 0, 0)
+shadow_enabled = true
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=2130164997]
 
 [node name="主菜单_画布" type="Control" parent="CanvasLayer" unique_id=22447098]
+visible = false
 layout_mode = 3
 anchors_preset = 8
 anchor_left = 0.5
@@ -42,7 +65,7 @@ theme = ExtResource("7_cjyvh")
 [node name="Label" type="Label" parent="CanvasLayer/主菜单_画布/PanelContainer" unique_id=1807453700]
 layout_mode = 2
 theme = ExtResource("7_cjyvh")
-text = "网吧经营"
+text = "途畔归所"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -64,12 +87,7 @@ theme = ExtResource("7_cjyvh")
 [node name="Button" type="Button" parent="CanvasLayer/主菜单_画布/VBoxContainer" unique_id=529472026]
 layout_mode = 2
 theme = ExtResource("7_cjyvh")
-text = "新游戏"
-
-[node name="Button2" type="Button" parent="CanvasLayer/主菜单_画布/VBoxContainer" unique_id=1922269156]
-layout_mode = 2
-theme = ExtResource("7_cjyvh")
-text = "继续"
+text = "开始游戏"
 
 [node name="Button4" type="Button" parent="CanvasLayer/主菜单_画布/VBoxContainer" unique_id=1978045722]
 layout_mode = 2
@@ -81,4 +99,78 @@ layout_mode = 2
 theme = ExtResource("7_cjyvh")
 text = "退出"
 
+[node name="大厅界面" type="Control" parent="CanvasLayer" unique_id=939008195]
+layout_mode = 3
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+
+[node name="Button" type="Button" parent="CanvasLayer/大厅界面" unique_id=1549941776]
+layout_mode = 0
+offset_left = 214.00003
+offset_top = -350.0
+offset_right = 380.00003
+offset_bottom = -289.0
+theme = ExtResource("7_cjyvh")
+text = "加入游戏"
+
+[node name="Button2" type="Button" parent="CanvasLayer/大厅界面" unique_id=26038958]
+layout_mode = 0
+offset_left = -322.0
+offset_top = -350.0
+offset_right = -156.0
+offset_bottom = -289.0
+theme = ExtResource("7_cjyvh")
+text = "返回"
+
+[node name="Button3" type="Button" parent="CanvasLayer/大厅界面" unique_id=167667823]
+layout_mode = 0
+offset_left = 40.0
+offset_top = -350.0
+offset_right = 206.0
+offset_bottom = -289.0
+theme = ExtResource("7_cjyvh")
+text = "创建大厅"
+
+[node name="Button4" type="Button" parent="CanvasLayer/大厅界面" unique_id=1855247805]
+layout_mode = 0
+offset_left = -143.0
+offset_top = -350.0
+offset_right = 23.0
+offset_bottom = -289.0
+theme = ExtResource("7_cjyvh")
+text = "本地游戏"
+
+[node name="PanelContainer2" type="PanelContainer" parent="CanvasLayer/大厅界面" unique_id=184942701]
+layout_mode = 0
+offset_left = -325.0
+offset_top = -286.0
+offset_right = 392.0
+offset_bottom = 296.0
+theme = ExtResource("7_cjyvh")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/大厅界面/PanelContainer2" unique_id=634160728]
+layout_mode = 2
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1016467814]
+transform = Transform3D(20, 0, 0, 0, 1, 0, 0, 0, 9.920001, 0, 0, 0)
+mesh = SubResource("BoxMesh_4lmad")
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=1793849891]
+transform = Transform3D(1, 0, 0, 0, 0.9924587, 0.12257956, 0, 0.12257956, -0.9924587, 0, 2.6937778, -7.647185)
+
 [connection signal="pressed" from="CanvasLayer/主菜单_画布/VBoxContainer/Button" to="." method="NewGame"]
+[connection signal="pressed" from="CanvasLayer/主菜单_画布/VBoxContainer/Button3" to="." method="Quit"]
+[connection signal="pressed" from="CanvasLayer/大厅界面/Button2" to="." method="Return"]
+[connection signal="pressed" from="CanvasLayer/大厅界面/Button3" to="." method="CreateLobby"]
+[connection signal="pressed" from="CanvasLayer/大厅界面/Button4" to="." method="LocalGame"]
