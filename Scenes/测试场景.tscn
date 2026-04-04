@@ -137,7 +137,6 @@ transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545
 shadow_enabled = true
 
 [node name="Terrain3D" type="Terrain3D" parent="." unique_id=1701916262]
-debug_level = 1
 data_directory = "res://Terrain"
 material = SubResource("Terrain3DMaterial_jrc01")
 assets = SubResource("Terrain3DAssets_qutry")

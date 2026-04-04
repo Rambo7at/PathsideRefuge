@@ -6,6 +6,7 @@ using System.Xml.Linq;
 using 维修公司.Dll.data;
 using 维修公司.Dll.Manager;
 using 维修公司.Utils;
+using 途畔归所.Dll.Base;
 
 namespace 维修公司.Dll
 {
@@ -22,6 +23,9 @@ namespace 维修公司.Dll
         public void Init(PackedScene packedScene)
         {
             if (packedScene == null) return;
+
+            if (!(packedScene.Instantiate() is ItemComp)) return;
+            GD.Print($"有新增物品！");
             string prefabName = ToolUtils.GetResourceName(packedScene.ResourcePath);
 
             if (prefabName == null) return;

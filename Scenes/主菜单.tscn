@@ -171,6 +171,7 @@ transform = Transform3D(1, 0, 0, 0, 0.9924587, 0.12257956, 0, 0.12257956, -0.992
 
 [connection signal="pressed" from="CanvasLayer/主菜单_画布/VBoxContainer/Button" to="." method="NewGame"]
 [connection signal="pressed" from="CanvasLayer/主菜单_画布/VBoxContainer/Button3" to="." method="Quit"]
+[connection signal="pressed" from="CanvasLayer/大厅界面/Button" to="." method="JoinLobby"]
 [connection signal="pressed" from="CanvasLayer/大厅界面/Button2" to="." method="Return"]
 [connection signal="pressed" from="CanvasLayer/大厅界面/Button3" to="." method="CreateLobby"]
 [connection signal="pressed" from="CanvasLayer/大厅界面/Button4" to="." method="LocalGame"]

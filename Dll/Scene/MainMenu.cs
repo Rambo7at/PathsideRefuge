@@ -19,8 +19,8 @@ public partial class MainMenu : Node3D
 	public override void _Ready()
 	{
 		PieceManager.Instance.InitPieceManager(物件资源);
-		if (m_MainMenuUI == null) GD.PrintErr("[MainMenu]：初始化时检测[m_MainMenuUI]是空的");
-		if (m_StartGameUI == null) GD.PrintErr("[MainMenu]：初始化时检测[m_StartGameMeun]是空的");
+		if (m_MainMenuUI == null) GD.PrintErr("[MainMenu]：初始化检测[m_MainMenuUI]是空的");
+		if (m_StartGameUI == null) GD.PrintErr("[MainMenu]：初始化检测[m_StartGameMeun]是空的");
 	}
 
 
@@ -52,21 +52,50 @@ public partial class MainMenu : Node3D
 	}
 
 	public void LocalGame()
-	{ 
-	
-	
+	{
+
+		if (CheckPlayerSave() == false) return;
+		GetTree().ChangeSceneToFile("res://Scenes/测试场景.tscn");
 	}
 
 
 	public void CreateLobby()
-	{ 
-	
-	
-	
-	}
+	{
+        if (CheckPlayerSave() == false) return;
+		GameCore.Instance.m_NetworkCore.StartLANHost();
+
+    }
+
+	public void JoinLobby()
+	{
+        if (CheckPlayerSave() == false) return;
+        GameCore.Instance.m_NetworkCore.JoinLAN("192.168.71.36");
 
 
-	#endregion
+    }
 
+
+    #endregion
+
+    #region 辅助方法
+    private bool CheckPlayerSave()
+	{
+
+        var playerdata = GameCore.Instance.m_PlayerManager.GetLocalPlayerData();
+
+        if (playerdata == null)
+        {
+            GD.Print("未检测到本地存档数据");
+            GetTree().ChangeSceneToFile("res://Scenes/角色创建.tscn");
+            return false;
+        }
+		return true;
+    }
+
+
+
+
+
+    #endregion
 
 }

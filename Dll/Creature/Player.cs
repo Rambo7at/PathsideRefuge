@@ -3,43 +3,30 @@ using System;
 using System.Collections.Generic;
 using 维修公司.Dll;
 using 维修公司.Utils;
+using 途畔归所.Dll.Base;
 using 途畔归所.Dll.Core;
 using static Godot.TextServer;
 
-public partial class PlayerController : CharacterBody3D
+public partial class Player : Humanoid
 {
-	public const float Speed = 5.0f;
-	public const float JumpVelocity = 4.5f;
-	/// <summary>目标旋转角度（GDScript的target_angle，初始值为PI）</summary>
-	private float targetAngle = Mathf.Pi;
+	/// <summary>玩家挂载的摄像头 </summary>
+	[Export] public Camera3D m_Camera3D;
+	/// <summary> 玩家镜头控制身体旋转组件，传入的是玩家模型 </summary>
+	[Export] public Node3D m_PlayerMesh; // 对应你GDScript里的model变量
+	/// <summary> 提示UI </summary>
+	[Export] public Control 拾取UI;
+	/// <summary> 玩家身上的CanvasLayer </summary>
+	[Export] public CanvasLayer m_CanvasLayer;
+
 
 	/// <summary>注：玩家检测返回内的物品列表 </summary>
 	public List<ItemComp> m_InRangeItems = new List<ItemComp>();
 
-	/// <summary>玩家挂载的摄像头 </summary>
-	[Export] private Camera3D m_Camera3D;
-	/// <summary> 玩家镜头控制身体旋转组件，传入的是玩家模型 </summary>
-	[Export] private Node3D m_PlayerMesh; // 对应你GDScript里的model变量
-	/// <summary> 提示UI </summary>
-	[Export] private Control 拾取UI;
-	/// <summary> 玩家身上的CanvasLayer </summary>
-	[Export] private CanvasLayer m_CanvasLayer;
-	/// <summary> 射线组件 </summary>
-	[Export] private Marker3D m_eye;
-
-
-	#region 组件
-
-	private BuildComp m_buildSystem;   // 建造系统？这个可能需要更改
-	public InventoryComp m_InventoryComp;   //背包组件
-	public ConsoleComp m_ConsoleComp;    //控制台组件
-	public PhoneComp m_PhoneComp;   //手机组件
-
-	#endregion
-
-
-
-
+	public const float Speed = 5.0f;
+	public const float JumpVelocity = 4.5f;
+	private bool isPlayerValid = false; // 完整性检测
+	private bool isPlayerMenu = false; // 是否在主菜单场景
+	private float targetAngle = Mathf.Pi; // 目标旋转角度
 
 	public override void _Ready()
 	{
@@ -52,11 +39,12 @@ public partial class PlayerController : CharacterBody3D
 		PlayerMoveAnimationDirection(delta);
 		UI();
 		MouseMode();
+
 	}
+
 
 	public override void _PhysicsProcess(double delta)
 	{
-		
 		if (!IsInsideTree()) return;
 
 		UpdateInteractDetection(delta);
@@ -97,6 +85,14 @@ public partial class PlayerController : CharacterBody3D
 			拾取UI.Visible = false;
 		}
 	}
+
+	#endregion
+
+	#region 组件
+	/// <summary>注：背包组件 </summary>
+	public InventoryComp m_InventoryComp;  
+	/// <summary>注：控制台组件 </summary>
+	public ConsoleComp m_ConsoleComp;   
 
 	#endregion
 
@@ -149,11 +145,11 @@ public partial class PlayerController : CharacterBody3D
 
 
 	#region  UI操作
+	/// <summary>注：UI触发按钮集合 </summary>
 	private void UI()
 	{
 		GoConsoleComp();
 		GoInventoryComp();
-		GoPhoneComp();
 	}
 
 	private void GoConsoleComp()
@@ -172,41 +168,72 @@ public partial class PlayerController : CharacterBody3D
 		}
 	}
 
-	private void GoPhoneComp()
-	{
-		if (Input.IsActionPressed("cat_B"))
-		{
-			m_PhoneComp.ToggleUI();
-		}
-	
-	}
-
 	private void MouseMode()
 	{
-		if (m_ConsoleComp.Visible || m_PhoneComp.Visible || m_InventoryComp.Visible)
+		if (m_ConsoleComp.Visible)
 		{
 			Input.MouseMode = Input.MouseModeEnum.Visible;
 		}
-		else if (!m_ConsoleComp.Visible && !m_PhoneComp.Visible && !m_InventoryComp.Visible)
+		else if (!m_ConsoleComp.Visible)
 		{
 			Input.MouseMode = Input.MouseModeEnum.Captured;
 		}
-   
-	}
 
+	}
 
 	#endregion
 
 
 	#region 初始化
-	/// <summary>注：玩家的所有初始化集合</summary>
+	/// <summary>注：player类所有初始化集合</summary>
 	private void Init()
 	{
-		InitPlayerInventory();
-		InitPlayerConsole();
-		InitPhoneComp();
+		if (CheckPlayerNull())
+		{
+			// 组件初始化
+			InitPlayerInventory();
+			InitPlayerConsole();
+
+		}
+
+
 	}
-	/// <summary>初始化背包组件</summary>
+	/// <summary>注：检测player关键字段是否为空</summary>
+	private bool CheckPlayerNull()
+	{
+		if (m_eye == null)
+		{
+			GD.PrintErr($"[Player.CheckPlayerNull]：检测 [m_eye] 字段为空");
+			return false;
+		}
+		if (m_Camera3D == null)
+		{
+			GD.PrintErr($"[Player.CheckPlayerNull]：检测 [m_Camera3D] 字段为空");
+			return false;
+		}
+		if (m_PlayerMesh == null)
+		{
+			GD.PrintErr($"[Player.CheckPlayerNull]：检测 [m_PlayerMesh] 字段为空");
+			return false;
+		}
+		if (拾取UI == null)
+		{
+			GD.PrintErr($"[Player.CheckPlayerNull]：检测 [拾取UI] 字段为空");
+			return false;
+		}
+		if (m_CanvasLayer == null)
+		{
+			GD.PrintErr($"[Player.CheckPlayerNull]：检测 [m_CanvasLayer] 字段为空");
+			return false;
+		}
+		isPlayerValid = true;
+		return true;
+	}
+
+
+
+
+	/// <summary>初始化玩家背包</summary>
 	private void InitPlayerInventory()
 	{
 		if (m_InventoryComp != null) return;
@@ -217,7 +244,7 @@ public partial class PlayerController : CharacterBody3D
 		var script = ToolUtils.GetNodeScript<InventoryComp>(UI);
 		if (script == null) return;
 
-		script.m_Marker3D = m_eye;
+		script.m_Marker3D = m_eye;   // 这是初始化玩家眼睛
 		m_InventoryComp = script;
 
 		UI.Visible = false;
@@ -225,7 +252,7 @@ public partial class PlayerController : CharacterBody3D
 
 	}
 
-	/// <summary>注：初始化控制台组件</summary>
+	/// <summary>注：初始化玩家控制台</summary>
 	private void InitPlayerConsole()
 	{
 		if (m_ConsoleComp != null) return;
@@ -237,39 +264,11 @@ public partial class PlayerController : CharacterBody3D
 		if (script == null) return;
 
 		m_ConsoleComp = script;
-		m_ConsoleComp.GetPlayer(this);
+		m_ConsoleComp.GetPlayer(this);  // 这是获取玩家组件，准备获取位置
 
 		UI.Visible = false;
 		m_CanvasLayer.AddChild(UI);
 
-	}
-	/// <summary>注：初始化手机组件</summary>
-	private void InitPhoneComp()
-	{
-
-		if (m_PhoneComp != null) return;
-
-		var UI = GameCore.Instance.m_UIManager.GetUI("PhoneUI");
-		if (UI == null) return;
-
-		var script = ToolUtils.GetNodeScript<PhoneComp>(UI);
-		if (script == null) return;
-
-		m_PhoneComp = script;
-
-		UI.Visible = false;
-		m_CanvasLayer.AddChild(UI);
-	}
-
-	private void InitBuildSystem()
-	{
-		// 1. 创建BuildSystem实例
-		m_buildSystem = new BuildComp();
-		// 2. 关键：把BuildSystem添加到Player节点下（进入场景树）
-		AddChild(m_buildSystem);
-		GD.PrintErr("红色提示！开始建造咯！");
-		m_buildSystem.InitBuildPiece(m_eye, m_Camera3D, "测试方块");
-		GD.PrintErr("建造执行成功");
 	}
 	#endregion
 
@@ -348,5 +347,14 @@ public partial class PlayerController : CharacterBody3D
 		m_PlayerMesh.GlobalRotation = new Vector3(m_PlayerMesh.GlobalRotation.X, smoothedY, m_PlayerMesh.GlobalRotation.Z);
 	}
 	#endregion
+
+
+	#region  辅助方法
+
+
+
+
+	#endregion
+
 
 }

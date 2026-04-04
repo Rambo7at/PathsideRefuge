@@ -9,11 +9,14 @@ namespace 途畔归所.Dll.Base
 {
     public partial class CreatureBase : CharacterBody3D
     {
-
+        [Export] public string CreatureName = string.Empty;
 
         [Export] public float Health = 100f;
 
         [Export] public bool IsNpc = false;
+
+        /// <summary> 射线组件 </summary>
+        [Export] public Marker3D m_eye;
 
         public bool IsDead = false;
 

@@ -6,6 +6,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using 维修公司.Dll;
+using 维修公司.Dll.Manager;
 using 途畔归所.Dll.Manager;
 
 namespace 途畔归所.Dll.Core
@@ -15,17 +16,27 @@ namespace 途畔归所.Dll.Core
 
 		public static GameCore Instance;
 
+		/// <summary> 注：时间管理器 </summary>
 		public TimeManager m_TimeManager;
 
+		/// <summary> 注：物品资源管理器 </summary>
 		public ItemManager m_ItemManager;
 
+		/// <summary> 注：资源管理器 </summary>
 		public ResourceManager m_ResourceManager;
 
+		/// <summary> 注：UI资源管理器 </summary>
 		public UIManager m_UIManager;
 
+		/// <summary> 注：控制台管理器 </summary>
 		public ConsoleManager m_ConsoleManager;
 
-        public override void _Ready()
+		/// <summary> 注：玩家管理器 </summary>
+		public PlayerManager m_PlayerManager;
+
+		public NetworkCore m_NetworkCore;
+
+		public override void _Ready()
 		{
 			Instance = this;
 
@@ -34,43 +45,27 @@ namespace 途畔归所.Dll.Core
 
 			GD.Print("[GameCore]：初始化完成");
 		}
-        
 
-        /// <summary>
-        ///  注：初始化管理器
-        /// </summary>
-        public void InitManagers()
+
+		/// <summary>注：初始化全部管理器 </summary>
+		private void InitManagers()
 		{
-
-			if (m_ResourceManager == null)
-			{
-				m_ResourceManager = new ResourceManager();
-			}
-
-			if (m_ItemManager == null)
-			{
-				m_ItemManager = new ItemManager();
-			}
-
-			if (m_ConsoleManager == null)
-			{
-				m_UIManager = new();
-            }
+			RegisterManager(ref m_ResourceManager);
+			RegisterManager(ref m_ItemManager);
+			RegisterManager(ref m_ConsoleManager);
+			RegisterManager(ref m_TimeManager);
+			RegisterManager(ref m_UIManager);
+			RegisterManager(ref m_PlayerManager);
+			RegisterManager(ref m_NetworkCore);
 
 
-            if (m_TimeManager == null)
-            {
-                m_TimeManager = new ();
-                AddChild(m_TimeManager);
-            }
-			if (m_ConsoleManager == null)
-			{
-				m_ConsoleManager = new();
-				AddChild(m_ConsoleManager);
+			AddChild(m_TimeManager);
+			AddChild(m_NetworkCore);
+			AddChild(m_ConsoleManager);
+		}
 
-            }
 
-        }
+
 
 
 
@@ -86,12 +81,28 @@ namespace 途畔归所.Dll.Core
 			{
 				m_ItemManager.Init(item);
 				m_UIManager.Init(item);
+				m_PlayerManager.Init(item);
 			}
 
 
 		}
 
+		#region 辅助方法
 
+		/// <summary> 泛型管理器注册，约束：必须是类 + 有无参构造 </summary>
+		/// <typeparam name="T">管理器类型</typeparam>
+		/// <param name="manager">管理器实例</param>
+		public void RegisterManager<T>(ref T manager) where T : class, new()
+		{
+			if (manager == null) manager = new();
+		}
+
+
+
+
+
+
+		#endregion
 
 	}
 }

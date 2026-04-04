@@ -1,0 +1,102 @@
+[gd_scene format=3 uid="uid://c56jtq55oms30"]
+
+[ext_resource type="Material" uid="uid://nbbdrx8vma80" path="res://demo/assets/materials/M_rock23_tp.tres" id="1_2wtf7"]
+[ext_resource type="Script" uid="uid://bdnly8o7l5rj0" path="res://Dll/Scene/PlayerCreator.cs" id="1_s3vyj"]
+[ext_resource type="Theme" uid="uid://cxjqe8iwko2rk" path="res://Theme/角色创建.tres" id="3_s3vyj"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_mguh4"]
+sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
+ground_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
+
+[sub_resource type="Sky" id="Sky_s3vyj"]
+sky_material = SubResource("ProceduralSkyMaterial_mguh4")
+
+[sub_resource type="Environment" id="Environment_x0sqp"]
+background_mode = 2
+sky = SubResource("Sky_s3vyj")
+tonemap_mode = 2
+glow_enabled = true
+
+[sub_resource type="BoxMesh" id="BoxMesh_p5c0j"]
+
+[sub_resource type="ConcavePolygonShape3D" id="ConcavePolygonShape3D_gc2nb"]
+data = PackedVector3Array(-0.5, 0.5, 0.5, 0.5, 0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5, -0.5, -0.5, -0.5, 0.5, -0.5, -0.5, -0.5, -0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0.5, 0.5, 0.5, -0.5, 0.5, -0.5, 0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5, 0.5, -0.5, 0.5, -0.5, 0.5, -0.5, -0.5, 0.5, 0.5, -0.5, -0.5, -0.5, -0.5, 0.5, 0.5, -0.5, -0.5, 0.5, -0.5, -0.5, -0.5, 0.5, 0.5, 0.5, -0.5, 0.5, 0.5, 0.5, 0.5, -0.5, -0.5, 0.5, 0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, -0.5, -0.5, 0.5, 0.5, -0.5, 0.5, -0.5, -0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, -0.5, -0.5, -0.5, -0.5)
+
+[node name="角色创建" type="Node3D" unique_id=1621654289 node_paths=PackedStringArray("m_Name")]
+script = ExtResource("1_s3vyj")
+m_Name = NodePath("CanvasLayer/Control/LineEdit")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=681971583]
+environment = SubResource("Environment_x0sqp")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=856570805]
+transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, 0, 0, 0)
+shadow_enabled = true
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=784416121]
+transform = Transform3D(33.12, 0, 0, 0, 1, 0, 0, 0, 21.924002, 0, 0, 0)
+mesh = SubResource("BoxMesh_p5c0j")
+surface_material_override/0 = ExtResource("1_2wtf7")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="MeshInstance3D" unique_id=675244162]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="MeshInstance3D/StaticBody3D" unique_id=1323199986]
+shape = SubResource("ConcavePolygonShape3D_gc2nb")
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=1017313510]
+transform = Transform3D(-1, 0, 8.940697e-08, 0, 1, 0, -8.940697e-08, 0, -1, -0.056313455, 1.9075286, -0.7424891)
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=425765432]
+
+[node name="Control" type="Control" parent="CanvasLayer" unique_id=1937574459]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="LineEdit" type="LineEdit" parent="CanvasLayer/Control" unique_id=1837060931]
+layout_mode = 0
+offset_left = 855.0
+offset_top = 958.0
+offset_right = 1178.0
+offset_bottom = 1049.0
+theme = ExtResource("3_s3vyj")
+alignment = 1
+
+[node name="Label" type="Label" parent="CanvasLayer/Control" unique_id=1479817762]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 652.0
+offset_top = 938.0
+offset_right = 847.0
+offset_bottom = 1029.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("3_s3vyj")
+text = "名字"
+horizontal_alignment = 1
+
+[node name="Button" type="Button" parent="CanvasLayer/Control" unique_id=271904590]
+layout_mode = 0
+offset_left = 1197.0
+offset_top = 967.0
+offset_right = 1335.0
+offset_bottom = 1044.0
+theme = ExtResource("3_s3vyj")
+text = "创建"
+
+[node name="Button2" type="Button" parent="CanvasLayer/Control" unique_id=1382581475]
+layout_mode = 0
+offset_left = 97.0
+offset_top = 73.0
+offset_right = 264.13007
+offset_bottom = 134.0
+theme = ExtResource("3_s3vyj")
+text = "返回"
+
+[connection signal="pressed" from="CanvasLayer/Control/Button" to="." method="Creator"]
+[connection signal="pressed" from="CanvasLayer/Control/Button2" to="." method="Return"]
