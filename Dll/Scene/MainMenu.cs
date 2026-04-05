@@ -11,17 +11,30 @@ public partial class MainMenu : Node3D
 	[Export]
 	public Array<PackedScene> 物件资源 = new Array<PackedScene>();
 
-	[Export] private Control m_MainMenuUI;
+	[Export] private Control 菜单UI;
 
-	[Export] private Control m_StartGameUI;
+	[Export] private Control 开始UI;
+
+    [Export] private Control 创建UI;
+
+	[Export] private Button 门牌UI;
+
+	[Export] private LineEdit 房间名称;
 
 
-	public override void _Ready()
+    public override void _Ready()
 	{
-		PieceManager.Instance.InitPieceManager(物件资源);
-		if (m_MainMenuUI == null) GD.PrintErr("[MainMenu]：初始化检测[m_MainMenuUI]是空的");
-		if (m_StartGameUI == null) GD.PrintErr("[MainMenu]：初始化检测[m_StartGameMeun]是空的");
-	}
+		if (菜单UI == null) GD.PrintErr("[MainMenu]：初始化字段：[菜单UI]是空");
+		if (开始UI == null) GD.PrintErr("[MainMenu]：初始化字段：[开始UI]字段是空");
+        if (创建UI == null) GD.PrintErr("[MainMenu]：初始化字段：[创建UI]字段是空");
+        if (门牌UI == null) GD.PrintErr("[MainMenu]：初始化字段：[门牌UI]字段是空");
+        if (房间名称 == null) GD.PrintErr("[MainMenu]：初始化字段：[房间名称]是空");
+
+
+		菜单UI.Visible = true;
+        开始UI.Visible = false;
+		创建UI.Visible = false;
+    }
 
 
 	public override void _Process(double delta)
@@ -34,8 +47,8 @@ public partial class MainMenu : Node3D
 	/// <summary>注：加载游戏场景</summary>
 	public void NewGame()
 	{
-		m_MainMenuUI.Visible = false;
-		m_StartGameUI.Visible = true;
+		菜单UI.Visible = false;
+		开始UI.Visible = true;
 	}
 
 
@@ -47,9 +60,11 @@ public partial class MainMenu : Node3D
 
 	public void Return()
 	{
-		m_MainMenuUI.Visible = true;
-		m_StartGameUI.Visible = false;
-	}
+		菜单UI.Visible = true;
+		开始UI.Visible = false;
+        创建UI.Visible = false;
+        房间名称.Text = "";
+    }
 
 	public void LocalGame()
 	{
@@ -62,7 +77,8 @@ public partial class MainMenu : Node3D
 	public void CreateLobby()
 	{
         if (CheckPlayerSave() == false) return;
-		GameCore.Instance.m_NetworkCore.StartLANHost();
+
+        创建UI.Visible = true;
 
     }
 
@@ -70,9 +86,22 @@ public partial class MainMenu : Node3D
 	{
         if (CheckPlayerSave() == false) return;
         GameCore.Instance.m_NetworkCore.JoinLAN("192.168.71.36");
-
-
     }
+
+
+
+	public void GoLobby()
+	{
+        GameCore.Instance.m_NetworkCore.StartLANHost();
+        门牌UI.Text = 房间名称.Text;
+		创建UI.Visible = false;
+		房间名称.Text = "";
+    }
+
+
+
+
+
 
 
     #endregion

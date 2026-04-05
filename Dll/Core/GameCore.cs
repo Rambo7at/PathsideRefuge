@@ -6,7 +6,6 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using 维修公司.Dll;
-using 维修公司.Dll.Manager;
 using 途畔归所.Dll.Manager;
 
 namespace 途畔归所.Dll.Core

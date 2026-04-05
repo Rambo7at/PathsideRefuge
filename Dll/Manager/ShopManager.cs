@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using 维修公司.Dll;
 using 维修公司.Dll.data;
-using 维修公司.Dll.Manager;
+using 途畔归所.Dll.Manager;
 using 途畔归所.Dll.Core;
 
 public partial class ShopManager : Node
