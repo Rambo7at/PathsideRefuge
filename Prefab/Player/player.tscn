@@ -58,23 +58,23 @@ height = 1.875
 [sub_resource type="SphereShape3D" id="SphereShape3D_hw4ku"]
 radius = 1.1321139
 
-[node name="Player" type="CharacterBody3D" unique_id=67650192 node_paths=PackedStringArray("m_Camera3D", "m_PlayerMesh", "拾取UI", "m_CanvasLayer", "m_eye")]
+[node name="Player" type="CharacterBody3D" unique_id=67650192 node_paths=PackedStringArray("摄像机", "玩家模型", "拾取UI", "m_CanvasLayer", "m_eye")]
 script = ExtResource("1_ohvtk")
-m_Camera3D = NodePath("SpringArm3D/Camera3D")
-m_PlayerMesh = NodePath("Player")
+"摄像机" = NodePath("SpringArm3D/Camera3D")
+"玩家模型" = NodePath("PlayerMesh")
 "拾取UI" = NodePath("CanvasLayer/拾取提示")
 m_CanvasLayer = NodePath("CanvasLayer")
-m_eye = NodePath("Player/Marker3D")
+m_eye = NodePath("PlayerMesh/Marker3D")
 
-[node name="Player" parent="." unique_id=907088130 instance=ExtResource("2_hw4ku")]
+[node name="PlayerMesh" parent="." unique_id=907088130 instance=ExtResource("2_hw4ku")]
 transform = Transform3D(-0.825, 0, -1.2457153e-07, 0, 0.825, 0, 1.2457153e-07, 0, -0.825, 0, 0, 0)
 
-[node name="AnimationTree" type="AnimationTree" parent="Player" unique_id=621142470]
+[node name="AnimationTree" type="AnimationTree" parent="PlayerMesh" unique_id=621142470]
 tree_root = SubResource("AnimationNodeStateMachine_wutkt")
 advance_expression_base_node = NodePath("../..")
 anim_player = NodePath("../AnimationPlayer")
 
-[node name="Marker3D" type="Marker3D" parent="Player" unique_id=18798420]
+[node name="Marker3D" type="Marker3D" parent="PlayerMesh" unique_id=18798420]
 transform = Transform3D(-1.2121212, 0, 1.8302522e-07, 0, 1.2121212, 0, -1.8302522e-07, 0, -1.2121212, -1.9259211e-07, 1.9127014, 1.2754799)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=291526403]

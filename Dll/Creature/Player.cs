@@ -5,28 +5,37 @@ using 维修公司.Dll;
 using 维修公司.Utils;
 using 途畔归所.Dll.Base;
 using 途畔归所.Dll.Core;
+using 途畔归所.Dll.Creature;
 using static Godot.TextServer;
 
 public partial class Player : Humanoid
 {
-	/// <summary>玩家挂载的摄像头 </summary>
-	[Export] public Camera3D m_Camera3D;
-	/// <summary> 玩家镜头控制身体旋转组件，传入的是玩家模型 </summary>
-	[Export] public Node3D m_PlayerMesh; // 对应你GDScript里的model变量
-	/// <summary> 提示UI </summary>
+	[Export] public Camera3D 摄像机;
+	[Export] public Node3D 玩家模型; 
 	[Export] public Control 拾取UI;
-	/// <summary> 玩家身上的CanvasLayer </summary>
 	[Export] public CanvasLayer m_CanvasLayer;
+
+
+	public string PlayerName;
+	public float m_Speed = 5.0f;
+	public float m_Jump = 4.5f;
+
+
+
+
+
+
+
+
+
+
 
 
 	/// <summary>注：玩家检测返回内的物品列表 </summary>
 	public List<ItemComp> m_InRangeItems = new List<ItemComp>();
-
-	public const float Speed = 5.0f;
-	public const float JumpVelocity = 4.5f;
 	private bool isPlayerValid = false; // 完整性检测
 	private bool isPlayerMenu = false; // 是否在主菜单场景
-	private float targetAngle = Mathf.Pi; // 目标旋转角度
+	private PlayerController m_Controller;
 
 	public override void _Ready()
 	{
@@ -36,7 +45,8 @@ public partial class Player : Humanoid
 
 	public override void _Process(double delta)
 	{
-		PlayerMoveAnimationDirection(delta);
+		m_Controller.Update(delta);
+
 		UI();
 		MouseMode();
 
@@ -46,9 +56,8 @@ public partial class Player : Humanoid
 	public override void _PhysicsProcess(double delta)
 	{
 		if (!IsInsideTree()) return;
-
+		m_Controller.PhysicsUpdate(delta);
 		UpdateInteractDetection(delta);
-		HandlePlayerMovement(delta);
 	}
 
 	#region 回调函数
@@ -190,6 +199,8 @@ public partial class Player : Humanoid
 	{
 		if (CheckPlayerNull())
 		{
+			m_Controller = new PlayerController(this);
+
 			// 组件初始化
 			InitPlayerInventory();
 			InitPlayerConsole();
@@ -206,12 +217,12 @@ public partial class Player : Humanoid
 			GD.PrintErr($"[Player.CheckPlayerNull]：检测 [m_eye] 字段为空");
 			return false;
 		}
-		if (m_Camera3D == null)
+		if (摄像机 == null)
 		{
 			GD.PrintErr($"[Player.CheckPlayerNull]：检测 [m_Camera3D] 字段为空");
 			return false;
 		}
-		if (m_PlayerMesh == null)
+		if (玩家模型 == null)
 		{
 			GD.PrintErr($"[Player.CheckPlayerNull]：检测 [m_PlayerMesh] 字段为空");
 			return false;
@@ -270,90 +281,6 @@ public partial class Player : Humanoid
 		m_CanvasLayer.AddChild(UI);
 
 	}
-	#endregion
-
-
-	#region 人物操作
-	/// <summary>注：人物移动逻辑</summary>
-	/// <param name="delta">帧时间</param>
-	private void HandlePlayerMovement(double delta)
-	{
-		Vector3 velocity = Velocity;
-
-		// 重力
-		if (!IsOnFloor())
-		{
-			velocity += GetGravity() * (float)delta;
-		}
-
-		// 跳跃
-		if (Input.IsActionJustPressed("ui_accept") && IsOnFloor())
-		{
-			velocity.Y = JumpVelocity;
-		}
-
-		// 获取输入方向
-		Vector2 inputDir = Input.GetVector("cat_Left", "cat_Right", "cat_Forward", "cat_Backward");
-
-		// 计算摄像头的水平前方向和右方向（忽略俯仰）
-		Vector3 cameraForward = -m_Camera3D.GlobalTransform.Basis.Z;
-		Vector3 cameraRight = m_Camera3D.GlobalTransform.Basis.X;
-		cameraForward.Y = 0;
-		cameraRight.Y = 0;
-		cameraForward = cameraForward.Normalized();
-		cameraRight = cameraRight.Normalized();
-
-		// 移动方向 = 前/后 * 摄像头前方 + 左/右 * 摄像头右方
-		// 注意：inputDir.Y 向前为负，所以需要取反
-		Vector3 direction = cameraForward * (-inputDir.Y) + cameraRight * inputDir.X;
-		direction = direction.Normalized();
-
-		// 设置水平速度
-		if (direction != Vector3.Zero)
-		{
-			velocity.X = direction.X * Speed;
-			velocity.Z = direction.Z * Speed;
-		}
-		else
-		{
-			velocity.X = Mathf.MoveToward(Velocity.X, 0, Speed);
-			velocity.Z = Mathf.MoveToward(Velocity.Z, 0, Speed);
-		}
-
-		Velocity = velocity;
-		MoveAndSlide();
-	}
-
-
-	/// <summary>注：封装人物移动随摄像机转向 </summary>
-	/// <param name="delta"></param>
-	private void PlayerMoveAnimationDirection(double delta)
-	{
-		// 获取相机的水平旋转角度
-		float cameraAngle = m_Camera3D.GlobalRotation.Y;
-		// 获取输入方向
-		Vector2 inputDir = Input.GetVector("cat_Left", "cat_Right", "cat_Forward", "cat_Backward");
-		var inputangle = Mathf.Atan2(inputDir.X, inputDir.Y);
-
-		// 如果存在有效输入，更新目标角度
-		if (inputDir != Vector2.Zero)
-		{
-			targetAngle = cameraAngle + inputangle;
-		}
-
-		// 平滑旋转模型（只绕 Y 轴旋转）
-		float rotationSpeed = 15f; // 对应 GDScript 中的 15
-		float smoothedY = Mathf.LerpAngle(m_PlayerMesh.GlobalRotation.Y, targetAngle, (float)delta * rotationSpeed);
-		m_PlayerMesh.GlobalRotation = new Vector3(m_PlayerMesh.GlobalRotation.X, smoothedY, m_PlayerMesh.GlobalRotation.Z);
-	}
-	#endregion
-
-
-	#region  辅助方法
-
-
-
-
 	#endregion
 
 
