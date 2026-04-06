@@ -1,4 +1,5 @@
 using Godot;
+using Godot.Collections;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,16 +9,10 @@ using System.Threading.Tasks;
 namespace 途畔归所.Dll.Data
 {
     [GlobalClass]
-    public partial class PlayerData : Resource
+    public partial class SaveData : Resource
     {
-        public string Name { get;  set; }
 
-       
-
-
-
-
-
+        [Export] public Array<PlayerData> playerDatas = [];
 
 
 

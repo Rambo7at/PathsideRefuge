@@ -33,16 +33,19 @@ namespace 途畔归所.Dll.Core
 		/// <summary> 注：玩家管理器 </summary>
 		public PlayerManager m_PlayerManager;
 
+		/// <summary> 注：存档管理器 </summary>
+		public SaveManager m_SaveManager;
+
+
+		/// <summary> 注：网络核心 </summary>
 		public NetworkCore m_NetworkCore;
 
 		public override void _Ready()
 		{
 			Instance = this;
-
 			InitManagers();
 			ResourceLoad();
-
-			GD.Print("[GameCore]：初始化完成");
+            GD.Print("[GameCore]：初始化完成");
 		}
 
 
@@ -56,7 +59,7 @@ namespace 途畔归所.Dll.Core
 			RegisterManager(ref m_UIManager);
 			RegisterManager(ref m_PlayerManager);
 			RegisterManager(ref m_NetworkCore);
-
+			RegisterManager(ref m_SaveManager);
 
 			AddChild(m_TimeManager);
 			AddChild(m_NetworkCore);
@@ -66,14 +69,10 @@ namespace 途畔归所.Dll.Core
 
 
 
-
-
-		/// <summary>
-		///  注：资源加载
-		/// </summary>
+		/// <summary> 注：资源加载/ </summary>
 		public void ResourceLoad()
 		{
-			if (m_ItemManager == null){ GD.PrintErr("[GameCore]：加载资源时[m_ItemManager]是空的"); return;}
+			if (m_ItemManager == null) { GD.PrintErr("[GameCore]：加载资源时[m_ItemManager]是空的"); return; }
 			if (m_ResourceManager.ResourceList.Count == 0) { GD.PrintErr("[GameCore]：加载资源时[m_ResourceManager.ResourceList]是空的"); return; }
 
 			foreach (var item in m_ResourceManager.ResourceList)
@@ -82,8 +81,6 @@ namespace 途畔归所.Dll.Core
 				m_UIManager.Init(item);
 				m_PlayerManager.Init(item);
 			}
-
-
 		}
 
 		#region 辅助方法
@@ -95,11 +92,6 @@ namespace 途畔归所.Dll.Core
 		{
 			if (manager == null) manager = new();
 		}
-
-
-
-
-
 
 		#endregion
 

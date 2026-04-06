@@ -1,6 +1,6 @@
 using Godot;
 
-namespace 维修公司.Dll
+namespace 途畔归所.Dll.Manager
 {
 	/// <summary>全局时间管理器 - 游戏1天=24分钟</summary>
 	public partial class TimeManager : Node

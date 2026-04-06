@@ -1,8 +1,4 @@
 using Godot;
-using Godot.Collections;
-using System;
-using System.Collections.Generic;
-using 维修公司.Dll;
 using 途畔归所.Dll.Core;
 
 public partial class ConsoleManager : Node

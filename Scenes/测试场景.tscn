@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://dngdrhukbvjup"]
 
+[ext_resource type="Script" uid="uid://ifxi4iqpfig5" path="res://Dll/Scene/MainWorld.cs" id="1_04x88"]
 [ext_resource type="Texture2D" uid="uid://c01l0e5fhrj37" path="res://Mat/岩石-1/Rock058_1K-PNG_Color.png" id="1_a2o25"]
-[ext_resource type="PackedScene" uid="uid://b3mwkn3g8itan" path="res://Prefab/Player/player.tscn" id="1_ykqoc"]
 [ext_resource type="Texture2D" uid="uid://c1jss78hg0iuv" path="res://Mat/岩石-1/Rock058_1K-PNG_NormalGL.png" id="2_ak4h6"]
 [ext_resource type="Texture2D" uid="uid://bdiidrnx6whrn" path="res://Mat/草地-1/Ground037_1K-PNG_Color.png" id="3_04x88"]
 [ext_resource type="Texture2D" uid="uid://dtdyslx8t74rv" path="res://Mat/草地-1/Ground037_1K-PNG_NormalGL.png" id="4_qutry"]
@@ -127,13 +127,15 @@ normal_texture = ExtResource("6_4sfak")
 mesh_list = Array[Terrain3DMeshAsset]([SubResource("Terrain3DMeshAsset_04x88")])
 texture_list = Array[Terrain3DTextureAsset]([SubResource("Terrain3DTextureAsset_4sfak"), SubResource("Terrain3DTextureAsset_3ycm5"), SubResource("Terrain3DTextureAsset_e120r")])
 
-[node name="Node3D" type="Node3D" unique_id=1047784342]
+[node name="Node3D" type="Node3D" unique_id=1047784342 node_paths=PackedStringArray("SpawnPian")]
+script = ExtResource("1_04x88")
+SpawnPian = NodePath("playerSpawn")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=177978708]
 environment = SubResource("Environment_eihmu")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1699673310]
-transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, 0, 0, 0)
+transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, 0, 16.802343, 0)
 shadow_enabled = true
 
 [node name="Terrain3D" type="Terrain3D" parent="." unique_id=1701916262]
@@ -143,5 +145,5 @@ assets = SubResource("Terrain3DAssets_qutry")
 top_level = true
 metadata/_edit_lock_ = true
 
-[node name="Player" parent="." unique_id=67650192 instance=ExtResource("1_ykqoc")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.27460718, 0, 0.1250614)
+[node name="playerSpawn" type="Node3D" parent="." unique_id=373272656]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2394395, 0)
