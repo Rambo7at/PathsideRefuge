@@ -1,40 +1,30 @@
 using Godot;
-using System;
 using System.Collections.Generic;
-using 维修公司.Dll;
 using 维修公司.Utils;
 using 途畔归所.Dll.Base;
 using 途畔归所.Dll.Core;
 using 途畔归所.Dll.Creature;
-using static Godot.TextServer;
 
 public partial class Player : Humanoid
 {
 	[Export] public Camera3D 摄像机;
-	[Export] public Node3D 玩家模型; 
+	[Export] public Node3D 玩家模型;
 	[Export] public Control 拾取UI;
 	[Export] public CanvasLayer m_CanvasLayer;
-
 
 	public string PlayerName;
 	public float m_Speed = 5.0f;
 	public float m_Jump = 4.5f;
 
+	private bool isPlayerValid = false; // 完整性检测
+	private bool isPlayerMenu = false; // 是否在主菜单场景
 
-
-
-
-
-
-
-
-
+	public InventoryComp m_InventoryComp;
+	public ConsoleComp m_ConsoleComp;
 
 
 	/// <summary>注：玩家检测返回内的物品列表 </summary>
 	public List<ItemComp> m_InRangeItems = new List<ItemComp>();
-	private bool isPlayerValid = false; // 完整性检测
-	private bool isPlayerMenu = false; // 是否在主菜单场景
 	private PlayerController m_Controller;
 
 	public override void _Ready()
@@ -42,7 +32,6 @@ public partial class Player : Humanoid
 		拾取UI.Visible = false;
 		Init();
 	}
-
 	public override void _Process(double delta)
 	{
 		m_Controller.Update(delta);
@@ -51,14 +40,70 @@ public partial class Player : Humanoid
 		MouseMode();
 
 	}
-
-
 	public override void _PhysicsProcess(double delta)
 	{
 		if (!IsInsideTree()) return;
 		m_Controller.PhysicsUpdate(delta);
 		UpdateInteractDetection(delta);
 	}
+
+	#region 初始化
+	/// <summary>注：player类所有初始化集合</summary>
+	private void Init()
+	{
+		if (CheckPlayerNull())
+		{
+			m_Controller = new PlayerController(this);
+
+			// 组件初始化
+			InitInventory();
+			InitPlayerConsole();
+
+		}
+	}
+	/// <summary>初始化玩家背包</summary>
+	private void InitInventory()
+	{
+		if (m_InventoryComp != null) return;
+
+		var UI = GameCore.Instance.m_UIManager.GetUI("InventoryUI");
+		if (UI == null) return;
+
+		var script = ToolUtils.GetNodeScript<InventoryComp>(UI);
+		if (script == null) return;
+
+
+
+		script.m_Marker3D = m_eye;   // 这是初始化玩家眼睛
+		m_InventoryComp = script;
+
+		UI.Visible = false;
+		m_CanvasLayer.AddChild(UI);
+
+	}
+
+	/// <summary>注：初始化玩家控制台</summary>
+	private void InitPlayerConsole()
+	{
+		if (m_ConsoleComp != null) return;
+
+		var UI = GameCore.Instance.m_UIManager.GetUI("ConsoleUI");
+		if (UI == null) return;
+
+		var script = ToolUtils.GetNodeScript<ConsoleComp>(UI);
+		if (script == null) return;
+
+
+
+
+		m_ConsoleComp = script;
+		m_ConsoleComp.GetPlayer(this);  // 这是获取玩家组件，准备获取位置
+
+		UI.Visible = false;
+		m_CanvasLayer.AddChild(UI);
+
+	}
+	#endregion
 
 	#region 回调函数
 
@@ -96,15 +141,6 @@ public partial class Player : Humanoid
 	}
 
 	#endregion
-
-	#region 组件
-	/// <summary>注：背包组件 </summary>
-	public InventoryComp m_InventoryComp;  
-	/// <summary>注：控制台组件 </summary>
-	public ConsoleComp m_ConsoleComp;   
-
-	#endregion
-
 
 	/// <summary>每帧执行的互动检测核心函数（手动放入_PhysicsProcess或_Process）</summary>
 	/// <param name="delta">帧时间</param>
@@ -157,59 +193,25 @@ public partial class Player : Humanoid
 	/// <summary>注：UI触发按钮集合 </summary>
 	private void UI()
 	{
-		GoConsoleComp();
-		GoInventoryComp();
+		if (Input.IsActionJustPressed("cat_Console")) m_ConsoleComp.ToggleUI();
+		if (Input.IsActionJustPressed("cat_Tab")) m_InventoryComp.ToggleUI();
 	}
-
-	private void GoConsoleComp()
-	{
-		if (Input.IsActionJustPressed("cat_Console"))
-		{
-			m_ConsoleComp.ToggleUI(); 
-		}
-	}
-	private void GoInventoryComp()
-	{ 
-		if (Input.IsActionJustPressed("cat_Tab"))
-		{
-			m_InventoryComp.ToggleUI();
-
-		}
-	}
-
 	private void MouseMode()
 	{
-		if (m_ConsoleComp.Visible)
+		if (m_ConsoleComp.Visible || m_InventoryComp.Visible)
 		{
 			Input.MouseMode = Input.MouseModeEnum.Visible;
 		}
-		else if (!m_ConsoleComp.Visible)
+		else if (!m_ConsoleComp.Visible || m_InventoryComp.Visible)
 		{
 			Input.MouseMode = Input.MouseModeEnum.Captured;
 		}
-
 	}
-
 	#endregion
 
+	#region 辅助方法
 
-	#region 初始化
-	/// <summary>注：player类所有初始化集合</summary>
-	private void Init()
-	{
-		if (CheckPlayerNull())
-		{
-			m_Controller = new PlayerController(this);
-
-			// 组件初始化
-			InitPlayerInventory();
-			InitPlayerConsole();
-
-		}
-
-
-	}
-	/// <summary>注：检测player关键字段是否为空</summary>
+	/// <summary>辅助方法：检测player关键字段是否为空</summary>
 	private bool CheckPlayerNull()
 	{
 		if (m_eye == null)
@@ -240,48 +242,6 @@ public partial class Player : Humanoid
 		isPlayerValid = true;
 		return true;
 	}
-
-
-
-
-	/// <summary>初始化玩家背包</summary>
-	private void InitPlayerInventory()
-	{
-		if (m_InventoryComp != null) return;
-
-		var UI = GameCore.Instance.m_UIManager.GetUI("InventoryUI");
-		if (UI == null) return;
-
-		var script = ToolUtils.GetNodeScript<InventoryComp>(UI);
-		if (script == null) return;
-
-		script.m_Marker3D = m_eye;   // 这是初始化玩家眼睛
-		m_InventoryComp = script;
-
-		UI.Visible = false;
-		m_CanvasLayer.AddChild(UI);
-
-	}
-
-	/// <summary>注：初始化玩家控制台</summary>
-	private void InitPlayerConsole()
-	{
-		if (m_ConsoleComp != null) return;
-
-		var UI = GameCore.Instance.m_UIManager.GetUI("ConsoleUI");
-		if (UI == null) return;
-
-		var script = ToolUtils.GetNodeScript<ConsoleComp>(UI);
-		if (script == null) return;
-
-		m_ConsoleComp = script;
-		m_ConsoleComp.GetPlayer(this);  // 这是获取玩家组件，准备获取位置
-
-		UI.Visible = false;
-		m_CanvasLayer.AddChild(UI);
-
-	}
 	#endregion
-
 
 }

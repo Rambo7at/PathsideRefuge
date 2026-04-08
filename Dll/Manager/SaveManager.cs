@@ -24,9 +24,11 @@ namespace 途畔归所.Dll.Manager
         {
 
             if (!LoadData()) SaveData();
-            LoadSaveDataToPlayer();
+            LoadDataToPlayer();
         }
 
+        /// <summary>注：加载本地存档</summary>
+        /// <returns>是否加载成功</returns>
         public bool LoadData()
         {
             if (FileAccess.FileExists(Path) == false) return false;
@@ -34,16 +36,18 @@ namespace 途畔归所.Dll.Manager
             var data = GD.Load<SaveData>(Path);
             if (data != null) DATA = data;
             return true;
-        } 
+        }
 
+        /// <summary>注：保存数据至本地</summary>
         public void SaveData()
         {
             if (DATA == null) DATA = new SaveData();
-
+            UpdateData();
             ResourceSaver.Save(DATA, Path);
         }
 
-        public void UpdateData()
+        /// <summary>注：更新存档数据</summary>
+        private void UpdateData()
         {
             if (GameCore.Instance.m_PlayerManager.LocalPlayers == null || GameCore.Instance.m_PlayerManager.LocalPlayers.Count == 0) return;
 
@@ -61,7 +65,7 @@ namespace 途畔归所.Dll.Manager
             }
         }
 
-        private void LoadSaveDataToPlayer()
+        private void LoadDataToPlayer()
         {
             if (DATA.playerDatas == null && DATA.playerDatas.Count == 0) return;
 

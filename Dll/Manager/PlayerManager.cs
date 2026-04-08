@@ -45,8 +45,6 @@ namespace 途畔归所.Dll.Manager
             var pl = new PlayerData() { Name = name, };
 
             LocalPlayers.Add(pl);
-
-            GameCore.Instance.m_SaveManager.UpdateData();
             GameCore.Instance.m_SaveManager.SaveData();
         }
 

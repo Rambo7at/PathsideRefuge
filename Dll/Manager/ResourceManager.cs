@@ -22,7 +22,7 @@ namespace 途畔归所.Dll.Manager
             LoadAsset("res://Prefab/Item/et_牛奶罐.tscn");
 
             LoadAsset("res://Prefab/UI/ConsoleUI.tscn");
-            LoadAsset("res://Prefab/UI/InventoryUI.tscn");
+            LoadAsset("res://Prefab/UI/背包/InventoryUI.tscn");
             GD.Print("[ResourceManager] 初始化完成");
         }
 

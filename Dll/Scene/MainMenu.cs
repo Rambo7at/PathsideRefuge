@@ -8,17 +8,10 @@ using 途畔归所.Dll.Core;
 public partial class MainMenu : Node3D
 {
 
-	[Export]
-	public Array<PackedScene> 物件资源 = new Array<PackedScene>();
-
 	[Export] private Control 菜单UI;
-
 	[Export] private Control 开始UI;
-
     [Export] private Control 创建UI;
-
 	[Export] private Button 门牌UI;
-
 	[Export] private LineEdit 房间名称;
 
 

@@ -7,6 +7,8 @@ using 维修公司.Dll.data;
 using 途畔归所.Dll.Manager;
 using 途畔归所.Dll.Base;
 
+
+/// <summary>注：背包组件 </summary>
 public partial class InventoryComp : UIPanelBase
 {
 	/// <summary>注：序列化的背包格子UI容器 </summary>
@@ -66,9 +68,6 @@ public partial class InventoryComp : UIPanelBase
 			GD.PrintErr("[InventoryComp.Init] 未增加玩家眼睛初始化失败");
 			return;
 		}
-
-
-
 
 		m_inventorySlots.Clear();
 
@@ -232,12 +231,14 @@ public partial class InventoryComp : UIPanelBase
 		return m_inventorySlots.Find(slot => slot != null && slot.m_SlotButton == btn);
 	}
 
-	public void ToggleUI() => this.Visible = !this.Visible;
 
-	/// <summary>注：加入背包物品</summary>
-	/// <param name="itemDrop">物品实体</param>
-	/// <returns>布尔</returns>
-	public bool AddItem(ItemComp itemDrop)
+
+    #region 行为函数
+
+    /// <summary>注：加入背包物品</summary>
+    /// <param name="itemDrop">物品实体</param>
+    /// <returns>布尔</returns>
+    public bool AddItem(ItemComp itemDrop)
 	{
 		if (itemDrop == null)
 		{
@@ -312,38 +313,57 @@ public partial class InventoryComp : UIPanelBase
 		}
 	}
 
-	/// <summary>注：查询相同物品进行堆叠</summary>
-	/// <param name="itemID">预制名</param>
-	/// <returns>SlotData（包含可堆叠的ItemData）</returns>
-	private SlotData FindStackSlot(string itemID)
-	{
-		if (string.IsNullOrEmpty(itemID)) return null;
+    #endregion
 
-		foreach (var slotData in m_inventorySlots)
-		{
-			if (slotData == null || slotData.m_ItemData == null) continue;
+    #region 辅助方法
+    /// <summary>注：查询相同物品进行堆叠</summary>
+    /// <param name="itemID">预制名</param>
+    /// <returns>SlotData（包含可堆叠的ItemData）</returns>
+    private SlotData FindStackSlot(string itemID)
+    {
+        if (string.IsNullOrEmpty(itemID)) return null;
 
-			if (!string.IsNullOrEmpty(slotData.m_ItemData.m_Name) && slotData.m_ItemData.m_ID == itemID && slotData.m_ItemData.m_Stack < slotData.m_ItemData.m_MaxStack)
-			{
-				return slotData;
-			}
-		}
-		return null;
-	}
+        foreach (var slotData in m_inventorySlots)
+        {
+            if (slotData == null || slotData.m_ItemData == null) continue;
 
-	/// <summary>注：查询背包中的空格子</summary>
-	/// <returns>SlotData（包含空的ItemData）</returns>
-	private SlotData FindEmptySlot()
-	{
-		foreach (var slotData in m_inventorySlots)
-		{
-			if (slotData == null || slotData.m_ItemData == null) continue;
+            if (!string.IsNullOrEmpty(slotData.m_ItemData.m_Name) && slotData.m_ItemData.m_ID == itemID && slotData.m_ItemData.m_Stack < slotData.m_ItemData.m_MaxStack)
+            {
+                return slotData;
+            }
+        }
+        return null;
+    }
 
-			if (string.IsNullOrEmpty(slotData.m_ItemData.m_Name) && string.IsNullOrEmpty(slotData.m_ItemData.m_ID))
-			{
-				return slotData;
-			}
-		}
-		return null;
-	}
+    /// <summary>注：查询背包中的空格子</summary>
+    /// <returns>SlotData（包含空的ItemData）</returns>
+    private SlotData FindEmptySlot()
+    {
+        foreach (var slotData in m_inventorySlots)
+        {
+            if (slotData == null || slotData.m_ItemData == null) continue;
+
+            if (string.IsNullOrEmpty(slotData.m_ItemData.m_Name) && string.IsNullOrEmpty(slotData.m_ItemData.m_ID))
+            {
+                return slotData;
+            }
+        }
+        return null;
+    }
+
+
+    public void ToggleUI() => this.Visible = !this.Visible;
+
+    #endregion
+
+
+
+
+
+
+
+
+
+
+
 }

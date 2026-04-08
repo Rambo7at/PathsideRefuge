@@ -38,8 +38,6 @@ public partial class ItemComp : RigidBody3D, IInteractable
 	{
 		if (m_ItemData != null) return;
 
-		m_boxItem = GameCore.Instance.m_ItemManager.GetItemData("手电筒");
-
 	   m_ItemData = new ItemData(this);  
 	}
 

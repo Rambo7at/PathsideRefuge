@@ -48,7 +48,6 @@ namespace 途畔归所.Dll.Core
             GD.Print("[GameCore]：初始化完成");
 		}
 
-
 		/// <summary>注：初始化全部管理器 </summary>
 		private void InitManagers()
 		{
@@ -65,9 +64,6 @@ namespace 途畔归所.Dll.Core
 			AddChild(m_NetworkCore);
 			AddChild(m_ConsoleManager);
 		}
-
-
-
 
 		/// <summary> 注：资源加载/ </summary>
 		public void ResourceLoad()
