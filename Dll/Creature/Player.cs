@@ -113,8 +113,6 @@ public partial class Player : Humanoid
 	{
 		if (node is ItemComp item)
 		{
-			GD.Print("找到了一个物品");
-			// 新增：将物品加入列表（仅这一行）
 			if (!m_InRangeItems.Contains(item))
 			{
 				m_InRangeItems.Add(item);
@@ -168,18 +166,7 @@ public partial class Player : Humanoid
 				closestItem = item;
 			}
 		}
-
-		// 2. 显示/隐藏拾取UI（只对最近的物品显示）
-		if (closestItem != null)
-		{
-			拾取UI.Visible = true;
-		}
-		else
-		{
-			拾取UI.Visible = false;
-		}
-
-		// 3. 检测cat_E物理按键，拾取最近的物品（核心修改：直接检测按键，不依赖IsEPressed）
+		// 检测物理按键
 		if (closestItem != null)
 		{
 			closestItem.PlayerInteract(Input.IsActionJustPressed("cat_E"), Input.IsActionJustPressed("cat_F"), this);

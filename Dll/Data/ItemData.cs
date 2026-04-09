@@ -88,6 +88,25 @@ namespace 维修公司.Dll.data
             return drop;
         }
 
+        public bool IsStack() => m_Stack < m_MaxStack;
+
+        public int GetStackNum() => Mathf.Max(0, m_MaxStack - m_Stack);
+
+        public bool TryStack(ItemData outData)
+        {
+            if (outData == null) return false;
+            if (outData.m_ID != m_ID) return false;
+            if (!IsStack()) return false;
+
+            while (IsStack() && outData.m_Stack > 0)
+            {
+                m_Stack++;
+                outData.m_Stack--;
+            }
+
+            return outData.m_Stack <= 0;
+        }
+
     }
 
 

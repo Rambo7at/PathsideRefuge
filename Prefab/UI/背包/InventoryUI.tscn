@@ -1,8 +1,8 @@
 [gd_scene format=3 uid="uid://e7qf1e5vukk0"]
 
-[ext_resource type="Theme" uid="uid://deadb5j65etkc" path="res://Theme/背包UI.tres" id="1_dpyky"]
-[ext_resource type="Script" uid="uid://1abgpj4o3um1" path="res://Dll/Comp/InventoryComp.cs" id="1_rt2gr"]
-[ext_resource type="Theme" uid="uid://bqurjwcnanric" path="res://Theme/选项框.tres" id="2_rt2gr"]
+[ext_resource type="Script" uid="uid://1abgpj4o3um1" path="res://Dll/Comp/InventoryComp.cs" id="1_ajg1r"]
+[ext_resource type="Theme" uid="uid://deadb5j65etkc" path="res://Theme/背包UI.tres" id="2_23av5"]
+[ext_resource type="PackedScene" uid="uid://droxh7tkm7y42" path="res://Prefab/UI/格子/slot_ui.tscn" id="3_ajg1r"]
 
 [node name="InventoryUI" type="Control" unique_id=1275478942 node_paths=PackedStringArray("m_SlotUI")]
 layout_mode = 3
@@ -15,8 +15,8 @@ offset_top = 439.0
 offset_bottom = 439.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1_rt2gr")
-m_SlotUI = [NodePath("PanelContainer/GridContainer/PanelContainer1"), NodePath("PanelContainer/GridContainer/PanelContainer2"), NodePath("PanelContainer/GridContainer/PanelContainer3"), NodePath("PanelContainer/GridContainer/PanelContainer4"), NodePath("PanelContainer/GridContainer/PanelContainer5"), NodePath("PanelContainer/GridContainer/PanelContainer6"), NodePath("PanelContainer/GridContainer/PanelContainer7"), NodePath("PanelContainer/GridContainer/PanelContainer8"), NodePath("PanelContainer/GridContainer/PanelContainer9"), NodePath("PanelContainer/GridContainer/PanelContainer10")]
+script = ExtResource("1_ajg1r")
+m_SlotUI = [NodePath(""), NodePath(""), NodePath(""), NodePath(""), NodePath(""), NodePath(""), NodePath(""), NodePath(""), NodePath(""), NodePath("")]
 
 [node name="PanelContainer" type="PanelContainer" parent="." unique_id=2002482144]
 layout_mode = 1
@@ -25,206 +25,45 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -710.0
-offset_top = -226.5
-offset_right = 710.0
-offset_bottom = -73.0
+offset_left = -403.5
+offset_top = -50.25
+offset_right = 365.0
+offset_bottom = 28.0
 grow_horizontal = 2
 grow_vertical = 2
-theme = ExtResource("1_dpyky")
+theme = ExtResource("2_23av5")
 
 [node name="GridContainer" type="GridContainer" parent="PanelContainer" unique_id=487971680]
 layout_mode = 2
-theme = ExtResource("1_dpyky")
+theme = ExtResource("2_23av5")
 columns = 10
 
-[node name="PanelContainer1" type="PanelContainer" parent="PanelContainer/GridContainer" unique_id=776588015]
-layout_mode = 2
-theme = ExtResource("2_rt2gr")
-
-[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/GridContainer/PanelContainer1" unique_id=322984962]
+[node name="SlotUi" parent="PanelContainer/GridContainer" unique_id=282520905 instance=ExtResource("3_ajg1r")]
 layout_mode = 2
 
-[node name="物品格子" type="Button" parent="PanelContainer/GridContainer/PanelContainer1/VBoxContainer" unique_id=2030451439]
-custom_minimum_size = Vector2(95, 75)
-layout_mode = 2
-theme = ExtResource("1_dpyky")
-icon_alignment = 1
-expand_icon = true
-
-[node name="Label" type="Label" parent="PanelContainer/GridContainer/PanelContainer1/VBoxContainer" unique_id=1519116609]
-layout_mode = 2
-theme = ExtResource("1_dpyky")
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="PanelContainer2" type="PanelContainer" parent="PanelContainer/GridContainer" unique_id=1509428506]
-layout_mode = 2
-theme = ExtResource("2_rt2gr")
-
-[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/GridContainer/PanelContainer2" unique_id=1843895506]
+[node name="SlotUi2" parent="PanelContainer/GridContainer" unique_id=2092311308 instance=ExtResource("3_ajg1r")]
 layout_mode = 2
 
-[node name="物品格子" type="Button" parent="PanelContainer/GridContainer/PanelContainer2/VBoxContainer" unique_id=357547390]
-custom_minimum_size = Vector2(95, 75)
-layout_mode = 2
-theme = ExtResource("1_dpyky")
-expand_icon = true
-
-[node name="Label" type="Label" parent="PanelContainer/GridContainer/PanelContainer2/VBoxContainer" unique_id=1149791171]
-layout_mode = 2
-theme = ExtResource("1_dpyky")
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="PanelContainer3" type="PanelContainer" parent="PanelContainer/GridContainer" unique_id=1417933229]
-layout_mode = 2
-theme = ExtResource("2_rt2gr")
-
-[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/GridContainer/PanelContainer3" unique_id=667140461]
+[node name="SlotUi3" parent="PanelContainer/GridContainer" unique_id=1680289906 instance=ExtResource("3_ajg1r")]
 layout_mode = 2
 
-[node name="物品格子" type="Button" parent="PanelContainer/GridContainer/PanelContainer3/VBoxContainer" unique_id=626428058]
-custom_minimum_size = Vector2(95, 75)
-layout_mode = 2
-theme = ExtResource("1_dpyky")
-expand_icon = true
-
-[node name="Label" type="Label" parent="PanelContainer/GridContainer/PanelContainer3/VBoxContainer" unique_id=714918656]
-layout_mode = 2
-theme = ExtResource("1_dpyky")
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="PanelContainer4" type="PanelContainer" parent="PanelContainer/GridContainer" unique_id=443184400]
-layout_mode = 2
-theme = ExtResource("2_rt2gr")
-
-[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/GridContainer/PanelContainer4" unique_id=979674830]
+[node name="SlotUi4" parent="PanelContainer/GridContainer" unique_id=676267587 instance=ExtResource("3_ajg1r")]
 layout_mode = 2
 
-[node name="物品格子" type="Button" parent="PanelContainer/GridContainer/PanelContainer4/VBoxContainer" unique_id=1330414170]
-custom_minimum_size = Vector2(95, 75)
-layout_mode = 2
-theme = ExtResource("1_dpyky")
-expand_icon = true
-
-[node name="Label" type="Label" parent="PanelContainer/GridContainer/PanelContainer4/VBoxContainer" unique_id=720887491]
-layout_mode = 2
-theme = ExtResource("1_dpyky")
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="PanelContainer5" type="PanelContainer" parent="PanelContainer/GridContainer" unique_id=949112643]
-layout_mode = 2
-theme = ExtResource("2_rt2gr")
-
-[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/GridContainer/PanelContainer5" unique_id=1097430247]
+[node name="SlotUi5" parent="PanelContainer/GridContainer" unique_id=756854842 instance=ExtResource("3_ajg1r")]
 layout_mode = 2
 
-[node name="物品格子" type="Button" parent="PanelContainer/GridContainer/PanelContainer5/VBoxContainer" unique_id=1864304541]
-custom_minimum_size = Vector2(95, 75)
-layout_mode = 2
-theme = ExtResource("1_dpyky")
-expand_icon = true
-
-[node name="Label" type="Label" parent="PanelContainer/GridContainer/PanelContainer5/VBoxContainer" unique_id=1247353054]
-layout_mode = 2
-theme = ExtResource("1_dpyky")
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="PanelContainer6" type="PanelContainer" parent="PanelContainer/GridContainer" unique_id=372526933]
-layout_mode = 2
-theme = ExtResource("2_rt2gr")
-
-[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/GridContainer/PanelContainer6" unique_id=706308807]
+[node name="SlotUi6" parent="PanelContainer/GridContainer" unique_id=1763740598 instance=ExtResource("3_ajg1r")]
 layout_mode = 2
 
-[node name="物品格子" type="Button" parent="PanelContainer/GridContainer/PanelContainer6/VBoxContainer" unique_id=1795350992]
-custom_minimum_size = Vector2(95, 75)
-layout_mode = 2
-theme = ExtResource("1_dpyky")
-expand_icon = true
-
-[node name="Label" type="Label" parent="PanelContainer/GridContainer/PanelContainer6/VBoxContainer" unique_id=25561194]
-layout_mode = 2
-theme = ExtResource("1_dpyky")
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="PanelContainer7" type="PanelContainer" parent="PanelContainer/GridContainer" unique_id=1737111283]
-layout_mode = 2
-theme = ExtResource("2_rt2gr")
-
-[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/GridContainer/PanelContainer7" unique_id=1211509174]
+[node name="SlotUi7" parent="PanelContainer/GridContainer" unique_id=1612149788 instance=ExtResource("3_ajg1r")]
 layout_mode = 2
 
-[node name="物品格子" type="Button" parent="PanelContainer/GridContainer/PanelContainer7/VBoxContainer" unique_id=1199762760]
-custom_minimum_size = Vector2(95, 75)
-layout_mode = 2
-theme = ExtResource("1_dpyky")
-expand_icon = true
-
-[node name="Label" type="Label" parent="PanelContainer/GridContainer/PanelContainer7/VBoxContainer" unique_id=1704556626]
-layout_mode = 2
-theme = ExtResource("1_dpyky")
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="PanelContainer8" type="PanelContainer" parent="PanelContainer/GridContainer" unique_id=1088268640]
-layout_mode = 2
-theme = ExtResource("2_rt2gr")
-
-[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/GridContainer/PanelContainer8" unique_id=787700121]
+[node name="SlotUi8" parent="PanelContainer/GridContainer" unique_id=1776122120 instance=ExtResource("3_ajg1r")]
 layout_mode = 2
 
-[node name="物品格子" type="Button" parent="PanelContainer/GridContainer/PanelContainer8/VBoxContainer" unique_id=1678604563]
-custom_minimum_size = Vector2(95, 75)
-layout_mode = 2
-theme = ExtResource("1_dpyky")
-expand_icon = true
-
-[node name="Label" type="Label" parent="PanelContainer/GridContainer/PanelContainer8/VBoxContainer" unique_id=1247594370]
-layout_mode = 2
-theme = ExtResource("1_dpyky")
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="PanelContainer9" type="PanelContainer" parent="PanelContainer/GridContainer" unique_id=31280367]
-layout_mode = 2
-theme = ExtResource("2_rt2gr")
-
-[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/GridContainer/PanelContainer9" unique_id=1315577501]
+[node name="SlotUi9" parent="PanelContainer/GridContainer" unique_id=2078446508 instance=ExtResource("3_ajg1r")]
 layout_mode = 2
 
-[node name="物品格子" type="Button" parent="PanelContainer/GridContainer/PanelContainer9/VBoxContainer" unique_id=1141483949]
-custom_minimum_size = Vector2(95, 75)
+[node name="SlotUi10" parent="PanelContainer/GridContainer" unique_id=38650429 instance=ExtResource("3_ajg1r")]
 layout_mode = 2
-theme = ExtResource("1_dpyky")
-expand_icon = true
-
-[node name="Label" type="Label" parent="PanelContainer/GridContainer/PanelContainer9/VBoxContainer" unique_id=219068855]
-layout_mode = 2
-theme = ExtResource("1_dpyky")
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="PanelContainer10" type="PanelContainer" parent="PanelContainer/GridContainer" unique_id=1780981940]
-layout_mode = 2
-theme = ExtResource("2_rt2gr")
-
-[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/GridContainer/PanelContainer10" unique_id=554268406]
-layout_mode = 2
-
-[node name="物品格子" type="Button" parent="PanelContainer/GridContainer/PanelContainer10/VBoxContainer" unique_id=1921675671]
-custom_minimum_size = Vector2(95, 75)
-layout_mode = 2
-theme = ExtResource("1_dpyky")
-expand_icon = true
-
-[node name="Label" type="Label" parent="PanelContainer/GridContainer/PanelContainer10/VBoxContainer" unique_id=1536234573]
-layout_mode = 2
-theme = ExtResource("1_dpyky")
-horizontal_alignment = 1
-vertical_alignment = 1

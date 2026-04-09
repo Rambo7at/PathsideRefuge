@@ -6,34 +6,16 @@ using 维修公司.Dll;
 using 维修公司.Dll.data;
 using 途畔归所.Dll.Manager;
 using 途畔归所.Dll.Base;
+using 途畔归所.Dll.Data;
 
 
 /// <summary>注：背包组件 </summary>
 public partial class InventoryComp : UIPanelBase
 {
-	/// <summary>注：序列化的背包格子UI容器 </summary>
+	/// <summary>注：背包格子UI容器 </summary>
 	[Export] private Array<PanelContainer> m_SlotUI = new Array<PanelContainer>();
 	/// <summary>注：背包格子数据 </summary>
 	public List<SlotData> m_inventorySlots = new List<SlotData>();
-
-	/// <summary>注：背包格子结构（拆分ItemData和UI绑定）</summary>
-	public class SlotData
-	{
-		public Button m_SlotButton;       // 按钮
-		public Vector2 m_StartPos;        // 按钮初始位置
-		public Label m_SlotLabel;         // 文字
-		public ItemData m_ItemData;       // 物品数据
-		public bool IsDrag { get; set; } // 是否正在拖拽
-		public SlotData(Button btn, Label label)
-		{
-			m_SlotButton = btn;
-			m_SlotLabel = label;
-			m_StartPos = btn.GlobalPosition;
-			m_ItemData = new ItemData(); // 初始化空物品数据
-			IsDrag = false;
-
-		}
-	}
 
 	/// <summary>注：正在拖拽的物品按钮 </summary>
 	private Button m_DragBtn;
@@ -41,7 +23,7 @@ public partial class InventoryComp : UIPanelBase
 	private Vector2 m_StartMousePos;
 	/// <summary>注：按下时按钮全局位置 </summary>
 	private Vector2 m_StartBtnPos;
-	/// <summary>注：玩家丢弃物品的标记点</summary>
+	/// <summary>注：玩家丢弃物品的位置</summary>
 	public Marker3D m_Marker3D;
 	public override void _Ready() => Init();
 
@@ -93,9 +75,10 @@ public partial class InventoryComp : UIPanelBase
 			// 绑定Button原生信号（button_down/button_up）
 			button.ButtonDown += () => OnBtnDown(button);
 			button.ButtonUp += () => OnBtnUp(button);
-
-			// 核心修改：添加SlotData而非直接添加ItemData
-			m_inventorySlots.Add(new SlotData(button, text));
+			
+			var DATA = new SlotData();
+            DATA.Init(button, text);
+            m_inventorySlots.Add(DATA);
 		}
 	}
 
@@ -239,79 +222,45 @@ public partial class InventoryComp : UIPanelBase
     /// <param name="itemDrop">物品实体</param>
     /// <returns>布尔</returns>
     public bool AddItem(ItemComp itemDrop)
+    {
+        if (itemDrop == null)
+        {
+            GD.PrintErr("[InventoryComp.AddItem] 传入的ItemDrop节点为空");
+            return false;
+        }
+
+        ItemData newItemData = itemDrop.CreateItemData();
+        if (newItemData == null)
+        {
+            GD.PrintErr($"[InventoryComp.AddItem] 物品[{itemDrop.名称}]创建ItemData失败");
+            return false;
+        }
+
+        foreach (var slotData in m_inventorySlots)
+        {
+            if (slotData.m_ItemData.m_ID == newItemData.m_ID && slotData.m_ItemData.IsStack())
+            {
+				slotData.m_ItemData.TryStack(newItemData);
+            }
+        }
+
+		RefSlot();
+
+
+        if (newItemData.m_Stack <= 0) return true;
+	    var slot =	FindEmptySlot();
+        RefSlot();
+        if (slot == null) return false;
+        slot.m_ItemData = newItemData;
+        RefSlot();
+        return true;
+    }
+
+    /// <summary>注：刷新背包格子显示</summary>
+    public void RefSlot()
 	{
-		if (itemDrop == null)
-		{
-			GD.PrintErr("[InventoryComp.AddItem] 传入的ItemDrop节点为空");
-			return false;
-		}
-
-		ItemData newItemData = itemDrop.CreateItemData();
-		if (newItemData == null)
-		{
-			GD.PrintErr($"[InventoryComp.AddItem] 物品[{itemDrop.名称}]创建ItemData失败");
-			return false;
-		}
-
-		int remainCount = newItemData.m_Stack;
-
-		// 循环堆叠
-		while (remainCount > 0)
-		{
-			// 核心修改：查找可堆叠的SlotData中的ItemData
-			SlotData stackSlot = FindStackSlot(newItemData.m_ID);
-			if (stackSlot != null && stackSlot.m_ItemData != null)
-			{
-				int addCount = Mathf.Min(remainCount, stackSlot.m_ItemData.m_MaxStack - stackSlot.m_ItemData.m_Stack);
-				stackSlot.m_ItemData.m_Stack += addCount;
-				remainCount -= addCount;
-			}
-			else
-			{
-				break;
-			}
-		}
-
-		// 剩余数量新增
-		if (remainCount > 0)
-		{
-			// 核心修改：查找空格子的SlotData
-			SlotData emptySlot = FindEmptySlot();
-			if (emptySlot != null && emptySlot.m_ItemData != null)
-			{
-				newItemData.CopyDataTo(emptySlot.m_ItemData);
-				emptySlot.m_ItemData.m_Stack = remainCount;
-				remainCount = 0;
-			}
-		}
-
-		bool isSuccess = remainCount == 0;
-		if (isSuccess) RefSlot();
-		else GD.PrintErr($"[InventoryComp.AddItem] 背包已满，剩余{remainCount}个[{newItemData.m_Name}]无法添加");
-
-		return isSuccess;
-	}
-
-	/// <summary>注：刷新背包格子显示</summary>
-	public void RefSlot()
-	{
-		foreach (var slotData in m_inventorySlots)
-		{
-			if (slotData == null || slotData.m_ItemData == null) continue;
-
-			// 核心修改：通过SlotData访问ItemData
-			if (string.IsNullOrEmpty(slotData.m_ItemData.m_Name) || slotData.m_ItemData.m_Stack <= 0)
-			{
-				slotData.m_SlotLabel.Text = string.Empty;
-				slotData.m_SlotButton.Icon = null;
-			}
-			else
-			{
-				slotData.m_SlotLabel.Text = slotData.m_ItemData.m_Name + $"x{slotData.m_ItemData.m_Stack}";
-				slotData.m_SlotButton.Icon = slotData.m_ItemData.m_Icon;
-			}
-		}
-	}
+		foreach (var slotData in m_inventorySlots) slotData.Refresh();
+    }
 
     #endregion
 
@@ -351,19 +300,19 @@ public partial class InventoryComp : UIPanelBase
         return null;
     }
 
+    /// <summary>注：检测背包是否还有空位</summary>
+	/// <returns></returns>
+	private bool IsInventoryEmpty()
+	{
+        foreach (var slotData in m_inventorySlots) if (slotData.IsSlotNull) return true;
+		return false;
+    }
+
+
+
 
     public void ToggleUI() => this.Visible = !this.Visible;
 
     #endregion
-
-
-
-
-
-
-
-
-
-
 
 }
