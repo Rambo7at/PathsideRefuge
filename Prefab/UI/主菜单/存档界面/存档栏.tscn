@@ -1,0 +1,44 @@
+[gd_scene format=3 uid="uid://2l3mdtnjjd32"]
+
+[ext_resource type="Theme" uid="uid://cxjqe8iwko2rk" path="res://Theme/角色创建.tres" id="1_5qcg5"]
+[ext_resource type="Script" uid="uid://deqaw2jlt6bag" path="res://Dll/Comp/SaveComp.cs" id="1_8e5ip"]
+
+[node name="Control" type="Control" unique_id=957420673 node_paths=PackedStringArray("m_label")]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 204.0
+offset_right = 204.0
+offset_bottom = 61.0
+script = ExtResource("1_8e5ip")
+m_label = NodePath("PanelContainer/HBoxContainer/Label2")
+
+[node name="PanelContainer" type="PanelContainer" parent="." unique_id=1283926480]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer" unique_id=337042358]
+layout_mode = 2
+theme = ExtResource("1_5qcg5")
+
+[node name="Label" type="Label" parent="PanelContainer/HBoxContainer" unique_id=1863868462]
+layout_mode = 2
+theme = ExtResource("1_5qcg5")
+theme_override_font_sizes/font_size = 35
+text = "玩家："
+vertical_alignment = 1
+
+[node name="Label2" type="Label" parent="PanelContainer/HBoxContainer" unique_id=1149358310]
+layout_mode = 2
+theme = ExtResource("1_5qcg5")
+theme_override_font_sizes/font_size = 35
+horizontal_alignment = 1
+vertical_alignment = 1
+visible_characters = 6
+
+[node name="Button" type="Button" parent="PanelContainer/HBoxContainer" unique_id=1526259319]
+layout_mode = 2
+theme = ExtResource("1_5qcg5")
+text = "选择"
+
+[connection signal="pressed" from="PanelContainer/HBoxContainer/Button" to="." method="Pick"]

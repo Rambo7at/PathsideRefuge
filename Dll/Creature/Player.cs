@@ -2,8 +2,10 @@ using Godot;
 using System.Collections.Generic;
 using 维修公司.Utils;
 using 途畔归所.Dll.Base;
+using 途畔归所.Dll.Comp;
 using 途畔归所.Dll.Core;
 using 途畔归所.Dll.Creature;
+using 途畔归所.Dll.Data;
 
 public partial class Player : Humanoid
 {
@@ -12,15 +14,17 @@ public partial class Player : Humanoid
 	[Export] public Control 拾取UI;
 	[Export] public CanvasLayer m_CanvasLayer;
 
-	public string PlayerName;
+	public string PlayerName { get => m_PlayerData.m_Name; }
 	public float m_Speed = 5.0f;
 	public float m_Jump = 4.5f;
 
-	private bool isPlayerValid = false; // 完整性检测
 	private bool isPlayerMenu = false; // 是否在主菜单场景
 
 	public InventoryComp m_InventoryComp;
 	public ConsoleComp m_ConsoleComp;
+	public EscComp m_EscComp;
+
+	public PlayerData m_PlayerData;
 
 
 	/// <summary>注：玩家检测返回内的物品列表 </summary>
@@ -30,8 +34,20 @@ public partial class Player : Humanoid
 	public override void _Ready()
 	{
 		拾取UI.Visible = false;
-		Init();
-	}
+        if (CheckPlayerNull())
+        {
+            // 控制组件
+            m_Controller = new PlayerController(this);
+
+			// 初始化数据
+
+
+            // 组件初始化
+            InitInventory();
+            InitPlayerConsole();
+            InitPlayerEsc();
+        }
+    }
 	public override void _Process(double delta)
 	{
 		m_Controller.Update(delta);
@@ -48,19 +64,6 @@ public partial class Player : Humanoid
 	}
 
 	#region 初始化
-	/// <summary>注：player类所有初始化集合</summary>
-	private void Init()
-	{
-		if (CheckPlayerNull())
-		{
-			m_Controller = new PlayerController(this);
-
-			// 组件初始化
-			InitInventory();
-			InitPlayerConsole();
-
-		}
-	}
 	/// <summary>初始化玩家背包</summary>
 	private void InitInventory()
 	{
@@ -72,11 +75,9 @@ public partial class Player : Humanoid
 		var script = ToolUtils.GetNodeScript<InventoryComp>(UI);
 		if (script == null) return;
 
-
-
-		script.m_Marker3D = m_eye;   // 这是初始化玩家眼睛
+		script.BindPlayer(this);
 		m_InventoryComp = script;
-
+		
 		UI.Visible = false;
 		m_CanvasLayer.AddChild(UI);
 
@@ -103,6 +104,20 @@ public partial class Player : Humanoid
 		m_CanvasLayer.AddChild(UI);
 
 	}
+
+
+	private void InitPlayerEsc()
+	{
+        if (m_EscComp != null) return;
+        var UI = GameCore.Instance.m_UIManager.GetUI("esc_ui");
+        if (UI == null) return;
+
+        var script = ToolUtils.GetNodeScript<EscComp>(UI);
+        if (script == null) return;
+		m_EscComp = script;
+        UI.Visible = false;
+        m_CanvasLayer.AddChild(UI);
+    }
 	#endregion
 
 	#region 回调函数
@@ -182,14 +197,15 @@ public partial class Player : Humanoid
 	{
 		if (Input.IsActionJustPressed("cat_Console")) m_ConsoleComp.ToggleUI();
 		if (Input.IsActionJustPressed("cat_Tab")) m_InventoryComp.ToggleUI();
-	}
+        if (Input.IsActionJustPressed("cat_Esc")) m_EscComp.ToggleUI();
+    }
 	private void MouseMode()
 	{
-		if (m_ConsoleComp.Visible || m_InventoryComp.Visible)
+		if (m_ConsoleComp.Visible || m_InventoryComp.Visible || m_EscComp.Visible)
 		{
 			Input.MouseMode = Input.MouseModeEnum.Visible;
 		}
-		else if (!m_ConsoleComp.Visible || m_InventoryComp.Visible)
+		else if (!m_ConsoleComp.Visible || !m_InventoryComp.Visible || !m_EscComp.Visible) 
 		{
 			Input.MouseMode = Input.MouseModeEnum.Captured;
 		}
@@ -226,7 +242,11 @@ public partial class Player : Humanoid
 			GD.PrintErr($"[Player.CheckPlayerNull]：检测 [m_CanvasLayer] 字段为空");
 			return false;
 		}
-		isPlayerValid = true;
+		if (m_PlayerData == null)
+		{
+            GD.PrintErr($"[Player.CheckPlayerNull]：检测 [m_PlayerData] 字段为空");
+            return false;
+        }
 		return true;
 	}
 	#endregion

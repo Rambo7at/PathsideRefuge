@@ -2,9 +2,8 @@
 
 [ext_resource type="Script" uid="uid://1abgpj4o3um1" path="res://Dll/Comp/InventoryComp.cs" id="1_ajg1r"]
 [ext_resource type="Theme" uid="uid://deadb5j65etkc" path="res://Theme/背包UI.tres" id="2_23av5"]
-[ext_resource type="PackedScene" uid="uid://droxh7tkm7y42" path="res://Prefab/UI/格子/slot_ui.tscn" id="3_ajg1r"]
 
-[node name="InventoryUI" type="Control" unique_id=1275478942 node_paths=PackedStringArray("m_SlotUI")]
+[node name="InventoryUI" type="Control" unique_id=1275478942 node_paths=PackedStringArray("gridContainer")]
 layout_mode = 3
 anchors_preset = 8
 anchor_left = 0.5
@@ -16,7 +15,7 @@ offset_bottom = 439.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_ajg1r")
-m_SlotUI = [NodePath(""), NodePath(""), NodePath(""), NodePath(""), NodePath(""), NodePath(""), NodePath(""), NodePath(""), NodePath(""), NodePath("")]
+gridContainer = NodePath("PanelContainer/GridContainer")
 
 [node name="PanelContainer" type="PanelContainer" parent="." unique_id=2002482144]
 layout_mode = 1
@@ -25,10 +24,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -403.5
-offset_top = -50.25
-offset_right = 365.0
-offset_bottom = 28.0
+offset_left = -349.75
+offset_top = -137.0
+offset_right = 349.75
+offset_bottom = -58.75
 grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("2_23av5")
@@ -37,33 +36,3 @@ theme = ExtResource("2_23av5")
 layout_mode = 2
 theme = ExtResource("2_23av5")
 columns = 10
-
-[node name="SlotUi" parent="PanelContainer/GridContainer" unique_id=282520905 instance=ExtResource("3_ajg1r")]
-layout_mode = 2
-
-[node name="SlotUi2" parent="PanelContainer/GridContainer" unique_id=2092311308 instance=ExtResource("3_ajg1r")]
-layout_mode = 2
-
-[node name="SlotUi3" parent="PanelContainer/GridContainer" unique_id=1680289906 instance=ExtResource("3_ajg1r")]
-layout_mode = 2
-
-[node name="SlotUi4" parent="PanelContainer/GridContainer" unique_id=676267587 instance=ExtResource("3_ajg1r")]
-layout_mode = 2
-
-[node name="SlotUi5" parent="PanelContainer/GridContainer" unique_id=756854842 instance=ExtResource("3_ajg1r")]
-layout_mode = 2
-
-[node name="SlotUi6" parent="PanelContainer/GridContainer" unique_id=1763740598 instance=ExtResource("3_ajg1r")]
-layout_mode = 2
-
-[node name="SlotUi7" parent="PanelContainer/GridContainer" unique_id=1612149788 instance=ExtResource("3_ajg1r")]
-layout_mode = 2
-
-[node name="SlotUi8" parent="PanelContainer/GridContainer" unique_id=1776122120 instance=ExtResource("3_ajg1r")]
-layout_mode = 2
-
-[node name="SlotUi9" parent="PanelContainer/GridContainer" unique_id=2078446508 instance=ExtResource("3_ajg1r")]
-layout_mode = 2
-
-[node name="SlotUi10" parent="PanelContainer/GridContainer" unique_id=38650429 instance=ExtResource("3_ajg1r")]
-layout_mode = 2

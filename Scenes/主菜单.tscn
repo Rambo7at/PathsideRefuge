@@ -49,13 +49,14 @@ albedo_color = Color(0.08321554, 8.928254e-06, 0.39188647, 1)
 [sub_resource type="BoxMesh" id="BoxMesh_4lmad"]
 material = SubResource("StandardMaterial3D_ckshb")
 
-[node name="主菜单" type="Node3D" unique_id=650275170 node_paths=PackedStringArray("菜单UI", "开始UI", "创建UI", "门牌UI", "房间名称")]
+[node name="主菜单" type="Node3D" unique_id=650275170 node_paths=PackedStringArray("菜单UI", "开始UI", "创建UI", "门牌UI", "房间名称", "存档列表")]
 script = ExtResource("1_ckshb")
 "菜单UI" = NodePath("CanvasLayer/主菜单_画布")
 "开始UI" = NodePath("CanvasLayer/大厅界面")
 "创建UI" = NodePath("CanvasLayer/创建选项")
 "门牌UI" = NodePath("CanvasLayer/大厅界面/门牌")
 "房间名称" = NodePath("CanvasLayer/创建选项/HBoxContainer/LineEdit")
+"存档列表" = NodePath("CanvasLayer/存档选项/PanelContainer4/VBoxContainer")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=991670717]
 environment = SubResource("Environment_7d8j3")
@@ -67,7 +68,6 @@ shadow_enabled = true
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=2130164997]
 
 [node name="主菜单_画布" type="Control" parent="CanvasLayer" unique_id=22447098]
-visible = false
 layout_mode = 3
 anchors_preset = 8
 anchor_left = 0.5
@@ -288,13 +288,13 @@ size_flags_vertical = 4
 theme = ExtResource("7_cjyvh")
 text = "返回"
 
-[node name="Control" type="Control" parent="CanvasLayer" unique_id=573337085]
+[node name="存档选项" type="Control" parent="CanvasLayer" unique_id=573337085]
 layout_mode = 3
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
 
-[node name="PanelContainer4" type="PanelContainer" parent="CanvasLayer/Control" unique_id=1104802110]
+[node name="PanelContainer4" type="PanelContainer" parent="CanvasLayer/存档选项" unique_id=1104802110]
 layout_mode = 0
 offset_left = 1318.0
 offset_top = 312.0
@@ -304,32 +304,9 @@ size_flags_horizontal = 4
 size_flags_vertical = 4
 theme = ExtResource("7_cjyvh")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/Control/PanelContainer4" unique_id=903489941]
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/存档选项/PanelContainer4" unique_id=903489941]
 layout_mode = 2
-theme_override_constants/separation = 20
-
-[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/Control/PanelContainer4/VBoxContainer" unique_id=173954452]
-layout_mode = 2
-theme = ExtResource("3_4lmad")
-
-[node name="Label" type="Label" parent="CanvasLayer/Control/PanelContainer4/VBoxContainer/HBoxContainer" unique_id=2064056937]
-layout_mode = 2
-theme = ExtResource("3_4lmad")
-theme_override_font_sizes/font_size = 35
-text = "存档"
-vertical_alignment = 1
-
-[node name="Label2" type="Label" parent="CanvasLayer/Control/PanelContainer4/VBoxContainer/HBoxContainer" unique_id=1783884473]
-layout_mode = 2
-theme = ExtResource("3_4lmad")
-theme_override_font_sizes/font_size = 35
-text = "dsadas"
-vertical_alignment = 1
-
-[node name="Button" type="Button" parent="CanvasLayer/Control/PanelContainer4/VBoxContainer/HBoxContainer" unique_id=1227828203]
-layout_mode = 2
-theme = ExtResource("3_4lmad")
-text = "选项"
+theme_override_constants/separation = 67
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1016467814]
 transform = Transform3D(20, 0, 0, 0, 1, 0, 0, 0, 9.920001, 0, 0, 0)
@@ -338,7 +315,7 @@ mesh = SubResource("BoxMesh_4lmad")
 [node name="Camera3D" type="Camera3D" parent="." unique_id=1793849891]
 transform = Transform3D(1, 0, 0, 0, 0.9924587, 0.12257956, 0, 0.12257956, -0.9924587, 0, 2.6937778, -7.647185)
 
-[connection signal="pressed" from="CanvasLayer/主菜单_画布/VBoxContainer/Button" to="." method="NewGame"]
+[connection signal="pressed" from="CanvasLayer/主菜单_画布/VBoxContainer/Button" to="." method="StartGame"]
 [connection signal="pressed" from="CanvasLayer/主菜单_画布/VBoxContainer/Button3" to="." method="Quit"]
 [connection signal="pressed" from="CanvasLayer/大厅界面/返回" to="." method="Return"]
 [connection signal="pressed" from="CanvasLayer/大厅界面/本地游戏" to="." method="LocalGame"]

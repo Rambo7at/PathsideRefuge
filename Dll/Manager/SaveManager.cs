@@ -18,11 +18,8 @@ namespace 途畔归所.Dll.Manager
         private const string Path = "res://Save/GameSave.res";
 
 
-        public SaveManager() => Init();
-
-        public void Init()
+        public SaveManager()
         {
-
             if (!LoadData()) SaveData();
             LoadDataToPlayer();
         }
@@ -44,23 +41,22 @@ namespace 途畔归所.Dll.Manager
             if (DATA == null) DATA = new SaveData();
             UpdateData();
             ResourceSaver.Save(DATA, Path);
+            GD.Print("成功保存");
         }
 
         /// <summary>注：更新存档数据</summary>
         private void UpdateData()
         {
-            if (GameCore.Instance.m_PlayerManager.LocalPlayers == null || GameCore.Instance.m_PlayerManager.LocalPlayers.Count == 0) return;
-
-
-            for (int i = 0; i < GameCore.Instance.m_PlayerManager.LocalPlayers.Count; i++)
+            if (GameCore.Instance.m_PlayerManager.LocalPlayerSaves == null || GameCore.Instance.m_PlayerManager.LocalPlayerSaves.Count == 0) return;
+            for (int i = 0; i < GameCore.Instance.m_PlayerManager.LocalPlayerSaves.Count; i++)
             {
                 if (i >= DATA.playerDatas.Count)
                 {
-                    DATA.playerDatas.Add(GameCore.Instance.m_PlayerManager.LocalPlayers[i]);
+                    DATA.playerDatas.Add(GameCore.Instance.m_PlayerManager.LocalPlayerSaves[i]);
                 }
                 else
                 {
-                    DATA.playerDatas[i] = GameCore.Instance.m_PlayerManager.LocalPlayers[i];
+                    DATA.playerDatas[i] = GameCore.Instance.m_PlayerManager.LocalPlayerSaves[i];
                 }
             }
         }
@@ -71,8 +67,10 @@ namespace 途畔归所.Dll.Manager
 
             foreach (var data in DATA.playerDatas)
             {
-                GameCore.Instance.m_PlayerManager.LocalPlayers.Add(data);
+                GameCore.Instance.m_PlayerManager.LocalPlayerSaves.Add(data);
             }
+
+            GameCore.Instance.m_PlayerManager.m_LocalPlayerData = GameCore.Instance.m_PlayerManager.LocalPlayerSaves[0];
         }
     }
 }

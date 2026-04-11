@@ -17,14 +17,19 @@ namespace 途畔归所.Dll.Scene
 			var pl =   GameCore.Instance.m_PlayerManager.GetPlyaer();
 			if (pl == null) return;
 
-			if (!pl.IsInsideTree())
+			pl.m_PlayerData = GameCore.Instance.m_PlayerManager.m_LocalPlayerData;
+
+            if (!pl.IsInsideTree())
 			{
 				GetTree().CurrentScene.AddChild(pl);
 			}
 
 			pl.GlobalPosition = SpawnPian.GlobalPosition;
 
-		}
+            GameCore.Instance.m_PlayerManager.m_LocalPlayer = pl;
+
+        }
+
 
 		public override void _Process(double delta)
 		{

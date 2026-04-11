@@ -21,8 +21,12 @@ namespace 途畔归所.Dll.Manager
 
             LoadAsset("res://Prefab/Item/et_牛奶罐.tscn");
 
+
+            LoadAsset("res://Prefab/UI/主菜单/存档界面/存档栏.tscn");
+            LoadAsset("res://Prefab/UI/ESC/esc_ui.tscn");
             LoadAsset("res://Prefab/UI/ConsoleUI.tscn");
             LoadAsset("res://Prefab/UI/背包/InventoryUI.tscn");
+            LoadAsset("res://Prefab/UI/格子/slot_ui.tscn");
             GD.Print("[ResourceManager] 初始化完成");
         }
 

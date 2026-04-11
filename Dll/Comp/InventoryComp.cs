@@ -7,220 +7,75 @@ using 维修公司.Dll.data;
 using 途畔归所.Dll.Manager;
 using 途畔归所.Dll.Base;
 using 途畔归所.Dll.Data;
-
+using 途畔归所.Dll.Core;
+using 途畔归所.Dll.Comp;
 
 /// <summary>注：背包组件 </summary>
 public partial class InventoryComp : UIPanelBase
 {
-	/// <summary>注：背包格子UI容器 </summary>
-	[Export] private Array<PanelContainer> m_SlotUI = new Array<PanelContainer>();
-	/// <summary>注：背包格子数据 </summary>
-	public List<SlotData> m_inventorySlots = new List<SlotData>();
+    [Export] private GridContainer gridContainer;
 
-	/// <summary>注：正在拖拽的物品按钮 </summary>
-	private Button m_DragBtn;
-	/// <summary>注： 按下时鼠标全局位置 </summary>
-	private Vector2 m_StartMousePos;
-	/// <summary>注：按下时按钮全局位置 </summary>
-	private Vector2 m_StartBtnPos;
-	/// <summary>注：玩家丢弃物品的位置</summary>
-	public Marker3D m_Marker3D;
-	public override void _Ready() => Init();
+    private Player m_player;
+    private PlayerData m_PlayerData;
+    private Marker3D m_Marker3D;
 
-	// ===================== 新增：拖拽跟随逻辑 =====================
-	public override void _Process(double delta)
-	{
-		if (m_DragBtn != null) // 只有拖拽中才更新按钮位置
-		{
-			m_DragBtn.GlobalPosition = m_StartBtnPos + (GetGlobalMousePosition() - m_StartMousePos);
-		}
-	}
-	// ======================================================================
+    /// <summary>注：背包格子数据 </summary>
+    public Array<SlotComp> m_inventorySlots = new Array<SlotComp>();
 
-	private void Init()
-	{
-		if (m_SlotUI == null || m_SlotUI.Count == 0)
-		{
-			GD.PrintErr("[InventoryComp.Init] 场景中未添加任何背包格子UI");
-			return;
-		}
+    public override void _Ready()
+    {
+        if (m_player == null)
+        {
+            GD.Print("[InventoryComp._Ready()]:InventoryComp中未有传入 Player ");
+            return;
+        }
 
-		if (m_Marker3D == null)
-		{
-			GD.PrintErr("[InventoryComp.Init] 未增加玩家眼睛初始化失败");
-			return;
-		}
+        m_Marker3D = m_player.m_eye;
+        m_PlayerData = m_player.m_PlayerData;
 
-		m_inventorySlots.Clear();
+        if (m_PlayerData.m_InventoryData != null && m_PlayerData.m_InventoryData.Count == 10)
+        {
+            foreach (var data in m_PlayerData.m_InventoryData)
+            {
+                SlotComp slotUi = GameCore.Instance.GetUIAsset("slot_ui") as SlotComp;
+                slotUi.m_SlotData = data;
+                gridContainer.AddChild(slotUi);
+                m_inventorySlots.Add(slotUi);
+            }
+        }
+        else
+        {
+            for (int i = 0; i < 10; i++)
+            {
+                SlotComp slotUi = GameCore.Instance.GetUIAsset("slot_ui") as SlotComp;
+                gridContainer.AddChild(slotUi);
+                m_inventorySlots.Add(slotUi);
+                slotUi.m_SlotID = i;
+            }
+        }
+    }
 
-		for (int i = 0; i < m_SlotUI.Count; i++)
-		{
-			if (m_SlotUI[i] == null)
-			{
-				GD.PrintErr($"[InventoryComp.Init] 检测到空的格子UI容器，编号-[{i}] 跳过");
-				continue;
-			}
-			Button button = m_SlotUI[i].GetNodeOrNull<Button>("VBoxContainer/物品格子");
-			Label text = m_SlotUI[i].GetNodeOrNull<Label>("VBoxContainer/Label");
+    public override void _Process(double delta)
+    {
 
-			if (button == null || text == null)
-			{
-				GD.PrintErr($"[InventoryComp.Init] 格子[{i}]未找到物品 按钮 或 文字 ，跳过");
-				continue;
-			}
+    }
 
-			// 接收鼠标事件
-			button.MouseFilter = MouseFilterEnum.Stop;
+    /// <summary>注：绑定归属玩家 </summary>
+    public void BindPlayer(Player player) => m_player = player;
 
-			// 绑定Button原生信号（button_down/button_up）
-			button.ButtonDown += () => OnBtnDown(button);
-			button.ButtonUp += () => OnBtnUp(button);
-			
-			var DATA = new SlotData();
-            DATA.Init(button, text);
-            m_inventorySlots.Add(DATA);
-		}
-	}
+    public void SaveData() => m_PlayerData.UpdateInventoryData(m_inventorySlots);
 
-	#region 回调函数
-	/// <summary>触发信号：button_down</summary>
-	private void OnBtnDown(Button btn)
-	{
-		// 核心修改：通过SlotData判断是否有物品
-		SlotData sourceSlot = FindSlotDataByButton(btn);
-		if (sourceSlot == null || sourceSlot.m_ItemData == null || btn.Icon == null) return;
+    public void LoadData() 
+    { 
+       
+    
+    
+    }
 
-		// 记录拖拽起始状态
-		m_DragBtn = btn;
-		m_StartMousePos = GetGlobalMousePosition();
-		m_StartBtnPos = btn.GlobalPosition;
-		btn.ZIndex = 100; // 拖拽时按钮置顶，避免被遮挡
-	}
-
-	/// <summary>触发信号：button_up</summary>
-	private void OnBtnUp(Button btn) => DragSwap(btn);
-	#endregion
-
-	/// <summary>注：拖拽交换函数，使用 button_up 回调中</summary>
-	private void DragSwap(Button btn)
-	{
-		if (m_DragBtn != btn) return;
-		// 1. 先恢复按钮位置和层级
-		btn.GlobalPosition = m_StartBtnPos;
-		btn.ZIndex = 0;
-
-		// 2. 新建目标按钮变量，并检测鼠标松开时落在哪个按钮区域
-		Button targetBtn = null;
-		Vector2 mouseGlobalPos = GetGlobalMousePosition(); // 获取松开时的鼠标全局位置
-
-		// 遍历所有背包格子按钮，判断鼠标是否在按钮范围内
-		foreach (var slotUI in m_SlotUI)
-		{
-			if (slotUI == null) continue;
-			// 找到当前格子的物品按钮（和你Init里的路径一致）
-			Button tempBtn = slotUI.GetNodeOrNull<Button>("VBoxContainer/物品格子");
-			if (tempBtn == null) continue;
-
-			// 关键判断：鼠标位置是否在按钮的全局矩形范围内
-			if (tempBtn.GetGlobalRect().HasPoint(mouseGlobalPos))
-			{
-				targetBtn = tempBtn;
-				break; // 找到目标按钮，退出循环
-			}
-		}
-
-		// 3. 如果找到目标按钮（且不是自己），就执行交换
-		if (targetBtn != null && targetBtn != btn)
-		{
-			// 核心修改：查找SlotData而非直接查找ItemData
-			SlotData slotA = FindSlotDataByButton(btn);
-			SlotData slotB = FindSlotDataByButton(targetBtn);
-
-			// 校验：两个格子都有效，且物品数据不为空
-			if (slotA != null && slotB != null && slotA.m_ItemData != null && slotB.m_ItemData != null)
-			{
-				ItemData tempItemData = slotA.m_ItemData;
-				slotA.m_ItemData = slotB.m_ItemData;
-				slotB.m_ItemData = tempItemData;
-
-				RefSlot();
-			}
-		}
-		// ===================== 新增 else 分支（丢弃逻辑）=====================
-		else if (targetBtn == null) // 没找到目标按钮 = 鼠标在背包格子外松开
-		{
-			// 找到当前拖拽的格子数据
-			SlotData dropSlot = FindSlotDataByButton(btn);
-			if (dropSlot != null)
-			{
-				// 执行丢弃物品方法（你之前适配好的DropItem）
-				DropItem(dropSlot);
-			}
-		}
-		// ======================================================================
-
-		// 4. 清空拖拽状态
-		m_DragBtn = null;
-	}
-
-
-	/// <summary>注：丢弃物品到玩家Marker3D前1米处</summary>
-	/// <param name="slotData">要丢弃的格子数据</param>
-	private void DropItem(SlotData slotData)
-	{
-		// 1. 基础校验：格子/物品/Marker3D 必须有效
-		if (slotData == null || slotData.m_ItemData == null || m_Marker3D == null)
-		{
-			GD.PrintErr("[DropItem] 丢弃失败：格子/物品/Marker3D为空");
-			return;
-		}
-
-		// 2. 校验物品数据有效性
-		ItemData dropItemData = slotData.m_ItemData;
-		if (string.IsNullOrEmpty(dropItemData.m_ID) || dropItemData.m_Stack <= 0)
-		{
-			GD.PrintErr("[DropItem] 丢弃失败：物品数据为空（ID/数量无效）");
-			return;
-		}
-
-		// 3. 核心：调用你提供的工具方法生成掉落物（RigidBody3D）
-		RigidBody3D dropRigidBody = dropItemData.DataToDrop();
-		if (dropRigidBody == null)
-		{
-			GD.PrintErr($"[DropItem] 丢弃失败：ItemManager未找到ID为[{dropItemData.m_ID}]的物品");
-			return;
-		}
-
-		// 4. 计算丢弃位置：Marker3D前1米（沿Z轴正方向）
-		Vector3 dropPosition = m_Marker3D.GlobalPosition + m_Marker3D.GlobalBasis.Z * 0.5f;
-
-		GetTree().CurrentScene.AddChild(dropRigidBody);
-		// 第二步：再设置全局位置（此时有效）
-		dropRigidBody.GlobalPosition = dropPosition;
-
-		// 7. 清空背包格子数据 + 刷新UI
-		slotData.m_ItemData = new ItemData();
-		RefSlot();                            // 刷新背包显示
-
-		GD.Print($"[DropItem] 成功丢弃物品[{dropItemData.m_Name}] x{dropItemData.m_Stack} 到位置：{dropPosition}");
-	}
-
-	/// <summary>注：根据按钮查找对应的SlotData</summary>
-	/// <param name="btn">物品按钮</param>
-	/// <returns>SlotData</returns>
-	private SlotData FindSlotDataByButton(Button btn)
-	{
-		if (btn == null) return null;
-		return m_inventorySlots.Find(slot => slot != null && slot.m_SlotButton == btn);
-	}
-
-
-
-    #region 行为函数
 
     /// <summary>注：加入背包物品</summary>
     /// <param name="itemDrop">物品实体</param>
-    /// <returns>布尔</returns>
+    /// <returns>是否添加成功</returns>
     public bool AddItem(ItemComp itemDrop)
     {
         if (itemDrop == null)
@@ -236,83 +91,46 @@ public partial class InventoryComp : UIPanelBase
             return false;
         }
 
-        foreach (var slotData in m_inventorySlots)
-        {
-            if (slotData.m_ItemData.m_ID == newItemData.m_ID && slotData.m_ItemData.IsStack())
-            {
-				slotData.m_ItemData.TryStack(newItemData);
-            }
-        }
+        foreach (var cmop in m_inventorySlots) cmop.TryStack(newItemData);
 
-		RefSlot();
+        RefSlot();
 
 
         if (newItemData.m_Stack <= 0) return true;
-	    var slot =	FindEmptySlot();
+        var slot = FindEmptySlot();
         RefSlot();
         if (slot == null) return false;
-        slot.m_ItemData = newItemData;
+        slot.ApplyData(newItemData);
         RefSlot();
         return true;
     }
 
-    /// <summary>注：刷新背包格子显示</summary>
-    public void RefSlot()
-	{
-		foreach (var slotData in m_inventorySlots) slotData.Refresh();
+
+
+    /// <summary>工具方法：刷新背包格子显示</summary>
+    private void RefSlot()
+    {
+        foreach (var comp in m_inventorySlots) comp.Refresh();
+        m_PlayerData.UpdateInventoryData(m_inventorySlots);
     }
 
-    #endregion
-
-    #region 辅助方法
-    /// <summary>注：查询相同物品进行堆叠</summary>
-    /// <param name="itemID">预制名</param>
-    /// <returns>SlotData（包含可堆叠的ItemData）</returns>
-    private SlotData FindStackSlot(string itemID)
+    /// <summary>工具方法：查询背包中的空格子</summary>
+    /// <returns>空的格子组件</returns>
+    private SlotComp FindEmptySlot()
     {
-        if (string.IsNullOrEmpty(itemID)) return null;
-
-        foreach (var slotData in m_inventorySlots)
-        {
-            if (slotData == null || slotData.m_ItemData == null) continue;
-
-            if (!string.IsNullOrEmpty(slotData.m_ItemData.m_Name) && slotData.m_ItemData.m_ID == itemID && slotData.m_ItemData.m_Stack < slotData.m_ItemData.m_MaxStack)
-            {
-                return slotData;
-            }
-        }
+        foreach (var comp in m_inventorySlots) if (comp.IsSlotNull()) return comp;
         return null;
     }
 
-    /// <summary>注：查询背包中的空格子</summary>
-    /// <returns>SlotData（包含空的ItemData）</returns>
-    private SlotData FindEmptySlot()
+    /// <summary>工具方法：检测背包是否还有空位</summary>
+    /// <returns>是/否</returns>
+    private bool IsInventoryEmpty()
     {
-        foreach (var slotData in m_inventorySlots)
-        {
-            if (slotData == null || slotData.m_ItemData == null) continue;
-
-            if (string.IsNullOrEmpty(slotData.m_ItemData.m_Name) && string.IsNullOrEmpty(slotData.m_ItemData.m_ID))
-            {
-                return slotData;
-            }
-        }
-        return null;
+        foreach (var comp in m_inventorySlots) if (comp.IsSlotNull()) return true;
+        return false;
     }
 
-    /// <summary>注：检测背包是否还有空位</summary>
-	/// <returns></returns>
-	private bool IsInventoryEmpty()
-	{
-        foreach (var slotData in m_inventorySlots) if (slotData.IsSlotNull) return true;
-		return false;
-    }
-
-
-
-
+    /// <summary>注：显示与隐藏 </summary>
     public void ToggleUI() => this.Visible = !this.Visible;
-
-    #endregion
 
 }

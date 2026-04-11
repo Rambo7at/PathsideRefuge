@@ -15,26 +15,36 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
-[node name="SlotUi" type="Button" unique_id=282520905 node_paths=PackedStringArray("m_button", "m_icon", "m_text")]
+[node name="SlotUi" type="Control" unique_id=1872644542 node_paths=PackedStringArray("m_button", "m_icon", "m_text")]
 self_modulate = Color(1, 1, 1, 0)
+layout_mode = 3
+anchors_preset = 0
 offset_right = 64.0
 offset_bottom = 64.0
 script = ExtResource("1_qivok")
-m_button = NodePath(".")
-m_icon = NodePath("PanelContainer/TextureRect")
-m_text = NodePath("PanelContainer/TextureRect/Label")
+m_button = NodePath("Button")
+m_icon = NodePath("Button/PanelContainer/TextureRect")
+m_text = NodePath("Button/PanelContainer/TextureRect/Label")
 
-[node name="PanelContainer" type="PanelContainer" parent="." unique_id=2017153452]
+[node name="Button" type="Button" parent="." unique_id=2092678774]
+self_modulate = Color(1, 1, 1, 0)
 layout_mode = 0
 offset_right = 64.0
 offset_bottom = 64.0
+
+[node name="PanelContainer" type="PanelContainer" parent="Button" unique_id=2017153452]
+layout_mode = 0
+offset_right = 64.0
+offset_bottom = 64.0
+mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_avedt")
 
-[node name="TextureRect" type="TextureRect" parent="PanelContainer" unique_id=881481904]
+[node name="TextureRect" type="TextureRect" parent="Button/PanelContainer" unique_id=881481904]
 layout_mode = 2
+mouse_filter = 2
 expand_mode = 1
 
-[node name="Label" type="Label" parent="PanelContainer/TextureRect" unique_id=1240613006]
+[node name="Label" type="Label" parent="Button/PanelContainer/TextureRect" unique_id=1240613006]
 layout_mode = 1
 anchors_preset = 3
 anchor_left = 1.0
@@ -51,3 +61,5 @@ theme_override_colors/font_color = Color(0.38039216, 1, 0.8039216, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 2
 theme_override_font_sizes/font_size = 6
+
+[connection signal="gui_input" from="Button" to="." method="OnGuiInput"]

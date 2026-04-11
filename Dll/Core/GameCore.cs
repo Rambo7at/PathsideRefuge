@@ -6,6 +6,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using 维修公司.Dll;
+using 途畔归所.Dll.Data;
 using 途畔归所.Dll.Manager;
 
 namespace 途畔归所.Dll.Core
@@ -79,12 +80,26 @@ namespace 途畔归所.Dll.Core
 			}
 		}
 
-		#region 辅助方法
 
-		/// <summary> 泛型管理器注册，约束：必须是类 + 有无参构造 </summary>
-		/// <typeparam name="T">管理器类型</typeparam>
-		/// <param name="manager">管理器实例</param>
-		public void RegisterManager<T>(ref T manager) where T : class, new()
+        public List<PlayerData> GetLocalPlayerSaves()
+        {
+            if (m_PlayerManager.LocalPlayerSaves == null && m_PlayerManager.LocalPlayerSaves.Count == 0) return null;
+
+            return m_PlayerManager.LocalPlayerSaves;
+        }
+
+        public Control GetUIAsset(string assetName) => m_UIManager.GetUI(assetName);
+
+		public void SaveGame() => m_SaveManager.SaveData();
+
+
+
+        #region 辅助方法
+
+        /// <summary> 泛型管理器注册，约束：必须是类 + 有无参构造 </summary>
+        /// <typeparam name="T">管理器类型</typeparam>
+        /// <param name="manager">管理器实例</param>
+        public void RegisterManager<T>(ref T manager) where T : class, new()
 		{
 			if (manager == null) manager = new();
 		}

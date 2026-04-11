@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace 途畔归所.Dll.Data
 {
-    [GlobalClass]
+
     public partial class SaveData : Resource
     {
 

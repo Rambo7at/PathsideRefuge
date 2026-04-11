@@ -10,7 +10,7 @@ using static ItemComp;
 
 namespace 维修公司.Dll.data
 {
-    public class ItemData
+    public partial class ItemData : Resource
     {
 
         public enum ItemType

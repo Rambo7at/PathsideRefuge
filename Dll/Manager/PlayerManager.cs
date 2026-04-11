@@ -13,17 +13,20 @@ namespace 途畔归所.Dll.Manager
     {
 
         // 所有在线玩家
-        public Dictionary<long, PlayerData> Players = new();
+        public Dictionary<int, PlayerData> Players = new();
 
         // 本地玩家存档
-        public List<PlayerData> LocalPlayers = [];
+        public List<PlayerData> LocalPlayerSaves = [];
+
+        public Player m_LocalPlayer;
+        public PlayerData m_LocalPlayerData;
 
         private PackedScene playerPrefab;
 
         public PlayerManager()
         {
             Players.Clear();
-            LocalPlayers.Clear();
+            LocalPlayerSaves.Clear();
         }
 
 
@@ -42,9 +45,9 @@ namespace 途畔归所.Dll.Manager
         /// <param name="name"></param>
         public void Creator(string name)
         {
-            var pl = new PlayerData() { Name = name, };
+            var pl = new PlayerData() { m_Name = name, };
 
-            LocalPlayers.Add(pl);
+            LocalPlayerSaves.Add(pl);
             GameCore.Instance.m_SaveManager.SaveData();
         }
 
@@ -52,8 +55,8 @@ namespace 途畔归所.Dll.Manager
 
         public List<PlayerData> GetLocalPlayerData()
         { 
-            if (LocalPlayers == null || LocalPlayers.Count == 0) return null;
-            return LocalPlayers; 
+            if (LocalPlayerSaves == null || LocalPlayerSaves.Count == 0) return null;
+            return LocalPlayerSaves; 
         }
 
         /// <summary>注：获取实例化玩家</summary>
@@ -61,7 +64,8 @@ namespace 途畔归所.Dll.Manager
         public Player GetPlyaer()
         {
             if (playerPrefab == null) return null;
-            return playerPrefab.Instantiate() as Player;
+            var pl = playerPrefab.Instantiate() as Player;
+            return pl;
         }
 
     }
