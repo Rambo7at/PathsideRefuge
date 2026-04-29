@@ -3,6 +3,7 @@ using Godot.Collections;
 using System;
 using 维修公司.Utils;
 using 途畔归所.Dll.Base;
+using 途畔归所.Dll.Manager;
 
 namespace 维修公司.Dll
 {
@@ -10,33 +11,34 @@ namespace 维修公司.Dll
     public class UIManager
     {
 
+        private static UIManager _instance;
+        public static UIManager Instance => _instance ??= new UIManager();
+
+
+        private UIManager() { }
+
+
         public Dictionary<string, PackedScene> m_UiDict = [];
 
 
 
         /// <summary>初始化UI资源</summary>
         /// <param name="packedScene">UI预制件列表</param>
-        public void Init(PackedScene packedScene)
+        public void Init()
         {
-            if (packedScene == null)
+            if (ResourceManager.Instance.m_UIPrefabs == null) return;
+
+            foreach (var ui in ResourceManager.Instance.m_UIPrefabs)
             {
-                GD.PrintErr("[UIManager.Init]：跳过空的预制件");
-                return;
+                string uiName = ToolUtils.GetResourceName(ui.ResourcePath);
+                if (uiName == null) continue;
+                if (m_UiDict.ContainsKey(uiName))
+                {
+                    GD.PrintErr($"[UIManager.Init] UI资源 {uiName} 已存在，跳过");
+                    continue;
+                }
+                m_UiDict.Add(uiName, ui);
             }
-
-            if (!(packedScene.Instantiate() is UIPanelBase)) return;
-
-            string uiName = ToolUtils.GetResourceName(packedScene.ResourcePath);
-
-            if (uiName == null) return;
-
-            if (m_UiDict.ContainsKey(uiName))
-            {
-                GD.PrintErr($"[UIManager.Init]：UI资源： {uiName} 已存在，跳过");
-                return;
-            }
-
-            m_UiDict.Add(uiName, packedScene);
         }
 
 

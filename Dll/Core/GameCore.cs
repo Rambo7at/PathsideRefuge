@@ -15,63 +15,43 @@ namespace 途畔归所.Dll.Core
 	{
 
 		public static GameCore Instance;
-		public TimeManager m_TimeManager;
-		public ItemManager m_ItemManager;
-		public ResourceManager m_ResourceManager;
-		public UIManager m_UIManager;
-		public ConsoleManager m_ConsoleManager;
-		public PlayerManager m_PlayerManager;
-		public SaveManager m_SaveManager;
-		public NetworkCore m_NetworkCore;
-
-		public SaveData m_SaveData { get => m_SaveManager.DATA; }
-		public PlayerData m_LocalPlayerData { get => m_PlayerManager.m_LocalPlayerData; set=> m_PlayerManager.m_LocalPlayerData = value; }
 
         public override void _Ready()
 		{
 			Instance = this;
 			InitManagers();
-			ResourceLoad();
             GD.Print("[GameCore]：初始化完成");
 		}
 
 		/// <summary>注：初始化全部管理器 </summary>
 		private void InitManagers()
 		{
-			RegisterManager(ref m_ResourceManager);
-            RegisterManager(ref m_SaveManager);
-            RegisterManager(ref m_ItemManager);
-			RegisterManager(ref m_ConsoleManager);
-			RegisterManager(ref m_TimeManager);
-			RegisterManager(ref m_UIManager);
-			RegisterManager(ref m_PlayerManager);
-			RegisterManager(ref m_NetworkCore);
+
+			ResourceManager.Instance.Init();
+            SaveManager.Instance.Init();
+			ItemManager.Instance.Init();
+            UIManager.Instance.Init();
+			PlayerManager.Instance.Init();
 
 
-			AddChild(m_TimeManager);
-			AddChild(m_NetworkCore);
-			AddChild(m_ConsoleManager);
-		}
+            TimeManager timeMgr = new TimeManager();
+            TimeManager.Instance = timeMgr;   // 确保在 AddChild 前可用
+            AddChild(timeMgr);
 
-		/// <summary> 注：资源加载/ </summary>
-		public void ResourceLoad()
-		{
-			if (m_ItemManager == null) { GD.PrintErr("[GameCore]：加载资源时[m_ItemManager]是空的"); return; }
-			if (m_ResourceManager.ResourceList.Count == 0) { GD.PrintErr("[GameCore]：加载资源时[m_ResourceManager.ResourceList]是空的"); return; }
+            ConsoleManager consoleMgr = new ConsoleManager();
+            ConsoleManager.Instance = consoleMgr;
+            AddChild(consoleMgr);
 
-			foreach (var item in m_ResourceManager.ResourceList)
-			{
-				m_ItemManager.Init(item);
-				m_UIManager.Init(item);
-				m_PlayerManager.Init(item);
-			}
-		}
+            NetworkCore netCore = new NetworkCore();
+            NetworkCore.Instance = netCore;
+            AddChild(netCore);
+        }
 
 
 
-        public Control GetUIAsset(string assetName) => m_UIManager.GetUI(assetName);
 
-		public void SaveGame() => m_SaveManager.SaveData();
+
+
 
 
 

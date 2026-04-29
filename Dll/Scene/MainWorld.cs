@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using 途畔归所.Dll.Core;
+using 途畔归所.Dll.Manager;
 
 namespace 途畔归所.Dll.Scene
 {
@@ -14,12 +15,13 @@ namespace 途畔归所.Dll.Scene
 
 		public override void _Ready()
 		{
-			var pl =   GameCore.Instance.m_PlayerManager.GetPlyaer();
+			var pl = PlayerManager.Instance.GetPlyaer();
 			if (pl == null) return;
 
 			if (!pl.IsInsideTree())
 			{
 				GetTree().CurrentScene.AddChild(pl);
+                PlayerManager.Instance.ActivePlayers.Add(pl.m_PlayerData.m_PlayerID,pl);
 			}
 
 			pl.GlobalPosition = SpawnPian.GlobalPosition;

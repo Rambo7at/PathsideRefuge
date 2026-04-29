@@ -12,20 +12,29 @@ namespace 途畔归所.Dll.Manager
 	/// <summary> 注：存档管理器 </summary>
 	public class SaveManager
 	{
-		public SaveData DATA;
+
+        private static SaveManager _instance;
+        public static SaveManager Instance => _instance ??= new SaveManager();
+
+        private SaveManager()
+        {
+            LoadData();
+            SaveDataCheck();
+        }
+
+        public SaveData DATA;
 
 		private const string Path = "res://Save/GameSave.res";
 
-		public SaveManager()
-		{
-			LoadData();
-			SaveDataCheck();
+
+		public void Init()
+		{ 
+		    
 		}
 
 
-
-		/// <summary> 注：加载游戏数据 </summary>
-		private void LoadData()
+        /// <summary> 注：加载游戏数据 </summary>
+        private void LoadData()
 		{
 			if (!FileAccess.FileExists(Path))
 			{

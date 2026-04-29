@@ -4,7 +4,7 @@ namespace 途畔归所.Dll.Core
 {
     public partial class NetworkCore : Node
     {
-        public static NetworkCore Instance { get; private set; }
+        public static NetworkCore Instance { get;  set; }
 
         /// <summary>注：端口 </summary>
         public const int Default_Port = 3043;

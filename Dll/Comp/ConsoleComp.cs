@@ -51,8 +51,8 @@ public partial class ConsoleComp : UIPanelBase
 
 		m_Command = info.Trim().Split().ToList();
 
-		// 解析执行命令
-		GameCore.Instance.m_ConsoleManager.ParseCommand(this);
+        // 解析执行命令
+        ConsoleManager.Instance.ParseCommand(this);
 
 		// 清空输入框
 		m_LineEdit.Text = "";

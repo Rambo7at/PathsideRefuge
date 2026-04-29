@@ -1,10 +1,11 @@
 using Godot;
 using Godot.Collections;
+using 维修公司.Dll;
 using 维修公司.Dll.data;
 using 途畔归所.Dll.Base;
-using 途畔归所.Dll.Data;
-using 途畔归所.Dll.Core;
 using 途畔归所.Dll.Comp;
+using 途畔归所.Dll.Core;
+using 途畔归所.Dll.Data;
 
 /// <summary>注：背包组件 </summary>
 public partial class InventoryComp : UIPanelBase
@@ -31,7 +32,7 @@ public partial class InventoryComp : UIPanelBase
 
 		for (int i = 0; i < 10; i++)
 		{
-			SlotComp slotUi = GameCore.Instance.GetUIAsset("slot_ui") as SlotComp;
+			SlotComp slotUi = UIManager.Instance.GetUI("slot_ui") as SlotComp;
 			gridContainer.AddChild(slotUi);
 			m_inventorySlots.Add(slotUi);
 			slotUi.m_SlotID = i;

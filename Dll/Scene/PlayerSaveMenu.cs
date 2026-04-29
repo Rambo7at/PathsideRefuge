@@ -2,6 +2,7 @@ using Godot;
 using System;
 using 途畔归所.Dll.Core;
 using 途畔归所.Dll.Data;
+using 途畔归所.Dll.Manager;
 
 public partial class PlayerSaveMenu : Control
 {
@@ -24,15 +25,13 @@ public partial class PlayerSaveMenu : Control
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta)
 	{
-		if (GameCore.Instance.m_SaveData == null) return;
+		if (SaveManager.Instance.DATA == null) return;
 
-        PlayerData playerData = GameCore.Instance.m_SaveData.GetPickPlayerData();
+        PlayerData playerData = SaveManager.Instance.DATA.GetPickPlayerData();
 
         if (playerData == null) return;
-        if (GameCore.Instance.m_LocalPlayerData == playerData) return;
 
         ApplyPlayerInfo(playerData);
-        GameCore.Instance.m_LocalPlayerData = playerData;
     }
 
 
@@ -45,7 +44,7 @@ public partial class PlayerSaveMenu : Control
     
     }
 
-    private void GoRight() => GameCore.Instance.m_SaveData.PickNextPlayer();
+    private void GoRight() => SaveManager.Instance.DATA.PickNextPlayer();
 
     #endregion
 

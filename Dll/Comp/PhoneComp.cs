@@ -35,7 +35,7 @@ public partial class PhoneComp : Control
 
 		if (m_OnlineShopUI != null) return;
 
-		m_OnlineShopUI = GameCore.Instance.m_UIManager.GetUI("OnlineShopUI");
+		m_OnlineShopUI = UIManager.Instance.GetUI("OnlineShopUI");
 		m_OnlineShopUI.Visible = false;
 		this.AddChild(m_OnlineShopUI);
 	}

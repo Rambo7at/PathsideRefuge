@@ -12,8 +12,7 @@ namespace 途畔归所.Dll.Comp
 		[Export] public Label m_label;
 		public override void _Ready()
 		{
-			if (GameCore.Instance.m_LocalPlayerData == null)return;
-			m_label.Text = GameCore.Instance.m_LocalPlayerData.m_Name;
+
 
 
 		}

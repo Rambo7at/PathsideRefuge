@@ -20,7 +20,7 @@ namespace 途畔归所.Dll.Comp
 
 
 
-		private void Save() => GameCore.Instance.SaveGame();
+		private void Save() {}
 
 
 

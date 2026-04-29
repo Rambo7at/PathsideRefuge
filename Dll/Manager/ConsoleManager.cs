@@ -2,15 +2,19 @@ using Godot;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using 维修公司.Dll;
 using 途畔归所.Dll.Core;
 
 public partial class ConsoleManager : Node
 {
+    public static ConsoleManager Instance { get;  set; }
+
     Dictionary<string, Func<ConsoleComp,bool>> m_CommandMap = [];
 
 
     public override void _Ready()
     {
+        Instance = this;
         init();
         GD.Print("[ConsoleManager] 初始化完成");
     }
@@ -52,7 +56,7 @@ public partial class ConsoleManager : Node
     /// <summary>注：生成功能  </summary>
     private bool Spawn(ConsoleComp consoleComp)
     {
-        RigidBody3D itemDrop = GameCore.Instance.m_ItemManager.GetItemDrop(consoleComp.m_Command[1]);
+        RigidBody3D itemDrop = ItemManager.Instance.GetItemDrop(consoleComp.m_Command[1]);
         if (itemDrop == null)
         {
             GD.PrintErr($"[ConsoleManager.Spawn] 物品[{consoleComp.m_Command[1]}]生成失败（GetItemDrop返回空）");

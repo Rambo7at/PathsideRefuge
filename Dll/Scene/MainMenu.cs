@@ -5,6 +5,7 @@ using System.Runtime.InteropServices.JavaScript;
 using 维修公司.Dll;
 using 途畔归所.Dll.Comp;
 using 途畔归所.Dll.Core;
+using 途畔归所.Dll.Manager;
 
 public partial class MainMenu : Node3D
 {
@@ -83,14 +84,14 @@ public partial class MainMenu : Node3D
 	public void JoinLobby()
 	{
 		if (CheckPlayerSave() == false) return;
-		GameCore.Instance.m_NetworkCore.JoinLAN("192.168.71.36");
+		NetworkCore.Instance.JoinLAN("192.168.71.36");
 	}
 
 
 
 	public void GoLobby()
 	{
-		GameCore.Instance.m_NetworkCore.StartLANHost();
+		NetworkCore.Instance.StartLANHost();
 		门牌UI.Text = 房间名称.Text;
 		创建UI.Visible = false;
 		房间名称.Text = "";
@@ -109,19 +110,7 @@ public partial class MainMenu : Node3D
 
 
 	#region 辅助方法
-	private bool CheckPlayerSave()
-	{
-
-		var playerdata = GameCore.Instance.m_LocalPlayerData;
-
-		if (playerdata == null)
-		{
-			GD.Print("未检测到本地存档数据");
-			GetTree().ChangeSceneToFile("res://Scenes/角色创建.tscn");
-			return false;
-		}
-		return true;
-	}
+	private bool CheckPlayerSave() => SaveManager.Instance.DATA.CheckplayerDatas();
 
 
 

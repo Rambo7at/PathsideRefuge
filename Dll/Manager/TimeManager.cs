@@ -5,9 +5,9 @@ namespace 途畔归所.Dll.Manager
 	/// <summary>全局时间管理器 - 游戏1天=24分钟</summary>
 	public partial class TimeManager : Node
 	{
-
-		// 时间倍率
-		private const float RATE = 86400f / 1440f;
+        public static TimeManager Instance { get;  set; }
+        // 时间倍率
+        private const float RATE = 86400f / 1440f;
 
         // 游戏总秒数（0-86400）
         private float m_TotalSec = 0f;
@@ -20,7 +20,8 @@ namespace 途畔归所.Dll.Manager
 
 		public override void _Ready()
 		{
-			Pause();
+            Instance = this;
+            Pause();
 			GD.Print("[TimeManager] 初始化完成");
 		}
 

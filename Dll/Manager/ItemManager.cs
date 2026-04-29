@@ -14,27 +14,34 @@ namespace 维修公司.Dll
 	public class ItemManager 
 	{
 
-		public Godot.Collections.Dictionary<string, PackedScene> m_ItemDict = [];
+        private static ItemManager _instance;
+        public static ItemManager Instance => _instance ??= new ItemManager();
+
+        private ItemManager() { }
+
+        public Godot.Collections.Dictionary<string, PackedScene> m_ItemDict = [];
 
 
 
 		/// <summary>注：加载资源</summary>
 		/// <param name="packedScene">预制件列表</param>
-		public void Init(PackedScene packedScene)
+		public void Init()
 		{
-			if (packedScene == null) return;
+			if (ResourceManager.Instance.m_ItemPrefabs == null || ResourceManager.Instance.m_ItemPrefabs.Count == 0) return;
 
-			if (!(packedScene.Instantiate() is ItemComp)) return;
-			string prefabName = ToolUtils.GetResourceName(packedScene.ResourcePath);
+            foreach (var item in ResourceManager.Instance.m_ItemPrefabs)
+            {
+                string prefabName = ToolUtils.GetResourceName(item.ResourcePath);
+                if (prefabName == null) continue;
+                if (m_ItemDict.ContainsKey(prefabName))
+                {
+                    GD.Print($"[ItemManager.InitItemDict]：物品 {prefabName} 已存在，跳过");
+                    continue;
+                }
 
-			if (prefabName == null) return;
-			if (m_ItemDict.ContainsKey(prefabName))
-			{
-				GD.Print($"[ItemManager.InitItemDict]：物品 {prefabName} 已存在，跳过");
-				return;
-			}
+                m_ItemDict.Add(prefabName, item);
 
-			m_ItemDict.Add(prefabName, packedScene);
+            }
 		}
 
 

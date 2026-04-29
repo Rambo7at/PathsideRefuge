@@ -28,18 +28,18 @@ public partial class ShopManager : Node
 
 	private ShopManager() 
 	{
-		if (GameCore.Instance.m_ItemManager.m_ItemDict == null && GameCore.Instance.m_ItemManager.m_ItemDict.Count == 0)
+		if (ItemManager.Instance.m_ItemDict == null && ItemManager.Instance.m_ItemDict.Count == 0)
 		{
 			GD.PrintErr($"[ShopManager-构造函数]：初始化失败，m_ItemDict 字典未初始化");
 			Instance = null;
 			return;
 		}
 
-		foreach (var itemID in GameCore.Instance.m_ItemManager.m_ItemDict)
+		foreach (var itemID in ItemManager.Instance.m_ItemDict)
 		{
 			OnlineShopGoods.Add(new ShopItemData()
 			{
-				m_Good = GameCore.Instance.m_ItemManager.GetItemData(itemID.Key),
+				m_Good = ItemManager.Instance.GetItemData(itemID.Key),
 
 				m_Price = GD.RandRange(10, 1000)
 			}); 

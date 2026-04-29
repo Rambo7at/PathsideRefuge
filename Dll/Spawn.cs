@@ -15,7 +15,7 @@ public partial class Spawn : Node3D
 
     private void SpawnItem()
     {
-        var x = GameCore.Instance.m_ItemManager.GetItemDrop(name);
+        var x = ItemManager.Instance.GetItemDrop(name);
         GetTree().CurrentScene.AddChild(x);
         x.GlobalPosition = this.GlobalPosition;
 

@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using 途畔归所.Dll.Core;
+using 途畔归所.Dll.Manager;
 
 public partial class PlayerCreator : Node3D
 {
@@ -32,7 +33,7 @@ public partial class PlayerCreator : Node3D
 
 		if (!string.IsNullOrEmpty(m_Name.Text))
 		{
-			GameCore.Instance.m_SaveData.CreatPlayer(m_Name.Text);
+			SaveManager.Instance.DATA.CreatPlayer(m_Name.Text);
 			Return();
 		}
 	}

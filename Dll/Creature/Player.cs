@@ -1,5 +1,6 @@
 using Godot;
 using System.Collections.Generic;
+using 维修公司.Dll;
 using 维修公司.Utils;
 using 途畔归所.Dll.Base;
 using 途畔归所.Dll.Comp;
@@ -69,7 +70,7 @@ public partial class Player : Humanoid
 	{
 		if (m_InventoryComp != null) return;
 
-		var UI = GameCore.Instance.m_UIManager.GetUI("InventoryUI");
+		var UI = UIManager.Instance.GetUI("InventoryUI");
 		if (UI == null) return;
 
 		var script = ToolUtils.GetNodeScript<InventoryComp>(UI);
@@ -88,7 +89,7 @@ public partial class Player : Humanoid
 	{
 		if (m_ConsoleComp != null) return;
 
-		var UI = GameCore.Instance.m_UIManager.GetUI("ConsoleUI");
+		var UI = UIManager.Instance.GetUI("ConsoleUI");
 		if (UI == null) return;
 
 		var script = ToolUtils.GetNodeScript<ConsoleComp>(UI);
@@ -109,7 +110,7 @@ public partial class Player : Humanoid
 	private void InitPlayerEsc()
 	{
         if (m_EscComp != null) return;
-        var UI = GameCore.Instance.m_UIManager.GetUI("esc_ui");
+        var UI = UIManager.Instance.GetUI("esc_ui");
         if (UI == null) return;
 
         var script = ToolUtils.GetNodeScript<EscComp>(UI);

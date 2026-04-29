@@ -11,19 +11,36 @@ namespace 途畔归所.Dll.Manager
 {
     public class PlayerManager
     {
-        private PackedScene playerPrefab;
-        public Dictionary<int, PlayerData> Players = new();
+        private static PlayerManager _instance;
+        public static PlayerManager Instance => _instance ??= new PlayerManager();
 
-        public PlayerData m_LocalPlayerData;
+        private PlayerManager() { }
+
+        private PackedScene playerPrefab;
+
+        public Dictionary<int, Player> ActivePlayers = [];
+
+
+        public Player GetLocalPlayer(Player player)
+        {
+            foreach (var data in ActivePlayers)
+            {
+                if (data.Key == player.m_PlayerData.m_PlayerID)
+                {
+                    return data.Value;
+                }
+            }
+            return null;
+        }
+
+
 
         /// <summary>注：加载资源</summary>
         /// <param name="packedScene">预制件列表</param>
-        public void Init(PackedScene packedScene)
+        public void Init()
         {
-            if (packedScene == null) return;
-
-            if (!(packedScene.Instantiate() is Player)) return;
-            playerPrefab = packedScene;
+            if (ResourceManager.Instance.m_PlayerPrefab == null) return;
+            playerPrefab = ResourceManager.Instance.m_PlayerPrefab;
         }
 
 
@@ -33,9 +50,7 @@ namespace 途畔归所.Dll.Manager
         {
             if (playerPrefab == null) return null;
             var pl = playerPrefab.Instantiate() as Player;
-            pl.m_PlayerData = m_LocalPlayerData;
-
-            pl.m_PlayerData.m_LocalPlayer = pl;
+            pl.m_PlayerData = SaveManager.Instance.DATA.GetPickPlayerData();
             return pl;
         }
 

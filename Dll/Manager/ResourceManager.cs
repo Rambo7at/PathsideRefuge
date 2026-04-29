@@ -4,39 +4,86 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using 途畔归所.Dll.Base;
 
 namespace 途畔归所.Dll.Manager
 {
-    /// <summary>
-    ///  注：资源管理器
-    /// </summary>
-    public class ResourceManager
-    {
+	/// <summary>注：资源管理器</summary>
+	public class ResourceManager
+	{
 
-        public List<PackedScene> ResourceList = new List<PackedScene>();
+		private static ResourceManager _instance;
 
-        public ResourceManager()
-        {
-            LoadAsset("res://Prefab/Player/player.tscn");
-
-            LoadAsset("res://Prefab/Item/et_牛奶罐.tscn");
+		public static ResourceManager Instance => _instance ??= new ResourceManager();
 
 
-            LoadAsset("res://Prefab/UI/ESC/esc_ui.tscn");
-            LoadAsset("res://Prefab/UI/ConsoleUI.tscn");
-            LoadAsset("res://Prefab/UI/背包/InventoryUI.tscn");
-            LoadAsset("res://Prefab/UI/格子/slot_ui.tscn");
-            GD.Print("[ResourceManager] 初始化完成");
-        }
+		private List<PackedScene> _ResourceList = new List<PackedScene>();
+
+		public PackedScene m_PlayerPrefab { get;  set; }
+		public List<PackedScene> m_ItemPrefabs { get; private set; } = new List<PackedScene>();
+		public List<PackedScene> m_UIPrefabs { get; private set; } = new List<PackedScene>();
+
+		private ResourceManager() { }
 
 
-        private void LoadAsset(string res)
-        {
-            var scene = ResourceLoader.Load<PackedScene>(res);
+		public void Init()
+		{
+			LoadAsset("res://Prefab/Player/player.tscn");
 
-            if (scene != null) ResourceList.Add(scene);
-            else GD.PrintErr($"[ResourceManager.LoadAsset]：资源加载失败资源检查路径：{res}");
-        }
+			LoadAsset("res://Prefab/Item/et_牛奶罐.tscn");
 
-    }
+
+			LoadAsset("res://Prefab/UI/ESC/esc_ui.tscn");
+			LoadAsset("res://Prefab/UI/ConsoleUI.tscn");
+			LoadAsset("res://Prefab/UI/背包/InventoryUI.tscn");
+			LoadAsset("res://Prefab/UI/格子/slot_ui.tscn");
+
+			CategorizeAssets();
+			GD.Print("[ResourceManager] 初始化完成");
+		}
+
+		public void CategorizeAssets()
+		{
+			foreach (var asset in _ResourceList)
+			{
+
+				if (asset == null) continue;
+
+				Node instance = asset.Instantiate();
+				if (instance == null) continue;
+
+				if (instance is Player)
+				{
+					m_PlayerPrefab = asset;           // 只有一个玩家预设
+				}
+				else if (instance is ItemComp)
+				{
+					m_ItemPrefabs.Add(asset);
+				}
+				else if (instance is UIPanelBase)    // 所有 UI 都继承 UIPanelBase
+				{
+					m_UIPrefabs.Add(asset);
+				}
+				else
+				{
+					GD.Print($"[ResourceManager] 未能归类的资源：{asset.ResourcePath}");
+				}
+
+				if (!instance.IsQueuedForDeletion()) instance.QueueFree();
+
+			}
+
+		}
+
+
+
+		private void LoadAsset(string res)
+		{
+			var scene = ResourceLoader.Load<PackedScene>(res);
+
+			if (scene != null) _ResourceList.Add(scene);
+			else GD.PrintErr($"[ResourceManager.LoadAsset]：资源加载失败资源检查路径：{res}");
+		}
+
+	}
 }

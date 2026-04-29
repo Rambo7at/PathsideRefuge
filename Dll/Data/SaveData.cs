@@ -62,13 +62,11 @@ namespace 途畔归所.Dll.Data
 
 
 
-        private bool CheckplayerDatas()
+        public bool CheckplayerDatas()
         {
             if (playerDatas == null || playerDatas.Count == 0) return false;
 
-            foreach (var data in playerDatas) if (data.m_PlayerID != 0) return true;
-
-            return false;
+            return true;
 
         }
 
