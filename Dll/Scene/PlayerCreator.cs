@@ -32,11 +32,12 @@ public partial class PlayerCreator : Node3D
 
 		if (!string.IsNullOrEmpty(m_Name.Text))
 		{
-			GameCore.Instance.m_PlayerManager.Creator(m_Name.Text);
+			GameCore.Instance.m_SaveData.CreatPlayer(m_Name.Text);
 			Return();
 		}
-	
 	}
+
+
 	#endregion
 
 

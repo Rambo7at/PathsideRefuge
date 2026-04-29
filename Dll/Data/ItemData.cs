@@ -12,7 +12,6 @@ namespace 维修公司.Dll.data
 {
     public partial class ItemData : Resource
     {
-
         public enum ItemType
         {
             消耗品,
@@ -20,18 +19,17 @@ namespace 维修公司.Dll.data
             收纳
         }
 
-
-        public string m_ID { get; set; }
-        public string m_Name { get; set; } = string.Empty;
-        public ItemType m_Type { get; set; }
-        public string m_Description { get; set; }
-        public Texture2D m_Icon { get; set; }
-        public int m_Stack { get; set; } = 1;
-        public int m_MaxStack { get; set; } = 1;
-        public float m_Weight { get; set; } = 1f;
-        public int m_Volume { get; set; } = 1;
-        public int m_Capacity { get; set; } = 1;
-        public int m_MaxCapacity { get; set; } = 1;
+        [Export] public string m_ID { get; set; }
+        [Export] public string m_Name { get; set; } = string.Empty;
+        [Export] public ItemType m_Type { get; set; }
+        [Export] public string m_Description { get; set; }
+        [Export] public Texture2D m_Icon { get; set; }
+        [Export] public int m_Stack { get; set; } = 1;
+        [Export] public int m_MaxStack { get; set; } = 1;
+        [Export] public float m_Weight { get; set; } = 1f;
+        [Export] public int m_Volume { get; set; } = 1;
+        [Export] public int m_Capacity { get; set; } = 1;
+        [Export] public int m_MaxCapacity { get; set; } = 1;
         public ItemData(ItemComp itemDrop)
         {
             m_ID = itemDrop.物品ID;
@@ -46,10 +44,7 @@ namespace 维修公司.Dll.data
 
         }
 
-
-
         public ItemData() { }
-
 
         public ItemData CopyData()
         {
@@ -82,7 +77,7 @@ namespace 维修公司.Dll.data
         }
 
         public RigidBody3D DataToDrop()
-        { 
+        {
             var drop = GameCore.Instance.m_ItemManager.GetItemDrop(this.m_ID);
             ToolUtils.GetNodeScript<ItemComp>(drop).m_ItemData = this;
             return drop;

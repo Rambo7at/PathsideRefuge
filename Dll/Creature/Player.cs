@@ -196,7 +196,11 @@ public partial class Player : Humanoid
 	private void UI()
 	{
 		if (Input.IsActionJustPressed("cat_Console")) m_ConsoleComp.ToggleUI();
-		if (Input.IsActionJustPressed("cat_Tab")) m_InventoryComp.ToggleUI();
+		if (Input.IsActionJustPressed("cat_Tab"))
+		{
+			m_InventoryComp.RefSlot();
+            m_InventoryComp.ToggleUI();
+        }
         if (Input.IsActionJustPressed("cat_Esc")) m_EscComp.ToggleUI();
     }
 	private void MouseMode()

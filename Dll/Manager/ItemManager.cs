@@ -25,7 +25,6 @@ namespace 维修公司.Dll
 			if (packedScene == null) return;
 
 			if (!(packedScene.Instantiate() is ItemComp)) return;
-			GD.Print($"有新增物品！");
 			string prefabName = ToolUtils.GetResourceName(packedScene.ResourcePath);
 
 			if (prefabName == null) return;

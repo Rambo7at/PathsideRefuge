@@ -9,68 +9,89 @@ using 途畔归所.Dll.Data;
 
 namespace 途畔归所.Dll.Manager
 {
-    /// <summary> 注：存档管理器 </summary>
-    public class SaveManager
-    {
-        public SaveData DATA;
+	/// <summary> 注：存档管理器 </summary>
+	public class SaveManager
+	{
+		public SaveData DATA;
 
-        /// <summary> 注：存档路径 </summary>
-        private const string Path = "res://Save/GameSave.res";
+		private const string Path = "res://Save/GameSave.res";
+
+		public SaveManager()
+		{
+			LoadData();
+			SaveDataCheck();
+		}
 
 
-        public SaveManager()
-        {
-            if (!LoadData()) SaveData();
-            LoadDataToPlayer();
-        }
 
-        /// <summary>注：加载本地存档</summary>
-        /// <returns>是否加载成功</returns>
-        public bool LoadData()
-        {
-            if (FileAccess.FileExists(Path) == false) return false;
+		/// <summary> 注：加载游戏数据 </summary>
+		private void LoadData()
+		{
+			if (!FileAccess.FileExists(Path))
+			{
+				GD.Print($"目录{Path}中未有存档，准备执行新建");
+				SaveData();
+				return;
+			}
 
-            var data = GD.Load<SaveData>(Path);
-            if (data != null) DATA = data;
-            return true;
-        }
+			SaveData data = GD.Load<SaveData>(Path);
+			if (data != null)
+			{
+				DATA = data;
+			}
+			else
+			{
+				GD.Print($"获取的存档数据为空，准备执行新建");
+				SaveData();
+			}
+		}
 
-        /// <summary>注：保存数据至本地</summary>
-        public void SaveData()
-        {
-            if (DATA == null) DATA = new SaveData();
-            UpdateData();
-            ResourceSaver.Save(DATA, Path);
-            GD.Print("成功保存");
-        }
+		/// <summary>注：保存数据至本地</summary>
+		public void SaveData()
+		{
+			if (DATA == null)
+			{
+				DATA = new SaveData();
+				ResourceSaver.Save(DATA, Path);
+				return;
+			}
+			if (UpdateData())
+			{
+				ResourceSaver.Save(DATA, Path);
+				GD.Print("成功保存");
+			}
 
-        /// <summary>注：更新存档数据</summary>
-        private void UpdateData()
-        {
-            if (GameCore.Instance.m_PlayerManager.LocalPlayerSaves == null || GameCore.Instance.m_PlayerManager.LocalPlayerSaves.Count == 0) return;
-            for (int i = 0; i < GameCore.Instance.m_PlayerManager.LocalPlayerSaves.Count; i++)
-            {
-                if (i >= DATA.playerDatas.Count)
-                {
-                    DATA.playerDatas.Add(GameCore.Instance.m_PlayerManager.LocalPlayerSaves[i]);
-                }
-                else
-                {
-                    DATA.playerDatas[i] = GameCore.Instance.m_PlayerManager.LocalPlayerSaves[i];
-                }
-            }
-        }
+		}
 
-        private void LoadDataToPlayer()
-        {
-            if (DATA.playerDatas == null && DATA.playerDatas.Count == 0) return;
+		/// <summary>注：更新存档数据</summary>
+		private bool UpdateData()
+		{
 
-            foreach (var data in DATA.playerDatas)
-            {
-                GameCore.Instance.m_PlayerManager.LocalPlayerSaves.Add(data);
-            }
+			return true;
 
-            GameCore.Instance.m_PlayerManager.m_LocalPlayerData = GameCore.Instance.m_PlayerManager.LocalPlayerSaves[0];
-        }
-    }
+		}
+
+
+
+
+
+		private void SaveDataCheck()
+		{
+			GD.Print($"开始存档检测------");
+			if (DATA.playerDatas == null)
+			{
+
+				GD.Print($"目前还未有玩家存档");
+				return;
+			}
+			GD.Print($"检查到有{DATA.playerDatas.Count}个存档");
+
+			foreach (var item in DATA.playerDatas)
+			{
+				GD.Print($"玩家名{item.m_Name}");
+				GD.Print($"玩家背包库存{item.CheckPlayerInventoryCount()}");
+			}
+
+		}
+	}
 }

@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://hy5ixgsowtf" path="res://Dll/Scene/MainMenu.cs" id="1_ckshb"]
 [ext_resource type="Theme" uid="uid://cxjqe8iwko2rk" path="res://Theme/角色创建.tres" id="3_4lmad"]
+[ext_resource type="Script" uid="uid://dqaqw1bmsw1s4" path="res://Dll/Scene/PlayerSaveMenu.cs" id="4_7d8j3"]
 [ext_resource type="Theme" uid="uid://ddcpo5it8afda" path="res://Theme/主菜单UI.tres" id="7_cjyvh"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ckshb"]
@@ -49,14 +50,13 @@ albedo_color = Color(0.08321554, 8.928254e-06, 0.39188647, 1)
 [sub_resource type="BoxMesh" id="BoxMesh_4lmad"]
 material = SubResource("StandardMaterial3D_ckshb")
 
-[node name="主菜单" type="Node3D" unique_id=650275170 node_paths=PackedStringArray("菜单UI", "开始UI", "创建UI", "门牌UI", "房间名称", "存档列表")]
+[node name="主菜单" type="Node3D" unique_id=650275170 node_paths=PackedStringArray("菜单UI", "开始UI", "创建UI", "门牌UI", "房间名称")]
 script = ExtResource("1_ckshb")
 "菜单UI" = NodePath("CanvasLayer/主菜单_画布")
 "开始UI" = NodePath("CanvasLayer/大厅界面")
 "创建UI" = NodePath("CanvasLayer/创建选项")
 "门牌UI" = NodePath("CanvasLayer/大厅界面/门牌")
 "房间名称" = NodePath("CanvasLayer/创建选项/HBoxContainer/LineEdit")
-"存档列表" = NodePath("CanvasLayer/存档选项/PanelContainer4/VBoxContainer")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=991670717]
 environment = SubResource("Environment_7d8j3")
@@ -114,17 +114,17 @@ grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("7_cjyvh")
 
-[node name="Button" type="Button" parent="CanvasLayer/主菜单_画布/VBoxContainer" unique_id=529472026]
+[node name="开始游戏" type="Button" parent="CanvasLayer/主菜单_画布/VBoxContainer" unique_id=529472026]
 layout_mode = 2
 theme = ExtResource("7_cjyvh")
 text = "开始游戏"
 
-[node name="Button4" type="Button" parent="CanvasLayer/主菜单_画布/VBoxContainer" unique_id=1978045722]
+[node name="设置" type="Button" parent="CanvasLayer/主菜单_画布/VBoxContainer" unique_id=1978045722]
 layout_mode = 2
 theme = ExtResource("7_cjyvh")
 text = "设置"
 
-[node name="Button3" type="Button" parent="CanvasLayer/主菜单_画布/VBoxContainer" unique_id=856146456]
+[node name="退出" type="Button" parent="CanvasLayer/主菜单_画布/VBoxContainer" unique_id=856146456]
 layout_mode = 2
 theme = ExtResource("7_cjyvh")
 text = "退出"
@@ -288,13 +288,16 @@ size_flags_vertical = 4
 theme = ExtResource("7_cjyvh")
 text = "返回"
 
-[node name="存档选项" type="Control" parent="CanvasLayer" unique_id=573337085]
+[node name="存档菜单" type="Control" parent="CanvasLayer" unique_id=573337085 node_paths=PackedStringArray("PlayerName", "PlayerBox")]
 layout_mode = 3
 anchors_preset = 0
 offset_right = 40.0
 offset_bottom = 40.0
+script = ExtResource("4_7d8j3")
+PlayerName = NodePath("PanelContainer4/VBoxContainer/playerName")
+PlayerBox = NodePath("PanelContainer4/VBoxContainer/playeBox")
 
-[node name="PanelContainer4" type="PanelContainer" parent="CanvasLayer/存档选项" unique_id=1104802110]
+[node name="PanelContainer4" type="PanelContainer" parent="CanvasLayer/存档菜单" unique_id=1104802110]
 layout_mode = 0
 offset_left = 1318.0
 offset_top = 312.0
@@ -304,9 +307,40 @@ size_flags_horizontal = 4
 size_flags_vertical = 4
 theme = ExtResource("7_cjyvh")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/存档选项/PanelContainer4" unique_id=903489941]
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/存档菜单/PanelContainer4" unique_id=903489941]
 layout_mode = 2
-theme_override_constants/separation = 67
+
+[node name="playerName" type="Label" parent="CanvasLayer/存档菜单/PanelContainer4/VBoxContainer" unique_id=1806833901]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "玩家名：XXXX"
+
+[node name="playeBox" type="Label" parent="CanvasLayer/存档菜单/PanelContainer4/VBoxContainer" unique_id=202698653]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "背包库存：10"
+
+[node name="左" type="Button" parent="CanvasLayer/存档菜单" unique_id=1298099859]
+layout_mode = 0
+offset_left = 1326.0
+offset_top = 242.0
+offset_right = 1412.0
+offset_bottom = 303.0
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme = ExtResource("7_cjyvh")
+text = "<"
+
+[node name="右" type="Button" parent="CanvasLayer/存档菜单" unique_id=1717617881]
+layout_mode = 0
+offset_left = 1525.0
+offset_top = 242.0
+offset_right = 1611.0
+offset_bottom = 303.0
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme = ExtResource("7_cjyvh")
+text = ">"
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1016467814]
 transform = Transform3D(20, 0, 0, 0, 1, 0, 0, 0, 9.920001, 0, 0, 0)
@@ -315,11 +349,13 @@ mesh = SubResource("BoxMesh_4lmad")
 [node name="Camera3D" type="Camera3D" parent="." unique_id=1793849891]
 transform = Transform3D(1, 0, 0, 0, 0.9924587, 0.12257956, 0, 0.12257956, -0.9924587, 0, 2.6937778, -7.647185)
 
-[connection signal="pressed" from="CanvasLayer/主菜单_画布/VBoxContainer/Button" to="." method="StartGame"]
-[connection signal="pressed" from="CanvasLayer/主菜单_画布/VBoxContainer/Button3" to="." method="Quit"]
+[connection signal="pressed" from="CanvasLayer/主菜单_画布/VBoxContainer/开始游戏" to="." method="StartGame"]
+[connection signal="pressed" from="CanvasLayer/主菜单_画布/VBoxContainer/退出" to="." method="Quit"]
 [connection signal="pressed" from="CanvasLayer/大厅界面/返回" to="." method="Return"]
 [connection signal="pressed" from="CanvasLayer/大厅界面/本地游戏" to="." method="LocalGame"]
 [connection signal="pressed" from="CanvasLayer/大厅界面/创建大厅" to="." method="CreateLobby"]
 [connection signal="pressed" from="CanvasLayer/大厅界面/加入游戏" to="." method="JoinLobby"]
 [connection signal="pressed" from="CanvasLayer/创建选项/HBoxContainer/Button" to="." method="GoLobby"]
 [connection signal="pressed" from="CanvasLayer/创建选项/HBoxContainer/Button2" to="." method="GoLobby"]
+[connection signal="pressed" from="CanvasLayer/存档菜单/左" to="." method="GoLeft"]
+[connection signal="pressed" from="CanvasLayer/存档菜单/右" to="." method="GoRight"]

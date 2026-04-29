@@ -15,33 +15,19 @@ namespace 途畔归所.Dll.Core
 	{
 
 		public static GameCore Instance;
-
-		/// <summary> 注：时间管理器 </summary>
 		public TimeManager m_TimeManager;
-
-		/// <summary> 注：物品资源管理器 </summary>
 		public ItemManager m_ItemManager;
-
-		/// <summary> 注：资源管理器 </summary>
 		public ResourceManager m_ResourceManager;
-
-		/// <summary> 注：UI资源管理器 </summary>
 		public UIManager m_UIManager;
-
-		/// <summary> 注：控制台管理器 </summary>
 		public ConsoleManager m_ConsoleManager;
-
-		/// <summary> 注：玩家管理器 </summary>
 		public PlayerManager m_PlayerManager;
-
-		/// <summary> 注：存档管理器 </summary>
 		public SaveManager m_SaveManager;
-
-
-		/// <summary> 注：网络核心 </summary>
 		public NetworkCore m_NetworkCore;
 
-		public override void _Ready()
+		public SaveData m_SaveData { get => m_SaveManager.DATA; }
+		public PlayerData m_LocalPlayerData { get => m_PlayerManager.m_LocalPlayerData; set=> m_PlayerManager.m_LocalPlayerData = value; }
+
+        public override void _Ready()
 		{
 			Instance = this;
 			InitManagers();
@@ -53,13 +39,14 @@ namespace 途畔归所.Dll.Core
 		private void InitManagers()
 		{
 			RegisterManager(ref m_ResourceManager);
-			RegisterManager(ref m_ItemManager);
+            RegisterManager(ref m_SaveManager);
+            RegisterManager(ref m_ItemManager);
 			RegisterManager(ref m_ConsoleManager);
 			RegisterManager(ref m_TimeManager);
 			RegisterManager(ref m_UIManager);
 			RegisterManager(ref m_PlayerManager);
 			RegisterManager(ref m_NetworkCore);
-			RegisterManager(ref m_SaveManager);
+
 
 			AddChild(m_TimeManager);
 			AddChild(m_NetworkCore);
@@ -81,12 +68,6 @@ namespace 途畔归所.Dll.Core
 		}
 
 
-        public List<PlayerData> GetLocalPlayerSaves()
-        {
-            if (m_PlayerManager.LocalPlayerSaves == null && m_PlayerManager.LocalPlayerSaves.Count == 0) return null;
-
-            return m_PlayerManager.LocalPlayerSaves;
-        }
 
         public Control GetUIAsset(string assetName) => m_UIManager.GetUI(assetName);
 
