@@ -1,81 +1,69 @@
 using Godot;
 using Godot.Collections;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace 途畔归所.Dll.Data
 {
 
 	public partial class SaveData : Resource
 	{
 
-		[Export] public Array<PlayerData> playerDatas = [];
+		[Export] public Godot.Collections.Dictionary<int, PlayerData> m_PlyaerDataDict { get; set; } = [];
 
         [Export] public int PickPlayer = 0;
 
-		public PlayerData GetPickPlayerData()
-		{ 
-		   if (playerDatas == null || playerDatas.Count == 0) return null;
-
-			if (PickPlayer == 0)
-			{
-				PickPlayer = playerDatas[0].m_PlayerID;
-                return playerDatas[0];
-            }
-
-            foreach (var Pl in playerDatas)
-            {
-				if (Pl.m_PlayerID == PickPlayer)
-				{
-                    return Pl;
-                }
-            }
-
-            return playerDatas[0];
-        }
-
-
-        public void PickNextPlayer()
+        /// <summary> 注：获取选择的玩家 </summary>
+        /// <returns>玩家数据</returns>
+        public PlayerData GetPickPlayerData()
         {
-            if (playerDatas == null || playerDatas.Count <= 1)
-                return;
+            if (!CheckPlyaerDataDict()) return null;
 
-            int currentIndex = -1;
-            for (int i = 0; i < playerDatas.Count; i++)
+            if (m_PlyaerDataDict.TryGetValue(PickPlayer, out PlayerData player) && player != null) return player;
+
+            foreach (var pldata in m_PlyaerDataDict) if (pldata.Value != null)
             {
-                if (playerDatas[i].m_PlayerID == PickPlayer)
-                {
-                    currentIndex = i;
-                    break;
-                }
+                PickPlayer = pldata.Key;
+                return pldata.Value;
             }
 
-            int nextIndex = (currentIndex + 1) % playerDatas.Count;
-            PickPlayer = playerDatas[nextIndex].m_PlayerID;
+            return null;
         }
 
-
-
-
-
-        public bool CheckplayerDatas()
-        {
-            if (playerDatas == null || playerDatas.Count == 0) return false;
-
-            return true;
-
-        }
-
-        /// <summary> 注：创建玩家 </summary>
+        /// <summary> 注：创建新玩家 </summary>
         public void CreatPlayer(string playerName)
 		{
-			if (playerDatas == null) playerDatas = new Array<PlayerData>();
-			playerDatas.Add(new PlayerData() {m_Name = playerName });
+            if (m_PlyaerDataDict == null) return;
+
+            PlayerData pldata = new PlayerData() { m_Name = playerName };
+
+            m_PlyaerDataDict.Add(pldata.m_PlayerID, pldata);
 		}
 
-	}
+
+        /// <summary> 注：获取全部ID </summary>
+        public List<int> GetAllID()
+        {
+            List<int> ids = [];
+
+            if (m_PlyaerDataDict == null) return ids; 
+
+          
+
+            foreach (var pdata in m_PlyaerDataDict)
+            {
+                ids.Add(pdata.Key);
+            }
+
+            return ids;
+        }
+
+
+
+        private bool CheckPlyaerDataDict()
+        {
+            if (m_PlyaerDataDict == null || m_PlyaerDataDict.Count == 0) return false;
+            return true;
+        }
+
+
+    }
 }

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using 维修公司.Dll.data;
+using 途畔归所.Dll.Comp;
 
 namespace 途畔归所.Dll.Data
 {
@@ -16,10 +17,23 @@ namespace 途畔归所.Dll.Data
 
         public bool IsSlotNull { get => m_ItemData == null; }
 
-        public SlotData CopyData()
+        private SlotComp CreateSlotComp()
         {
-            var data = new SlotData();
-            data.m_ItemData = (m_ItemData == null) ? null : m_ItemData.CopyData();
+            if (IsSlotNull)
+            {
+                return new SlotComp();
+            }
+            else
+            { 
+               return new SlotComp() { m_SlotData = this.DeepCopy() };
+            }
+        }
+
+        public SlotData DeepCopy()
+        {
+            var data = this.DuplicateDeep() as SlotData;
+            if (data == null) return null;
+
             return data;
         }
     }

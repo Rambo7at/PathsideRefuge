@@ -2,7 +2,16 @@
 
 [ext_resource type="Texture2D" uid="uid://b6h2h0bi0oqgm" path="res://Asset/EmacEArt/EmacEArt-中世纪_EA03_FREE_Slavica.png" id="1_pvpkm"]
 [ext_resource type="Script" uid="uid://uquicwf3cleb" path="res://Dll/Comp/ItemComp.cs" id="1_s38mp"]
+[ext_resource type="Script" uid="uid://inh0sbmkkjuj" path="res://Dll/Data/ItemData.cs" id="2_3gq3s"]
 [ext_resource type="Texture2D" uid="uid://7ghcqngnjxe3" path="res://icon.svg" id="2_twubu"]
+
+[sub_resource type="Resource" id="Resource_q6ofi"]
+script = ExtResource("2_3gq3s")
+m_ID = "et_牛奶罐"
+m_Name = "牛奶罐"
+m_Description = "一个牛奶罐"
+m_Icon = ExtResource("2_twubu")
+metadata/_custom_type_script = "uid://inh0sbmkkjuj"
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_pvpkm"]
 size = Vector3(0.29104003, 0.4864502, 0.2935547)
@@ -51,10 +60,7 @@ shadow_mesh = SubResource("ArrayMesh_71kjo")
 
 [node name="et_牛奶罐" type="RigidBody3D" unique_id=1102270380]
 script = ExtResource("1_s38mp")
-"物品ID" = "et_牛奶罐"
-"名称" = "牛奶罐"
-"介绍" = "一个牛奶罐"
-"图标" = ExtResource("2_twubu")
+m_ItemData = SubResource("Resource_q6ofi")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1731806889]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0038940161, 0.2432251, 0.0008789152)

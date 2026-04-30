@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using 维修公司.Dll;
 using 途畔归所.Dll.Core;
+using 途畔归所.Dll.Manager;
 
 public partial class ConsoleManager : Node
 {
@@ -28,6 +29,7 @@ public partial class ConsoleManager : Node
         m_CommandMap.Add("clear", Clear);
         m_CommandMap.Add("help", Help);
         m_CommandMap.Add("spawn", Spawn);
+        m_CommandMap.Add("playerinfo", PlayerInfo);
     }
 
 
@@ -72,6 +74,12 @@ public partial class ConsoleManager : Node
 
         // 核心修复2：加入场景树后，再设置全局位置
         itemDrop.GlobalPosition = finalPos;
+        return true;
+    }
+
+    private bool PlayerInfo(ConsoleComp consoleComp)
+    {
+        consoleComp.m_RichTextLabel.Text += $"目前活跃玩家数量：{PlayerManager.Instance.GetActivePlayersIndex()}";
         return true;
     }
 

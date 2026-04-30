@@ -30,6 +30,7 @@ public partial class InventoryComp : UIPanelBase
 		m_Marker3D = m_player.m_eye;
 		m_PlayerData = m_player.m_PlayerData;
 
+
 		for (int i = 0; i < 10; i++)
 		{
 			SlotComp slotUi = UIManager.Instance.GetUI("slot_ui") as SlotComp;
@@ -40,15 +41,16 @@ public partial class InventoryComp : UIPanelBase
 
 		}
 
-		if (m_PlayerData.m_InventoryData == null && m_PlayerData.m_InventoryData.Count != 10) return;
+		if (m_PlayerData.m_InventoryData == null || m_PlayerData.m_InventoryData.Count != 10) return;
 
 		foreach (var data in m_PlayerData.m_InventoryData)
 		{
-			if (data.m_ItemData == null) return;
-			m_inventorySlots[data.m_SlotIndex].m_SlotData = data.CopyData();
+			if (data.m_ItemData == null) continue;
+			m_inventorySlots[data.m_SlotIndex].m_SlotData = data.DeepCopy();
 		}
+		RefSlot();
 
-	}
+    }
 
 	public override void _Process(double delta)
 	{
@@ -70,10 +72,10 @@ public partial class InventoryComp : UIPanelBase
 			return false;
 		}
 
-		ItemData newItemData = itemDrop.CreateItemData();
+		ItemData newItemData = itemDrop.m_ItemData;
 		if (newItemData == null)
 		{
-			GD.PrintErr($"[InventoryComp.AddItem] 物品[{itemDrop.名称}]创建ItemData失败");
+			GD.PrintErr($"[InventoryComp.AddItem] 物品[{itemDrop.m_ItemData.m_Name}]创建ItemData失败");
 			return false;
 		}
 
@@ -97,6 +99,7 @@ public partial class InventoryComp : UIPanelBase
 	public void RefSlot()
 	{
 		foreach (var comp in m_inventorySlots) comp.Refresh();
+		m_PlayerData.UpdateInventoryData(m_inventorySlots);
 	}
 
 	/// <summary>工具方法：查询背包中的空格子</summary>

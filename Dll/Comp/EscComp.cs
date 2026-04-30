@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using 途畔归所.Dll.Base;
 using 途畔归所.Dll.Core;
+using 途畔归所.Dll.Manager;
 
 namespace 途畔归所.Dll.Comp
 {
@@ -20,7 +21,7 @@ namespace 途畔归所.Dll.Comp
 
 
 
-		private void Save() {}
+		private void Save() => SaveManager.Instance.SaveData();
 
 
 

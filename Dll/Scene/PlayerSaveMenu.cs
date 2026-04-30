@@ -1,5 +1,8 @@
 using Godot;
+using Godot.Collections;
 using System;
+using 维修公司.Dll;
+using 途畔归所.Dll.Base;
 using 途畔归所.Dll.Core;
 using 途畔归所.Dll.Data;
 using 途畔归所.Dll.Manager;
@@ -12,59 +15,98 @@ public partial class PlayerSaveMenu : Control
 
 	[Export] Label PlayerBox;
 
-    [Export] Button b_Left;
+	[Export] Button SavePice;
 
-    [Export] Button b_Right;
+	[Export] VBoxContainer SaveBox;
+
+	[Export] VBoxContainer PlayerDataInfo;
+
+	private Array<PlayerSaveSlotComp> SaveBoxArray = [];
+
+	string Pickinfo;
 
 	// Called when the node enters the scene tree for the first time.
 	public override void _Ready()
 	{
-		
+		Pickinfo = SavePice.Text;
+
+		SaveBox.Visible = false;
+
+		PlayerDataInfo.Visible = true;
+
+		RefreshSaveBox();
+
 	}
 
 	// Called every frame. 'delta' is the elapsed time since the previous frame.
 	public override void _Process(double delta)
 	{
-		if (SaveManager.Instance.DATA == null) return;
+		PlayerData playerData = SaveManager.Instance.GetPickPlayerData();
 
-        PlayerData playerData = SaveManager.Instance.DATA.GetPickPlayerData();
+		if (playerData == null) return;
 
-        if (playerData == null) return;
-
-        ApplyPlayerInfo(playerData);
-    }
+		ApplyPlayerInfo(playerData);
+	}
 
 
 
-    #region 回调函数
-
-    private void GoLeft()
-    { 
-    
-    
-    }
-
-    private void GoRight() => SaveManager.Instance.DATA.PickNextPlayer();
-
-    #endregion
 
 
-    private void ApplyPlayerInfo(PlayerData playerData)
+	/// <summary>回调函数：进入存档选择界面</summary>
+	private void OpenSaveSelection()
+	{
+		SaveBox.Visible = !SaveBox.Visible;
+		PlayerDataInfo.Visible = !PlayerDataInfo.Visible;
+
+		if (SaveBox.Visible == true) SavePice.Text = "返回";
+		else SavePice.Text = Pickinfo;
+
+	}
+
+	/// <summary>回调函数：进入创建界面</summary>
+	private void Creator()
+	{
+
+		GetTree().ChangeSceneToFile("res://Scenes/角色创建.tscn");
+	}
+
+
+	private void ApplyPlayerInfo(PlayerData playerData)
 	{
 		if (playerData == null) return;
 
-        PlayerName.Text = "玩家名：" + playerData.m_Name;
+		PlayerName.Text = "玩家名：" + playerData.m_Name;
 
-        if (playerData.m_InventoryData == null || playerData.m_InventoryData.Count == 0)
-        {
-            PlayerBox.Text = "背包库存：0";
-        }
-        else
-        {
-            PlayerBox.Text = "背包库存：" + playerData.m_InventoryData.Count;
-        }
-    }
+		PlayerBox.Text = "背包库存：" + playerData.GetInventoryItemCount();
+	}
 
+
+	private void RefreshSaveBox()
+	{
+		if (SaveBoxArray.Count != 0)
+		{
+			foreach (var item in SaveBoxArray)
+			{
+				item.QueueFree();
+			}
+		}
+		SaveBoxArray.Clear();
+
+		var IDs = SaveManager.Instance.GetPlayerList();
+
+		if (IDs.Count <= 1) return;
+
+		for (int i = 0; i < IDs.Count; i++)
+		{
+			var ui = UIManager.Instance.GetUI("存档信息") as PlayerSaveSlotComp;
+
+			if (ui == null) return;
+
+			ui.m_PlayerID = IDs[i];
+
+			SaveBox.AddChild(ui);
+		}
+	}
 
 
 }

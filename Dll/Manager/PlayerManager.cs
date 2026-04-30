@@ -21,6 +21,17 @@ namespace 途畔归所.Dll.Manager
         public Dictionary<int, Player> ActivePlayers = [];
 
 
+        /// <summary>注：加载资源</summary>
+        public void Init()
+        {
+            if (ResourceManager.Instance.m_PlayerPrefab == null) return;
+            playerPrefab = ResourceManager.Instance.m_PlayerPrefab;
+        }
+
+
+        /// <summary> 注：获取本地玩家 </summary>
+        /// <param name="player"></param>
+        /// <returns></returns>
         public Player GetLocalPlayer(Player player)
         {
             foreach (var data in ActivePlayers)
@@ -35,15 +46,6 @@ namespace 途畔归所.Dll.Manager
 
 
 
-        /// <summary>注：加载资源</summary>
-        /// <param name="packedScene">预制件列表</param>
-        public void Init()
-        {
-            if (ResourceManager.Instance.m_PlayerPrefab == null) return;
-            playerPrefab = ResourceManager.Instance.m_PlayerPrefab;
-        }
-
-
         /// <summary>注：获取实例化玩家</summary>
         /// <returns>Player节点</returns>
         public Player GetPlyaer()
@@ -53,6 +55,10 @@ namespace 途畔归所.Dll.Manager
             pl.m_PlayerData = SaveManager.Instance.DATA.GetPickPlayerData();
             return pl;
         }
+
+        public int GetActivePlayersIndex() => ActivePlayers.Count;
+
+        
 
     }
 }

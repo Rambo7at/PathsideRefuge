@@ -33,7 +33,8 @@ public partial class PlayerCreator : Node3D
 
 		if (!string.IsNullOrEmpty(m_Name.Text))
 		{
-			SaveManager.Instance.DATA.CreatPlayer(m_Name.Text);
+			SaveManager.Instance.CreatPlayer(m_Name.Text);
+			SaveManager.Instance.SaveData();
 			Return();
 		}
 	}

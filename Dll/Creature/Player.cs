@@ -40,9 +40,6 @@ public partial class Player : Humanoid
             // 控制组件
             m_Controller = new PlayerController(this);
 
-			// 初始化数据
-
-
             // 组件初始化
             InitInventory();
             InitPlayerConsole();
@@ -217,43 +214,41 @@ public partial class Player : Humanoid
 	}
 	#endregion
 
-	#region 辅助方法
 
-	/// <summary>辅助方法：检测player关键字段是否为空</summary>
-	private bool CheckPlayerNull()
-	{
-		if (m_eye == null)
-		{
-			GD.PrintErr($"[Player.CheckPlayerNull]：检测 [m_eye] 字段为空");
-			return false;
-		}
-		if (摄像机 == null)
-		{
-			GD.PrintErr($"[Player.CheckPlayerNull]：检测 [m_Camera3D] 字段为空");
-			return false;
-		}
-		if (玩家模型 == null)
-		{
-			GD.PrintErr($"[Player.CheckPlayerNull]：检测 [m_PlayerMesh] 字段为空");
-			return false;
-		}
-		if (拾取UI == null)
-		{
-			GD.PrintErr($"[Player.CheckPlayerNull]：检测 [拾取UI] 字段为空");
-			return false;
-		}
-		if (m_CanvasLayer == null)
-		{
-			GD.PrintErr($"[Player.CheckPlayerNull]：检测 [m_CanvasLayer] 字段为空");
-			return false;
-		}
-		if (m_PlayerData == null)
-		{
+    /// <summary>辅助方法：检测player关键字段是否为空</summary>
+    private bool CheckPlayerNull()
+    {
+        if (m_eye == null)
+        {
+            GD.PrintErr($"[Player.CheckPlayerNull]：检测 [m_eye] 字段为空");
+            return false;
+        }
+        if (摄像机 == null)
+        {
+            GD.PrintErr($"[Player.CheckPlayerNull]：检测 [m_Camera3D] 字段为空");
+            return false;
+        }
+        if (玩家模型 == null)
+        {
+            GD.PrintErr($"[Player.CheckPlayerNull]：检测 [m_PlayerMesh] 字段为空");
+            return false;
+        }
+        if (拾取UI == null)
+        {
+            GD.PrintErr($"[Player.CheckPlayerNull]：检测 [拾取UI] 字段为空");
+            return false;
+        }
+        if (m_CanvasLayer == null)
+        {
+            GD.PrintErr($"[Player.CheckPlayerNull]：检测 [m_CanvasLayer] 字段为空");
+            return false;
+        }
+        if (m_PlayerData == null)
+        {
             GD.PrintErr($"[Player.CheckPlayerNull]：检测 [m_PlayerData] 字段为空");
             return false;
         }
-		return true;
-	}
-	#endregion
+        return true;
+    }
 
 }

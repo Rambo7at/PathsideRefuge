@@ -91,7 +91,13 @@ namespace 途畔归所.Dll.Comp
 		private void SwapSlot()
 		{
 			var comp = GetMouseSlot();
-			if (comp == null) return;
+			if (comp == null)
+			{
+				DropItem();
+                return;
+            }
+
+
 
 			if (comp.m_SlotID == m_SlotID) return;
 
@@ -110,13 +116,34 @@ namespace 途畔归所.Dll.Comp
 			Refresh();
 		}
 
-		/// <summary>注：丢弃物品</summary>
-		private void DropItem()
-		{
-		}
+        /// <summary>注：丢弃物品</summary>
+        private void DropItem()
+        {
+            if (m_SlotData == null || m_SlotData.IsSlotNull) return;
 
-		/// <summary>注：获取鼠标指向的格子</summary>
-		private SlotComp GetMouseSlot()
+            ItemData dropData = m_SlotData.m_ItemData.CopyData();
+
+            RigidBody3D drop = dropData.DataToDrop();
+            if (drop == null) return;
+
+            SceneTree tree = GetTree();
+            if (tree?.CurrentScene == null)
+            {
+                drop.QueueFree();
+                return;
+            }
+            tree.CurrentScene.AddChild(drop);
+
+            drop.GlobalPosition = m_Player.m_eye.GlobalPosition + m_Player.m_eye.GlobalBasis.Z * -1.0f;
+
+            m_SlotData.m_ItemData = null;
+            Refresh();
+
+            m_Player.m_InventoryComp?.RefSlot();
+        }
+
+        /// <summary>注：获取鼠标指向的格子</summary>
+        private SlotComp GetMouseSlot()
 		{
 			Control control = GetViewport().GuiGetHoveredControl();
 			if (control == null) return null;

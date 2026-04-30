@@ -103,9 +103,7 @@ namespace 维修公司.Dll
 
 			try
 			{
-				ItemData itemData = script.CreateItemData();
-
-				return itemData;
+				return script.m_ItemData;
 			}
 			catch (Exception ex)
 			{

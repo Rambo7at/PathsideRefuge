@@ -37,8 +37,8 @@ namespace 途畔归所.Dll.Manager
 			LoadAsset("res://Prefab/UI/ConsoleUI.tscn");
 			LoadAsset("res://Prefab/UI/背包/InventoryUI.tscn");
 			LoadAsset("res://Prefab/UI/格子/slot_ui.tscn");
-
-			CategorizeAssets();
+			LoadAsset("res://Prefab/UI/主菜单/存档界面/存档信息.tscn");
+            CategorizeAssets();
 			GD.Print("[ResourceManager] 初始化完成");
 		}
 

@@ -7,23 +7,10 @@ using 途畔归所.Dll.Core;
 /// <summary> 注：游戏场景中可拾取的物品掉落实体，包含物品基础属性和拾取逻辑</summary>
 public partial class ItemComp : RigidBody3D, IInteractable
 {
-	public ItemData m_ItemData { get; set; }
+	[Export] public ItemData m_ItemData { get; set; }
 
 	/// <summary>注：收纳类物品的 </summary>
 	public ItemData m_boxItem { get; set; }
-
-	[Export] public string 物品ID { get; set; }
-	[Export] public string 名称 { get; set; }
-	[Export] public ItemData.ItemType 类型 { get; set; }
-	[Export] public string 介绍 { get; set; }
-	[Export] public Texture2D 图标 { get; set; }
-	[Export] public int 最大堆叠 { get; set; } = 1;
-	[Export] public float 重量 { get; set; } = 1f;
-	[Export] public int 体积 { get; set; } = 1;
-	[Export] public int 收纳容量 { get; set; } = 1;
-	public int 堆叠 { get; set; } = 1;
-
-
 
 	public override void _Ready() => Init();
 
@@ -31,25 +18,20 @@ public partial class ItemComp : RigidBody3D, IInteractable
 	{
 	}
 
-	public ItemData CreateItemData() => new ItemData(this);
 
-	#region  初始化
-	public void Init()
-	{
-		if (m_ItemData != null) return;
+    public void Init()
+    {
+        if (m_ItemData != null) return;
 
-	   m_ItemData = new ItemData(this);  
-	}
+		GD.Print("物品初始化失败");
+    }
 
 
-
-
-	#endregion
-	/// <summary>互动：拾取功能 </summary>
-	private void PickUp(Player player)
+    /// <summary>互动：拾取功能 </summary>
+    private void PickUp(Player player)
 	{
 		player.m_InventoryComp.AddItem(this);
-		GD.Print($"已拾取物品[{名称}]，添加到背包");
+		GD.Print($"已拾取物品[{m_ItemData.m_Name}]，添加到背包");
 		QueueFree();
 		// 拾取后从列表移除并隐藏UI
 		player.m_InRangeItems.Remove(this);
@@ -58,7 +40,7 @@ public partial class ItemComp : RigidBody3D, IInteractable
 	/// <summary>互动：拆快递 </summary>
 	private void Unbox()
 	{
-		if (类型 is ItemData.ItemType.收纳 && m_boxItem != null)
+		if (m_ItemData.m_Type is ItemData.ItemType.收纳 && m_boxItem != null)
 		{
 
 			var drop = m_boxItem.DataToDrop();

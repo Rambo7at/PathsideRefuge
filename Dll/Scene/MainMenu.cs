@@ -67,14 +67,21 @@ public partial class MainMenu : Node3D
 	/// <summary>注：本地游戏 </summary>
 	public void LocalGame()
 	{
-		if (CheckPlayerSave() == false) return;
+		if (SaveManager.Instance.IsValidPlayerSaveData() == false)
+		{
+			GetTree().ChangeSceneToFile("res://Scenes/角色创建.tscn");
+			return;
+		}
+
 		GetTree().ChangeSceneToFile("res://Scenes/测试场景.tscn");
 	}
 
 	/// <summary>注：在线游戏 </summary>
 	public void CreateLobby()
 	{
-		if (CheckPlayerSave() == false) return;
+		var X = SaveManager.Instance.GetPickPlayerData();
+
+		if (X == null) return;
 
 		创建UI.Visible = true;
 
@@ -83,7 +90,6 @@ public partial class MainMenu : Node3D
 	/// <summary>注：加入游戏 </summary>
 	public void JoinLobby()
 	{
-		if (CheckPlayerSave() == false) return;
 		NetworkCore.Instance.JoinLAN("192.168.71.36");
 	}
 
@@ -105,12 +111,10 @@ public partial class MainMenu : Node3D
 
 	#endregion
 
+	
 
 
-
-
-	#region 辅助方法
-	private bool CheckPlayerSave() => SaveManager.Instance.DATA.CheckplayerDatas();
+	
 
 
 
@@ -143,6 +147,5 @@ public partial class MainMenu : Node3D
 		}
 		return true;
 	}
-	#endregion
 
 }
