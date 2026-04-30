@@ -16,36 +16,36 @@ public partial class Player : Humanoid
 	[Export] public CanvasLayer m_CanvasLayer;
 
 	public string PlayerName { get => m_PlayerData.m_Name; }
-	public float m_Speed = 5.0f;
-	public float m_Jump = 4.5f;
-
 	private bool isPlayerMenu = false; // 是否在主菜单场景
+	public bool OnUI = false;
+
+	public PlayerData m_PlayerData;
 
 	public InventoryComp m_InventoryComp;
 	public ConsoleComp m_ConsoleComp;
 	public EscComp m_EscComp;
 
-	public PlayerData m_PlayerData;
+	private PlayerController m_Controller;
+
 
 
 	/// <summary>注：玩家检测返回内的物品列表 </summary>
 	public List<ItemComp> m_InRangeItems = new List<ItemComp>();
-	private PlayerController m_Controller;
 
 	public override void _Ready()
 	{
 		拾取UI.Visible = false;
-        if (CheckPlayerNull())
-        {
-            // 控制组件
-            m_Controller = new PlayerController(this);
+		if (CheckPlayerNull())
+		{
+			// 控制组件
+			m_Controller = new PlayerController(this);
 
-            // 组件初始化
-            InitInventory();
-            InitPlayerConsole();
-            InitPlayerEsc();
-        }
-    }
+			// 组件初始化
+			InitInventory();
+			InitConsole();
+			InitEsc();
+		}
+	}
 	public override void _Process(double delta)
 	{
 		m_Controller.Update(delta);
@@ -61,7 +61,6 @@ public partial class Player : Humanoid
 		UpdateInteractDetection(delta);
 	}
 
-	#region 初始化
 	/// <summary>初始化玩家背包</summary>
 	private void InitInventory()
 	{
@@ -70,30 +69,26 @@ public partial class Player : Humanoid
 		var UI = UIManager.Instance.GetUI("InventoryUI");
 		if (UI == null) return;
 
-		var script = ToolUtils.GetNodeScript<InventoryComp>(UI);
-		if (script == null) return;
+		if (UI is not InventoryComp script) return;
 
 		script.BindPlayer(this);
 		m_InventoryComp = script;
-		
+
 		UI.Visible = false;
 		m_CanvasLayer.AddChild(UI);
 
 	}
 
 	/// <summary>注：初始化玩家控制台</summary>
-	private void InitPlayerConsole()
+	private void InitConsole()
 	{
 		if (m_ConsoleComp != null) return;
 
 		var UI = UIManager.Instance.GetUI("ConsoleUI");
 		if (UI == null) return;
 
-		var script = ToolUtils.GetNodeScript<ConsoleComp>(UI);
-		if (script == null) return;
 
-
-
+		if (UI is not ConsoleComp script) return;
 
 		m_ConsoleComp = script;
 		m_ConsoleComp.GetPlayer(this);  // 这是获取玩家组件，准备获取位置
@@ -103,22 +98,20 @@ public partial class Player : Humanoid
 
 	}
 
-
-	private void InitPlayerEsc()
+	/// <summary>注：初始化ESC菜单</summary>
+	private void InitEsc()
 	{
-        if (m_EscComp != null) return;
-        var UI = UIManager.Instance.GetUI("esc_ui");
-        if (UI == null) return;
+		if (m_EscComp != null) return;
+		var UI = UIManager.Instance.GetUI("esc_ui");
+		if (UI == null) return;
 
-        var script = ToolUtils.GetNodeScript<EscComp>(UI);
-        if (script == null) return;
+		if (UI is not EscComp script) return;
 		m_EscComp = script;
-        UI.Visible = false;
-        m_CanvasLayer.AddChild(UI);
-    }
-	#endregion
+		UI.Visible = false;
+		m_CanvasLayer.AddChild(UI);
+	}
 
-	#region 回调函数
+
 
 	/// <summary>回调函数：检测进入范围内的节点</summary>
 	/// <param name="node">外部信号传入</param>
@@ -151,7 +144,6 @@ public partial class Player : Humanoid
 		}
 	}
 
-	#endregion
 
 	/// <summary>每帧执行的互动检测核心函数（手动放入_PhysicsProcess或_Process）</summary>
 	/// <param name="delta">帧时间</param>
@@ -187,9 +179,6 @@ public partial class Player : Humanoid
 		}
 	}
 
-
-
-	#region  UI操作
 	/// <summary>注：UI触发按钮集合 </summary>
 	private void UI()
 	{
@@ -197,58 +186,60 @@ public partial class Player : Humanoid
 		if (Input.IsActionJustPressed("cat_Tab"))
 		{
 			m_InventoryComp.RefSlot();
-            m_InventoryComp.ToggleUI();
-        }
-        if (Input.IsActionJustPressed("cat_Esc")) m_EscComp.ToggleUI();
-    }
+			m_InventoryComp.ToggleUI();
+		}
+		if (Input.IsActionJustPressed("cat_Esc")) m_EscComp.ToggleUI();
+	}
 	private void MouseMode()
 	{
 		if (m_ConsoleComp.Visible || m_InventoryComp.Visible || m_EscComp.Visible)
 		{
 			Input.MouseMode = Input.MouseModeEnum.Visible;
+			OnUI = true;
 		}
-		else if (!m_ConsoleComp.Visible || !m_InventoryComp.Visible || !m_EscComp.Visible) 
+		else
 		{
 			Input.MouseMode = Input.MouseModeEnum.Captured;
+			OnUI = false;
 		}
 	}
-	#endregion
 
 
-    /// <summary>辅助方法：检测player关键字段是否为空</summary>
-    private bool CheckPlayerNull()
-    {
-        if (m_eye == null)
-        {
-            GD.PrintErr($"[Player.CheckPlayerNull]：检测 [m_eye] 字段为空");
-            return false;
-        }
-        if (摄像机 == null)
-        {
-            GD.PrintErr($"[Player.CheckPlayerNull]：检测 [m_Camera3D] 字段为空");
-            return false;
-        }
-        if (玩家模型 == null)
-        {
-            GD.PrintErr($"[Player.CheckPlayerNull]：检测 [m_PlayerMesh] 字段为空");
-            return false;
-        }
-        if (拾取UI == null)
-        {
-            GD.PrintErr($"[Player.CheckPlayerNull]：检测 [拾取UI] 字段为空");
-            return false;
-        }
-        if (m_CanvasLayer == null)
-        {
-            GD.PrintErr($"[Player.CheckPlayerNull]：检测 [m_CanvasLayer] 字段为空");
-            return false;
-        }
-        if (m_PlayerData == null)
-        {
-            GD.PrintErr($"[Player.CheckPlayerNull]：检测 [m_PlayerData] 字段为空");
-            return false;
-        }
-        return true;
-    }
+	/// <summary>辅助方法：检测player关键字段是否为空</summary>
+	private bool CheckPlayerNull()
+	{
+		if (m_eye == null)
+		{
+			GD.PrintErr($"[Player.CheckPlayerNull]：检测 [m_eye] 字段为空");
+			return false;
+		}
+		if (摄像机 == null)
+		{
+			GD.PrintErr($"[Player.CheckPlayerNull]：检测 [m_Camera3D] 字段为空");
+			return false;
+		}
+		if (玩家模型 == null)
+		{
+			GD.PrintErr($"[Player.CheckPlayerNull]：检测 [m_PlayerMesh] 字段为空");
+			return false;
+		}
+		if (拾取UI == null)
+		{
+			GD.PrintErr($"[Player.CheckPlayerNull]：检测 [拾取UI] 字段为空");
+			return false;
+		}
+		if (m_CanvasLayer == null)
+		{
+			GD.PrintErr($"[Player.CheckPlayerNull]：检测 [m_CanvasLayer] 字段为空");
+			return false;
+		}
+		if (m_PlayerData == null)
+		{
+			GD.PrintErr($"[Player.CheckPlayerNull]：检测 [m_PlayerData] 字段为空");
+			return false;
+		}
+		return true;
+	}
+
 
 }

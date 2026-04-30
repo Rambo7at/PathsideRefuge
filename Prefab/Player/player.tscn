@@ -17,26 +17,32 @@ animation = &"Running_A"
 advance_mode = 2
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_hw4ku"]
+xfade_time = 0.15
 advance_mode = 2
 advance_expression = "velocity.length() > 0"
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_n7b6v"]
+xfade_time = 0.15
 advance_mode = 2
 advance_expression = "velocity.length() == 0"
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_pphex"]
+xfade_time = 0.15
 advance_mode = 2
 advance_expression = "not is_on_floor()"
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_r5rbo"]
+xfade_time = 0.15
 advance_mode = 2
 advance_expression = "not is_on_floor()"
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_1s7jm"]
+xfade_time = 0.15
 advance_mode = 2
 advance_expression = "is_on_floor() and velocity.length() > 0"
 
 [sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_j4b6j"]
+xfade_time = 0.15
 advance_mode = 2
 advance_expression = "is_on_floor() and velocity.length() == 0"
 
@@ -50,7 +56,7 @@ states/Running_A/node = SubResource("AnimationNodeAnimation_pphex")
 states/Running_A/position = Vector2(445.0471, 108)
 states/Start/position = Vector2(91, 116)
 transitions = ["Start", "Idle", SubResource("AnimationNodeStateMachineTransition_61o5j"), "Idle", "Running_A", SubResource("AnimationNodeStateMachineTransition_hw4ku"), "Running_A", "Idle", SubResource("AnimationNodeStateMachineTransition_n7b6v"), "Running_A", "Jump_Idle", SubResource("AnimationNodeStateMachineTransition_pphex"), "Idle", "Jump_Idle", SubResource("AnimationNodeStateMachineTransition_r5rbo"), "Jump_Idle", "Running_A", SubResource("AnimationNodeStateMachineTransition_1s7jm"), "Jump_Idle", "Idle", SubResource("AnimationNodeStateMachineTransition_j4b6j")]
-graph_offset = Vector2(-12.952911, 34)
+graph_offset = Vector2(-30.952911, 80)
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_cq2md"]
 height = 1.875

@@ -25,6 +25,7 @@ public partial class PlayerCamera : SpringArm3D
     {
         if (@event is InputEventMouseMotion mouseMotion)
         {
+            if (Input.MouseMode == Input.MouseModeEnum.Visible) return;
             HandleMouseMotion(mouseMotion);
         }
     }

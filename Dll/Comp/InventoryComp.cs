@@ -50,7 +50,7 @@ public partial class InventoryComp : UIPanelBase
 		}
 		RefSlot();
 
-    }
+	}
 
 	public override void _Process(double delta)
 	{

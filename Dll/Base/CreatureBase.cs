@@ -9,7 +9,6 @@ namespace 途畔归所.Dll.Base
 {
     public partial class CreatureBase : CharacterBody3D
     {
-        [Export] public string CreatureName = string.Empty;
 
         [Export] public float Health = 100f;
 
