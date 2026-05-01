@@ -21,8 +21,8 @@ namespace 途畔归所.Dll.Creature
         public PlayerController(Player pl)
         {
             player = pl;
-            m_PlayerMesh = player.玩家模型;
-            m_Camera3D = player.摄像机;
+            m_PlayerMesh = player.m_PlayerModel;
+            m_Camera3D = player.m_Camera;
 
             Speed = player.m_PlayerData.m_Speed;
             JumpVelocity = player.m_PlayerData.m_Jump;
@@ -31,22 +31,25 @@ namespace 途畔归所.Dll.Creature
         /// <summary>
         /// 每帧逻辑更新（输入、旋转）
         /// </summary>
-        public void Update(double delta) => PlayerMoveAnimationDirection(delta);
+        public void Update(double delta)
+        {
+
+            PlayerMoveAnimationDirection(delta);
+        }
 
         /// <summary>
         /// 物理更新（移动、重力、跳跃）
         /// </summary>
-        public void PhysicsUpdate(double delta) => HandlePlayerMovement(delta);
+        public void PhysicsUpdate(double delta)
+        {
+            player.UpdateGravity(delta);
+            HandlePlayerMovement(delta);
+
+        }
 
         private void HandlePlayerMovement(double delta)
         {
             Vector3 velocity = player.Velocity;
-
-            // 重力
-            if (!player.IsOnFloor())
-            {
-                velocity += player.GetGravity() * (float)delta;
-            }
 
             // 跳跃
             if (Input.IsActionJustPressed("ui_accept") && player.IsOnFloor())
@@ -133,5 +136,7 @@ namespace 途畔归所.Dll.Creature
                 m_PlayerMesh.GlobalRotation.Z
             );
         }
+
+
     }
 }

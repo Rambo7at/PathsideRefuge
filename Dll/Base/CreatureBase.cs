@@ -10,21 +10,23 @@ namespace 途畔归所.Dll.Base
     public partial class CreatureBase : CharacterBody3D
     {
 
-        [Export] public float Health = 100f;
+        [Export] public float m_Health = 100f;
 
-        [Export] public bool IsNpc = false;
+        [Export] public AnimationTree m_AnimationTree;
 
         /// <summary> 射线组件 </summary>
         [Export] public Marker3D m_eye;
 
         public bool IsDead = false;
 
-
+        public bool IsMoving { get => new Vector3(Velocity.X, 0, Velocity.Z).Length() > 0f; }
+        public bool IsJump { get => !IsOnFloor(); }
 
         public override void _Ready()
         {
-
+         
         }
+
 
         /// <summary>
         /// 受伤逻辑（虚函数，子类可重写）
@@ -33,9 +35,9 @@ namespace 途畔归所.Dll.Base
         {
             if (IsDead) return;
 
-            Health = Mathf.Max(Health - damage, 0);
+            m_Health = Mathf.Max(m_Health - damage, 0);
 
-            if (Health <= 0) Die();
+            if (m_Health <= 0) Die();
 
         }
 
@@ -59,6 +61,13 @@ namespace 途畔归所.Dll.Base
             return IsMultiplayerAuthority();
         }
 
+
+        public virtual void UpdateGravity(double delta)
+        {
+            if (IsOnFloor()) return;
+            Velocity += GetGravity() * (float)delta;
+            MoveAndSlide();
+        }
 
 
 

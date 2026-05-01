@@ -20,7 +20,7 @@ namespace 途畔归所.Dll.Data
 
         [Export] public float m_Jump = 4.5f;
 
-        [Export] public Array<SlotData> m_InventoryData = new Array<SlotData>();
+        [Export] public Array<SlotData> m_InventoryData = [];
 
 
 		public string m_Name { get => _Name; set { _Name = value; SetPlayerID(); } }

@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://1abgpj4o3um1" path="res://Dll/Comp/InventoryComp.cs" id="1_ajg1r"]
 [ext_resource type="Theme" uid="uid://deadb5j65etkc" path="res://Theme/背包UI.tres" id="2_23av5"]
 
-[node name="InventoryUI" type="Control" unique_id=1275478942 node_paths=PackedStringArray("gridContainer")]
+[node name="InventoryUI" type="Control" unique_id=1275478942 node_paths=PackedStringArray("m_GridContainer")]
 layout_mode = 3
 anchors_preset = 8
 anchor_left = 0.5
@@ -15,7 +15,7 @@ offset_bottom = 439.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_ajg1r")
-gridContainer = NodePath("PanelContainer/GridContainer")
+m_GridContainer = NodePath("PanelContainer/GridContainer")
 
 [node name="PanelContainer" type="PanelContainer" parent="." unique_id=2002482144]
 layout_mode = 1

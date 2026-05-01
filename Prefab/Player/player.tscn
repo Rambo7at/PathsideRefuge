@@ -4,59 +4,66 @@
 [ext_resource type="Script" uid="uid://c4r7u0wmf5aan" path="res://Dll/Creature/PlayerCamera.cs" id="2_gh5aj"]
 [ext_resource type="PackedScene" uid="uid://b5in7x6ixoh27" path="res://Asset/Character/Player.glb" id="2_hw4ku"]
 
-[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_hw4ku"]
-animation = &"Idle"
-
-[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_n7b6v"]
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_hv2gi"]
 animation = &"Jump_Idle"
 
-[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_pphex"]
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_w6ttw"]
 animation = &"Running_A"
 
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_61o5j"]
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_ed584"]
+animation = &"Idle"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_stuvd"]
 advance_mode = 2
 
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_hw4ku"]
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_ed584"]
 xfade_time = 0.15
 advance_mode = 2
-advance_expression = "velocity.length() > 0"
+advance_expression = "IsMoving"
 
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_n7b6v"]
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_hv2gi"]
 xfade_time = 0.15
 advance_mode = 2
-advance_expression = "velocity.length() == 0"
+advance_expression = "not IsMoving"
 
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_pphex"]
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_w6ttw"]
 xfade_time = 0.15
 advance_mode = 2
-advance_expression = "not is_on_floor()"
+advance_expression = "IsJump"
 
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_r5rbo"]
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_wbu25"]
 xfade_time = 0.15
 advance_mode = 2
-advance_expression = "not is_on_floor()"
+advance_expression = "IsJump"
 
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_1s7jm"]
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_1ubpg"]
 xfade_time = 0.15
 advance_mode = 2
-advance_expression = "is_on_floor() and velocity.length() > 0"
+advance_expression = "not IsJump and not IsMoving"
 
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_j4b6j"]
-xfade_time = 0.15
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_uf4pe"]
+xfade_time = 0.1
 advance_mode = 2
-advance_expression = "is_on_floor() and velocity.length() == 0"
+advance_expression = "not IsJump and IsMoving"
 
-[sub_resource type="AnimationNodeStateMachine" id="AnimationNodeStateMachine_wutkt"]
-states/End/position = Vector2(571, 130)
-states/Idle/node = SubResource("AnimationNodeAnimation_hw4ku")
-states/Idle/position = Vector2(187.04709, 108)
-states/Jump_Idle/node = SubResource("AnimationNodeAnimation_n7b6v")
-states/Jump_Idle/position = Vector2(298.0471, 241)
-states/Running_A/node = SubResource("AnimationNodeAnimation_pphex")
-states/Running_A/position = Vector2(445.0471, 108)
-states/Start/position = Vector2(91, 116)
-transitions = ["Start", "Idle", SubResource("AnimationNodeStateMachineTransition_61o5j"), "Idle", "Running_A", SubResource("AnimationNodeStateMachineTransition_hw4ku"), "Running_A", "Idle", SubResource("AnimationNodeStateMachineTransition_n7b6v"), "Running_A", "Jump_Idle", SubResource("AnimationNodeStateMachineTransition_pphex"), "Idle", "Jump_Idle", SubResource("AnimationNodeStateMachineTransition_r5rbo"), "Jump_Idle", "Running_A", SubResource("AnimationNodeStateMachineTransition_1s7jm"), "Jump_Idle", "Idle", SubResource("AnimationNodeStateMachineTransition_j4b6j")]
-graph_offset = Vector2(-30.952911, 80)
+[sub_resource type="AnimationNodeStateMachine" id="AnimationNodeStateMachine_5kbma"]
+resource_name = "移动状态机"
+states/Jump_Idle/node = SubResource("AnimationNodeAnimation_hv2gi")
+states/Jump_Idle/position = Vector2(548.4668, 282)
+states/Running_A/node = SubResource("AnimationNodeAnimation_w6ttw")
+states/Running_A/position = Vector2(700.4668, 66)
+"states/等待/node" = SubResource("AnimationNodeAnimation_ed584")
+"states/等待/position" = Vector2(404.4668, 73)
+transitions = ["Start", "等待", SubResource("AnimationNodeStateMachineTransition_stuvd"), "等待", "Running_A", SubResource("AnimationNodeStateMachineTransition_ed584"), "Running_A", "等待", SubResource("AnimationNodeStateMachineTransition_hv2gi"), "Running_A", "Jump_Idle", SubResource("AnimationNodeStateMachineTransition_w6ttw"), "等待", "Jump_Idle", SubResource("AnimationNodeStateMachineTransition_wbu25"), "Jump_Idle", "等待", SubResource("AnimationNodeStateMachineTransition_1ubpg"), "Jump_Idle", "Running_A", SubResource("AnimationNodeStateMachineTransition_uf4pe")]
+graph_offset = Vector2(218.4668, -3)
+
+[sub_resource type="AnimationNodeBlendTree" id="AnimationNodeBlendTree_xsgoj"]
+resource_name = "角色状态"
+graph_offset = Vector2(-467.13055, -116.7578)
+nodes/output/position = Vector2(260, 120)
+"nodes/移动状态机/node" = SubResource("AnimationNodeStateMachine_5kbma")
+"nodes/移动状态机/position" = Vector2(-300, -80)
+node_connections = [&"output", 0, &"移动状态机"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_cq2md"]
 height = 1.875
@@ -64,19 +71,88 @@ height = 1.875
 [sub_resource type="SphereShape3D" id="SphereShape3D_hw4ku"]
 radius = 1.1321139
 
-[node name="Player" type="CharacterBody3D" unique_id=67650192 node_paths=PackedStringArray("摄像机", "玩家模型", "拾取UI", "m_CanvasLayer", "m_eye")]
+[node name="Player" type="CharacterBody3D" unique_id=67650192 node_paths=PackedStringArray("m_Camera", "m_PlayerModel", "m_PickUpUI", "m_CanvasLayer", "m_AnimationTree", "m_eye")]
 script = ExtResource("1_ohvtk")
-"摄像机" = NodePath("SpringArm3D/Camera3D")
-"玩家模型" = NodePath("PlayerMesh")
-"拾取UI" = NodePath("CanvasLayer/拾取提示")
+m_Camera = NodePath("SpringArm3D/Camera3D")
+m_PlayerModel = NodePath("PlayerMesh")
+m_PickUpUI = NodePath("CanvasLayer/拾取提示")
 m_CanvasLayer = NodePath("CanvasLayer")
+m_AnimationTree = NodePath("PlayerMesh/AnimationTree")
 m_eye = NodePath("PlayerMesh/Marker3D")
 
 [node name="PlayerMesh" parent="." unique_id=907088130 instance=ExtResource("2_hw4ku")]
 transform = Transform3D(-0.825, 0, -1.2457153e-07, 0, 0.825, 0, 1.2457153e-07, 0, -0.825, 0, 0, 0)
 
+[node name="Skeleton3D" parent="PlayerMesh/Rig" parent_id_path=PackedInt32Array(907088130, 239319879) index="0" unique_id=1112403401]
+bones/0/position = Vector3(0, 0.0026174574, -8.959172e-11)
+bones/0/rotation = Quaternion(-8.557133e-09, 1.2043154e-07, -2.0610973e-15, 1)
+bones/1/position = Vector3(1.952499e-18, 0.3526793, 1.4022676e-15)
+bones/1/rotation = Quaternion(0.10083553, -1.0279067e-07, 1.0418053e-08, 0.9949032)
+bones/2/rotation = Quaternion(0.11318758, 0.016611239, -0.0013073313, 0.993434)
+bones/3/rotation = Quaternion(0.04213575, 0.00027276215, 0.0014032375, 0.9991109)
+bones/4/position = Vector3(0.20081492, 0.11898816, -0.046057984)
+bones/4/rotation = Quaternion(-0.78459233, -0.17372364, -0.476072, 0.35719797)
+bones/5/rotation = Quaternion(2.1190317e-07, 1.1564102e-07, -0.6146238, 0.7888204)
+bones/7/rotation = Quaternion(-0.11403769, -0.39893985, -0.25492254, 0.87341684)
+bones/8/position = Vector3(-7.8318024e-08, 0.09612514, -0.057499893)
+bones/8/rotation = Quaternion(-0.054505307, 0.05450536, -0.5391621, 0.8386673)
+bones/9/position = Vector3(-0.19756976, 0.11736347, -0.04518143)
+bones/9/rotation = Quaternion(-0.8023743, 0.15316875, 0.44235656, 0.37021023)
+bones/10/rotation = Quaternion(2.0266424e-07, -1.4206907e-07, 0.6073759, 0.79441464)
+bones/12/rotation = Quaternion(-0.12769608, 0.40335828, 0.27055165, 0.864753)
+bones/13/position = Vector3(-1.0607065e-07, 0.096125126, -0.057499923)
+bones/13/rotation = Quaternion(-0.05450533, -0.054505337, 0.5391621, 0.8386673)
+bones/14/rotation = Quaternion(-0.13051176, 0.0148490025, -0.0009081853, 0.99133515)
+bones/15/position = Vector3(0.17094505, 0.11358727, -0.052973323)
+bones/15/rotation = Quaternion(0.9933685, -1.8368814e-07, -2.4611344e-08, 0.11497463)
+bones/16/rotation = Quaternion(0.49852282, 6.741086e-08, -3.493626e-07, 0.86687666)
+bones/17/rotation = Quaternion(-0.642342, 3.204953e-08, 1.1046764e-07, 0.7664183)
+bones/18/rotation = Quaternion(4.1239296e-08, 0.8386645, -0.54464847, 1.7250281e-07)
+bones/19/position = Vector3(-0.17094506, 0.11358725, 0.05297336)
+bones/19/rotation = Quaternion(0.87020636, 3.2907894e-07, -2.53054e-08, 0.49268764)
+bones/20/rotation = Quaternion(0.9167622, -3.0681313e-08, 6.4417327e-07, 0.3994335)
+bones/21/rotation = Quaternion(-0.64079434, 1.5095488e-07, -5.633828e-07, 0.7677126)
+bones/22/rotation = Quaternion(4.8837038e-08, 0.92035484, -0.3910846, 4.022999e-08)
+bones/23/position = Vector3(0.17094491, 0.3870753, 0.6705774)
+bones/23/rotation = Quaternion(0.70710665, -2.253338e-07, -5.0023715e-08, 0.7071069)
+bones/24/position = Vector3(0.17094502, -0.026777603, 0.050999954)
+bones/24/rotation = Quaternion(-0.5582732, -8.368555e-08, -5.8816603e-08, 0.8296572)
+bones/25/position = Vector3(-1.107404e-09, 0.36283252, -1.046046e-08)
+bones/25/rotation = Quaternion(-8.290597e-08, 1.4901161e-08, 1, -9.005248e-15)
+bones/26/position = Vector3(2.071187e-08, 0.21343598, 1.1915341e-08)
+bones/26/rotation = Quaternion(-1.4389518e-07, 0.3910844, 0.92035484, 1.709482e-08)
+bones/27/position = Vector3(-2.7173723e-09, 0.16564997, 1.045176e-09)
+bones/28/rotation = Quaternion(1, -3.580239e-17, 1.9470718e-07, -1.1920929e-07)
+bones/30/position = Vector3(-0.17094521, 0.38707533, 0.6705773)
+bones/30/rotation = Quaternion(0.70710665, -3.426997e-08, 1.4104013e-07, 0.7071069)
+bones/31/position = Vector3(-0.17094506, 0.033405863, 0.17832725)
+bones/31/rotation = Quaternion(-0.34507668, -1.0332874e-07, -2.8455233e-08, 0.93857455)
+bones/32/position = Vector3(5.8203202e-09, 0.36283246, 8.318137e-08)
+bones/32/rotation = Quaternion(-8.290597e-08, -2.0803754e-15, 1, 2.7981008e-16)
+bones/33/position = Vector3(2.2615422e-08, 0.21343602, 2.1395528e-09)
+bones/33/rotation = Quaternion(-1.4389515e-07, 0.3910845, 0.9203548, 1.7094854e-08)
+bones/34/position = Vector3(6.3179124e-09, 0.16565004, 4.1434706e-08)
+bones/35/rotation = Quaternion(1, -8.059235e-16, 1.947072e-07, -7.4505806e-08)
+bones/37/position = Vector3(0.4535075, 0.90676093, -0.68885916)
+bones/37/rotation = Quaternion(-0.7071068, -7.0124045e-08, -7.0124074e-08, 0.7071068)
+bones/38/position = Vector3(0.5131815, 0.76806694, 0.17169547)
+bones/38/rotation = Quaternion(0.64685965, 0.489624, 0.5101649, 0.28560957)
+bones/39/position = Vector3(-0.45350713, 0.906761, -0.68885964)
+bones/39/rotation = Quaternion(-0.7071068, -7.0124045e-08, -7.0124074e-08, 0.7071068)
+bones/40/position = Vector3(-0.5131817, 0.768067, 0.17169526)
+bones/40/rotation = Quaternion(-0.64685965, 0.48962396, 0.5101649, -0.28560945)
+
+[node name="handslot_l" parent="PlayerMesh/Rig/Skeleton3D" index="0" unique_id=2122767848]
+transform = Transform3D(-0.34228146, 0.0003517121, 0.93959737, 0.7025437, 0.6641245, 0.2556778, -0.6239196, 0.7476218, -0.22756462, 0.54191554, 0.68612385, 0.3083232)
+
+[node name="handslot_r" parent="PlayerMesh/Rig/Skeleton3D" index="1" unique_id=94512685]
+transform = Transform3D(-0.34227553, -0.0003900528, -0.9395994, -0.702586, 0.66408575, 0.25566128, 0.62387496, 0.747656, -0.22757444, -0.5438205, 0.6863155, 0.305586)
+
+[node name="chest" parent="PlayerMesh/Rig/Skeleton3D" index="2" unique_id=1663236055]
+transform = Transform3D(0.99944466, 0.0063097905, 0.032719888, 0.010569076, 0.871186, -0.49083936, -0.031602196, 0.4909126, 0.87063545, 0.0023841287, 0.8844013, 0.19442928)
+
 [node name="AnimationTree" type="AnimationTree" parent="PlayerMesh" unique_id=621142470]
-tree_root = SubResource("AnimationNodeStateMachine_wutkt")
+tree_root = SubResource("AnimationNodeBlendTree_xsgoj")
 advance_expression_base_node = NodePath("../..")
 anim_player = NodePath("../AnimationPlayer")
 
@@ -128,3 +204,5 @@ shape = SubResource("SphereShape3D_hw4ku")
 
 [connection signal="body_entered" from="Area3D" to="." method="DetectionAreaStart"]
 [connection signal="body_exited" from="Area3D" to="." method="DetectionAreaEnd"]
+
+[editable path="PlayerMesh"]

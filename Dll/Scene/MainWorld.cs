@@ -13,7 +13,7 @@ namespace 途畔归所.Dll.Scene
 	{
 		[Export] public Node3D SpawnPian;
 
-		public override void _Ready()
+        public override void _Ready()
 		{
 			var pl = PlayerManager.Instance.GetPlyaer();
 			if (pl == null) return;
