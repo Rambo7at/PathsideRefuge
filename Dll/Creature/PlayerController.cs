@@ -42,7 +42,7 @@ namespace 途畔归所.Dll.Creature
         /// </summary>
         public void PhysicsUpdate(double delta)
         {
-            player.UpdateGravity(delta);
+            player.ApplyGravity(delta);
             HandlePlayerMovement(delta);
 
         }

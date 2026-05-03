@@ -163,4 +163,5 @@ shadow_enabled = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2394395, 0)
 
 [node name="Npc" parent="." unique_id=1650011338 instance=ExtResource("8_qutry")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25.448751, 0, 0)
 m_NpcData = SubResource("Resource_3ycm5")

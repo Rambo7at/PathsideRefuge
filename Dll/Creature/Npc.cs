@@ -1,175 +1,210 @@
 using Godot;
 using System;
+using System.Linq;
 using 途畔归所.Dll.Base;
 using 途畔归所.Dll.Data;
+using 途畔归所.Dll.Manager;
 
+/// <summary> 注：NPC 实体类。当前仅用于测试导航巡逻 </summary>
 public partial class Npc : Humanoid
 {
+	private enum NpcState { Patrol, Chase }
+	private NpcState m_currentState = NpcState.Patrol;
+
 	[Export] public NpcData m_NpcData;
-	[Export] public NavigationAgent3D m_NavigationAgent3D; // 暂未使用
+	[Export] public NavigationAgent3D m_NavigationAgent3D;
 
-	// 旋转
-	private float targetAngle;
-	private const float RotationSpeed = 15f;
 
-	// 巡逻状态
-	private Vector3 originPoint;
-	private Vector3 patrolTarget;
-	private float stopTimer;
-	private bool isStopping;
+	private Vector3 m_NavPatrolTarget { get => m_NavigationAgent3D.TargetPosition; set => m_NavigationAgent3D.TargetPosition = value; }
+	private float m_NavStopTimer = 0f;
+	private CreatureBase m_creature;
 
-	// ──────────── 导航检测（仅测试）─────────────
-	private void TestNavigationAvailability()
-	{
-		if (m_NavigationAgent3D == null)
-		{
-			GD.PrintErr("[Npc] 没有 NavigationAgent3D 节点，跳过导航检测");
-			return;
-		}
-
-		// 1. 检查导航地图是否存在
-		Rid map = m_NavigationAgent3D.GetNavigationMap();
-		if (!map.IsValid)
-		{
-			GD.PrintErr("[Npc] 当前世界没有可用的导航地图！");
-			return;
-		}
-		GD.Print($"[Npc] 导航地图存在，RID: {map}");
-
-		// 2. 尝试对一个已知可达的目标进行可达性测试
-		//    使用自身位置作为测试目标（必定在地面上，如果在导航网格内）
-		m_NavigationAgent3D.TargetPosition = GlobalPosition;
-		bool reachable = m_NavigationAgent3D.IsTargetReachable();
-		GD.Print($"[Npc] 自身位置是否可达: {reachable}");
-
-		if (!reachable)
-		{
-			// 尝试最近点
-			Vector3 closest = NavigationServer3D.MapGetClosestPoint(map, GlobalPosition);
-			GD.Print($"[Npc] 距离最近导航点: {closest}, 距离: {GlobalPosition.DistanceTo(closest)}");
-		}
-
-		// 3. 获取当前路径，打印前几个点
-		var path = m_NavigationAgent3D.GetCurrentNavigationPath();
-		GD.Print($"[Npc] 当前路径点数量: {path.Length}");
-		for (int i = 0; i < Math.Min(3, path.Length); i++)
-		{
-			GD.Print($"  路径点 {i}: {path[i]}");
-		}
-
-		GD.Print("[Npc] 导航检测完成");
-	}
-
-	// ──────────── 主循环 ─────────────
 	public override void _Ready()
 	{
-		if (!TryInitialize()) return;
-
-		originPoint = GlobalPosition;
-		GeneratePatrolTarget();
+		if (!Init()) return;
 		TestNavigationAvailability();
-
 	}
 
 	public override void _PhysicsProcess(double delta)
 	{
 		float dt = (float)delta;
-		UpdateGravity(delta);
-		UpdatePatrolLogic(dt);
-		ApplyMovement();
+		See();
+		ApplyGravity(delta);
+
+		UpdateStateMachine(dt);
+
+		ApplyMovementToTarget();
 		MoveAndSlide();
-		SmoothRotate(dt);
+
+		FaceMovementOrTarget(m_NavPatrolTarget, m_NpcData.m_rotationSpeed, dt);
 	}
 
-	// ──────────── 初始化 ─────────────
-	private bool TryInitialize()
+	private bool Init()
 	{
 		if (m_NpcData == null)
 		{
 			GD.PrintErr("[Npc] m_NpcData 为空");
 			return false;
 		}
-		// 导航代理（暂未使用）的参数设置可保留，以后用
+
 		if (m_NavigationAgent3D != null)
 		{
 			m_NavigationAgent3D.TargetDesiredDistance = m_NpcData.m_targetDistance;
 			m_NavigationAgent3D.Radius = 0.5f;
 			m_NavigationAgent3D.Height = 1.8f;
+			m_NavigationAgent3D.AvoidanceEnabled = false;
 		}
+
 		GD.Print($"[Npc] 初始化完成, 速度={m_NpcData.m_speed}");
 		return true;
 	}
 
-	// ──────────── 巡逻逻辑 ─────────────
+	private void TestNavigationAvailability()
+	{
+		if (m_NavigationAgent3D == null) return;
+		var map = m_NavigationAgent3D.GetNavigationMap();
+		GD.Print(map.IsValid ? "[Npc] 导航地图有效" : "[Npc] 无导航地图");
+	}
+
+
+
+    /// <summary> 注：状态机调度 </summary>
+    private void UpdateStateMachine(float delta)
+    {
+
+        switch (m_currentState)
+        {
+            case NpcState.Patrol:
+                UpdatePatrolLogic(delta);
+
+                break;
+            case NpcState.Chase:
+                UpdateChaseLogic();
+                break;
+        }
+
+    }
+
+
+
+    /// <summary> 注：驱动 NPC 直线移向 m_NavPatrolTarget </summary>
+    private void ApplyMovementToTarget()
+	{
+		if (!IsOnFloor()) return;
+
+		// 优先使用导航路径上的下一个点
+		Vector3 targetPoint;
+		if (!m_NavigationAgent3D.IsNavigationFinished())
+		{
+			targetPoint = m_NavigationAgent3D.GetNextPathPosition();
+		}
+		else
+		{
+			targetPoint = m_NavPatrolTarget;  // 已到终点，原地停
+		}
+
+		Vector3 dir = targetPoint - GlobalPosition;
+
+		if (dir.Length() <= m_NpcData.m_targetDistance)
+		{
+			MoveHorizontally(Vector3.Zero, m_NpcData.m_speed);
+		}
+		else
+		{
+			MoveHorizontally(dir.Normalized(), m_NpcData.m_speed);
+		}
+			
+	}
+
+
+	/// <summary> 注：巡逻主逻辑，停留计时与到达检测 </summary>
 	private void UpdatePatrolLogic(float delta)
 	{
-		if (!IsOnFloor()) return;   // 空中不执行巡逻逻辑
-
-		if (isStopping)
+		if (m_NavStopTimer > 0f)
 		{
-			stopTimer += delta;
-			if (stopTimer >= m_NpcData.m_stopTime)
+			m_NavStopTimer -= delta;
+			if (m_NavStopTimer <= 0f)
 			{
-				isStopping = false;
-				stopTimer = 0f;
-				GeneratePatrolTarget();
+				m_NavStopTimer = 0f;
+				GenerateNavPatrolTarget();
 			}
 			return;
 		}
 
-		float dist = GlobalPosition.DistanceTo(patrolTarget);
-		if (dist <= m_NpcData.m_targetDistance)
+		// 是否已到达最终目标
+		if (m_NavigationAgent3D.IsNavigationFinished())
 		{
-			isStopping = true;
+			m_NavStopTimer = m_NpcData.m_stopTime;
+			GD.Print($"[Npc] 到达巡逻点，停留 {m_NavStopTimer}s");
 		}
 	}
 
-	private void GeneratePatrolTarget()
+	/// <summary> 注：在导航网格上随机选点，存入 m_NavPatrolTarget，并设置导航代理目标 </summary>
+	private void GenerateNavPatrolTarget()
 	{
-		float angle = (float)GD.RandRange(0, Math.PI * 2);
-		float dist = (float)GD.RandRange(1, m_NpcData.m_patrolRadius);
-		patrolTarget = originPoint + new Vector3(
-			Mathf.Cos(angle) * dist,
-			0,
-			Mathf.Sin(angle) * dist
-		);
-		patrolTarget.Y = originPoint.Y;  // 保持在同一水平面
-	}
+		if (m_NavigationAgent3D == null) return;
 
-	// ──────────── 移动执行 ─────────────
-	private void ApplyMovement()
-	{
-		var vel = Velocity;
-		Vector3 direction = Vector3.Zero;
+		Vector3 origin = GlobalPosition;
+		float radius = m_NpcData.m_patrolRadius;
+		int maxAttempts = 15;
 
-		if (!isStopping && IsOnFloor())
+		for (int i = 0; i < maxAttempts; i++)
 		{
-			Vector3 toTarget = patrolTarget - GlobalPosition;
-			toTarget.Y = 0;
-			if (toTarget.Length() > m_NpcData.m_targetDistance)
+			float angle = (float)GD.RandRange(0, Mathf.Pi * 2);
+			float dist = (float)GD.RandRange(1.0f, radius);
+			Vector3 candidate = origin + new Vector3(Mathf.Cos(angle), 0, Mathf.Sin(angle)) * dist;
+
+			Rid map = m_NavigationAgent3D.GetNavigationMap();
+
+			Vector3 closest = NavigationServer3D.MapGetClosestPoint(map, candidate);
+
+			float d = closest.DistanceTo(origin);
+			if (d <= radius && d > m_NpcData.m_targetDistance * 1.5f)
 			{
-				direction = toTarget.Normalized();
+				m_NavPatrolTarget = closest;
+				GD.Print($"[Npc] 新巡逻目标：{m_NavPatrolTarget}");
+				return;
 			}
 		}
 
-		if (direction != Vector3.Zero)
-		{
-			vel.X = direction.X * m_NpcData.m_speed;
-			vel.Z = direction.Z * m_NpcData.m_speed;
-			targetAngle = Mathf.Atan2(direction.X, direction.Z);
-		}
-		else
-		{
-			vel.X = 0;
-			vel.Z = 0;
-		}
-
-		Velocity = vel;
+		m_NavStopTimer = m_NpcData.m_stopTime;
+		GD.Print("[Npc] 未找到合适点，原地停留");
 	}
 
-	private void SmoothRotate(float delta)
+
+	private void See()
 	{
-		float newY = Mathf.LerpAngle(GlobalRotation.Y, targetAngle, RotationSpeed * delta);
-		GlobalRotation = new Vector3(GlobalRotation.X, newY, GlobalRotation.Z);
+		if (m_eye.IsColliding() == false || m_creature != null) return;
+
+		var TT = m_eye.GetCollider();
+
+		if (TT is not Player pl) return;
+
+		m_creature = pl;
+		m_currentState = NpcState.Chase;
+		GD.Print("测试:发现玩家辣！");
 	}
+
+
+
+	/// <summary> 注：更新追击目标为第一个有效玩家的位置。</summary>
+	/// <param name="delta"></param>
+	private void UpdateChaseLogic()
+	{
+		if (m_creature == null) return;
+
+		if (!IsInstanceValid(m_creature))
+		{
+			m_creature = null;
+			m_currentState = NpcState.Patrol;
+			return;
+		}
+
+		Rid map = m_NavigationAgent3D.GetNavigationMap();        
+		m_NavPatrolTarget = NavigationServer3D.MapGetClosestPoint(map, m_creature.GlobalPosition);
+		m_NavStopTimer = 0f;
+	}
+
+
+
 }

@@ -23,7 +23,7 @@ namespace 维修公司.Dll.data
 			工具,
 			收纳
 		}
-
+		
 		[Export] public string m_ID { get; set; }
 		[Export] public string m_Name { get; set; } = string.Empty;
 		[Export] public ItemType m_Type { get; set; }
