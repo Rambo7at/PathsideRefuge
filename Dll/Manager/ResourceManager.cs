@@ -1,9 +1,5 @@
 using Godot;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Godot.Collections;
 using 途畔归所.Dll.Base;
 
 namespace 途畔归所.Dll.Manager
@@ -17,13 +13,14 @@ namespace 途畔归所.Dll.Manager
 		public static ResourceManager Instance => _instance ??= new ResourceManager();
 
 
-		private List<PackedScene> _ResourceList = new List<PackedScene>();
+		private Array<PackedScene> _ResourceList = new Array<PackedScene>();
 
 		public PackedScene m_PlayerPrefab { get;  set; }
-		public List<PackedScene> m_ItemPrefabs { get; private set; } = new List<PackedScene>();
-		public List<PackedScene> m_UIPrefabs { get; private set; } = new List<PackedScene>();
+		public Array<PackedScene> m_ItemAssetList { get; private set; } = [];
+		public Array<PackedScene> m_UIAssetList { get; private set; } = [];
+        public Array<PackedScene> m_PlacedAssetList { get; private set; } = [];
 
-		private ResourceManager() { }
+        private ResourceManager() { }
 
 
 		public void Init()
@@ -58,12 +55,17 @@ namespace 途畔归所.Dll.Manager
 				}
 				else if (instance is ItemComp)
 				{
-					m_ItemPrefabs.Add(asset);
+                    m_ItemAssetList.Add(asset);
 				}
 				else if (instance is UIPanelBase)    // 所有 UI 都继承 UIPanelBase
 				{
-					m_UIPrefabs.Add(asset);
+                    m_UIAssetList.Add(asset);
 				}
+				else if (instance is PlacedComp)
+				{
+                    m_PlacedAssetList.Add(asset);
+
+                }
 				else
 				{
 					GD.Print($"[ResourceManager] 未能归类的资源：{asset.ResourcePath}");

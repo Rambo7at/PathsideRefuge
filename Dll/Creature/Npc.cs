@@ -68,27 +68,27 @@ public partial class Npc : Humanoid
 
 
 
-    /// <summary> 注：状态机调度 </summary>
-    private void UpdateStateMachine(float delta)
-    {
+	/// <summary> 注：状态机调度 </summary>
+	private void UpdateStateMachine(float delta)
+	{
 
-        switch (m_currentState)
-        {
-            case NpcState.Patrol:
-                UpdatePatrolLogic(delta);
+		switch (m_currentState)
+		{
+			case NpcState.Patrol:
+				UpdatePatrolLogic(delta);
 
-                break;
-            case NpcState.Chase:
-                UpdateChaseLogic();
-                break;
-        }
+				break;
+			case NpcState.Chase:
+				UpdateChaseLogic();
+				break;
+		}
 
-    }
+	}
 
 
 
-    /// <summary> 注：驱动 NPC 直线移向 m_NavPatrolTarget </summary>
-    private void ApplyMovementToTarget()
+	/// <summary> 注：驱动 NPC 直线移向 m_NavPatrolTarget </summary>
+	private void ApplyMovementToTarget()
 	{
 		if (!IsOnFloor()) return;
 

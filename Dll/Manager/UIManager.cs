@@ -2,10 +2,8 @@ using Godot;
 using Godot.Collections;
 using System;
 using 维修公司.Utils;
-using 途畔归所.Dll.Base;
-using 途畔归所.Dll.Manager;
 
-namespace 维修公司.Dll
+namespace 途畔归所.Dll.Manager
 {
     /// <summary>UI资源管理器</summary>
     public class UIManager
@@ -26,9 +24,9 @@ namespace 维修公司.Dll
         /// <param name="packedScene">UI预制件列表</param>
         public void Init()
         {
-            if (ResourceManager.Instance.m_UIPrefabs == null) return;
+            if (ResourceManager.Instance.m_UIAssetList == null) return;
 
-            foreach (var ui in ResourceManager.Instance.m_UIPrefabs)
+            foreach (var ui in ResourceManager.Instance.m_UIAssetList)
             {
                 string uiName = ToolUtils.GetResourceName(ui.ResourcePath);
                 if (uiName == null) continue;

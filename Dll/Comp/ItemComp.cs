@@ -30,7 +30,7 @@ public partial class ItemComp : RigidBody3D, IInteractable
     /// <summary>互动：拾取功能 </summary>
     private void PickUp(Player player)
 	{
-		player.m_InventoryComp.AddItem(this);
+		player.m_InventoryComp.TryAddItem(m_ItemData);
 		GD.Print($"已拾取物品[{m_ItemData.m_Name}]，添加到背包");
 		QueueFree();
 		// 拾取后从列表移除并隐藏UI

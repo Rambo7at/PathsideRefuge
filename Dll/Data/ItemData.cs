@@ -1,15 +1,6 @@
 using Godot;
-using Godot.Collections;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 using 维修公司.Utils;
-using 途畔归所.Dll.Core;
-using static ItemComp;
+using 途畔归所.Dll.Manager;
 
 namespace 维修公司.Dll.data
 {
@@ -23,7 +14,7 @@ namespace 维修公司.Dll.data
 			工具,
 			收纳
 		}
-		
+
 		[Export] public string m_ID { get; set; }
 		[Export] public string m_Name { get; set; } = string.Empty;
 		[Export] public ItemType m_Type { get; set; }
@@ -36,42 +27,30 @@ namespace 维修公司.Dll.data
 		[Export] public int m_Capacity { get; set; } = 1;
 		[Export] public int m_MaxCapacity { get; set; } = 1;
 
-		public ItemData CopyData()
-		{
-
-			return new ItemData()
-			{
-				m_ID = this.m_ID,
-				m_Name = this.m_Name,
-				m_Type = this.m_Type,
-				m_Description = this.m_Description,
-				m_Icon = this.m_Icon,
-				m_Stack = this.m_Stack,
-				m_MaxStack = this.m_MaxStack,
-				m_Weight = this.m_Weight
-			};
-		}
+		public bool m_IsStackable { get => m_Stack < m_MaxStack; }
 
 
+
+		public ItemData DeepCopy() => this.DuplicateDeep() as ItemData;
 
 		public RigidBody3D DataToDrop()
 		{
 			var drop = ItemManager.Instance.GetItemDrop(this.m_ID);
 			ToolUtils.GetNodeScript<ItemComp>(drop).m_ItemData = this;
+			(drop as ItemComp).m_ItemData = this;
+
 			return drop;
 		}
-
-		public bool IsStack() => m_Stack < m_MaxStack;
 
 		public int GetStackNum() => Mathf.Max(0, m_MaxStack - m_Stack);
 
 		public bool TryStack(ItemData outData)
 		{
-			if (outData == null) return false;
-			if (outData.m_ID != m_ID) return false;
-			if (!IsStack()) return false;
+			if (outData == null || outData.m_ID != m_ID) return false;
 
-			while (IsStack() && outData.m_Stack > 0)
+			if (!m_IsStackable) return false;
+
+			while (m_IsStackable && outData.m_Stack > 0)
 			{
 				m_Stack++;
 				outData.m_Stack--;
@@ -79,11 +58,6 @@ namespace 维修公司.Dll.data
 
 			return outData.m_Stack <= 0;
 		}
-
-
-
-
-
 	}
 
 

@@ -1,14 +1,10 @@
 using Godot;
 using Godot.Collections;
 using System;
-using System.Collections.Generic;
-using System.Xml.Linq;
 using 维修公司.Dll.data;
-using 途畔归所.Dll.Manager;
 using 维修公司.Utils;
-using 途畔归所.Dll.Base;
 
-namespace 维修公司.Dll
+namespace 途畔归所.Dll.Manager
 {
 	/// <summary>物品资源管理器</summary>
 	public class ItemManager 
@@ -19,7 +15,7 @@ namespace 维修公司.Dll
 
         private ItemManager() { }
 
-        public Godot.Collections.Dictionary<string, PackedScene> m_ItemDict = [];
+        public Dictionary<string, PackedScene> m_ItemDict = [];
 
 
 
@@ -27,9 +23,9 @@ namespace 维修公司.Dll
 		/// <param name="packedScene">预制件列表</param>
 		public void Init()
 		{
-			if (ResourceManager.Instance.m_ItemPrefabs == null || ResourceManager.Instance.m_ItemPrefabs.Count == 0) return;
+			if (ResourceManager.Instance.m_ItemAssetList == null || ResourceManager.Instance.m_ItemAssetList.Count == 0) return;
 
-            foreach (var item in ResourceManager.Instance.m_ItemPrefabs)
+            foreach (var item in ResourceManager.Instance.m_ItemAssetList)
             {
                 string prefabName = ToolUtils.GetResourceName(item.ResourcePath);
                 if (prefabName == null) continue;

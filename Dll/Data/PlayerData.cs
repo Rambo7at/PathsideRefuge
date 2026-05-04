@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using 维修公司.Dll.data;
 using 途畔归所.Dll.Comp;
 
 namespace 途畔归所.Dll.Data
@@ -20,7 +21,7 @@ namespace 途畔归所.Dll.Data
 
         [Export] public float m_Jump = 4.5f;
 
-        [Export] public Array<SlotData> m_InventoryData = [];
+        [Export] public Godot.Collections.Dictionary<int, ItemData> m_InventoryData = [];
 
 
 		public string m_Name { get => _Name; set { _Name = value; SetPlayerID(); } }
@@ -33,25 +34,17 @@ namespace 途畔归所.Dll.Data
 		{
 			m_InventoryData.Clear();
 
-			foreach (var item in slotComps)
+			foreach (var Slot in slotComps)
 			{
-				m_InventoryData.Add(item.m_SlotData.DeepCopy());
-			}
-
+				if (Slot == null || Slot.IsSlotEmpty) continue;
+				m_InventoryData.Add(Slot.m_SlotID, Slot.m_ItemData.DeepCopy());
+            }
 		}
 
 		public int GetInventoryItemCount()
 		{
 			if (m_InventoryData == null || m_InventoryData.Count == 0) return 0;
-
-			int index = 0;
-
-			foreach (var item in m_InventoryData)
-			{
-				if (item.IsSlotNull) continue;
-				index++;
-			}
-			return index;
+			return m_InventoryData.Count;
 		}
 
 		public PlayerData DeepCopy()

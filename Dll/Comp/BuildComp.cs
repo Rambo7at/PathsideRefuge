@@ -134,11 +134,11 @@ namespace 维修公司.Dll
                 m_Piece = null;
             }
 
-            m_Piece = PieceManager.Instance.GetPiece(piceName);
+            //m_Piece = PieceManager.Instance.GetPiece(piceName);
             if (m_Piece == null) return;
             m_Marker3D = marker3D;
             m_Camera3D = camera3D; // 新增：保存摄像头引用
-            ToolUtils.GetNodeScript<PieceData>(m_Piece).CollisionShape3D.Disabled = true;
+            //ToolUtils.GetNodeScript<PieceData>(m_Piece).CollisionShape3D.Disabled = true;
 
             AddChild(m_Piece);
             GD.Print($"[BuildSystem] 预览件初始位置：{m_Piece.GlobalPosition}");

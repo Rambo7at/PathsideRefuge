@@ -1,16 +1,17 @@
 using Godot;
+using Godot.Collections;
 using System;
 using System.Collections.Generic;
-using System.Reflection;
-using 维修公司.Dll;
-using 维修公司.Utils;
+using System.Net.NetworkInformation;
+using 维修公司.Dll.data;
 using 途畔归所.Dll.Base;
 using 途畔归所.Dll.Comp;
-using 途畔归所.Dll.Core;
 using 途畔归所.Dll.Creature;
 using 途畔归所.Dll.Data;
+using 途畔归所.Dll.Interface;
+using 途畔归所.Dll.Manager;
 
-public partial class Player : Humanoid
+public partial class Player : Humanoid, IInventoryHolder
 {
 	[Export] public Camera3D m_Camera;
 	[Export] public Node3D m_PlayerModel;
@@ -46,19 +47,30 @@ public partial class Player : Humanoid
 		m_Controller.Update(delta);
 		ProcessUIInputs();
 		UpdateMouseMode();
-	}
+		
+
+    }
 	public override void _PhysicsProcess(double delta)
 	{
 		if (!IsInsideTree()) return;
 		m_Controller.PhysicsUpdate(delta);
-		UpdateInteractDetection(delta);
-	}
+        Test();
+    }
+
+    public void Test()
+    {
+        if (!m_eye.IsColliding()) return;
+
+        if (m_eye.GetCollider() is not ItemComp itemComp) return;
+
+        itemComp.PlayerInteract(Input.IsActionJustPressed("cat_E"), Input.IsActionJustPressed("cat_F"), this);
+        GD.Print("测试:找到物品了");
+    }
 
 
-
-	/// <summary>注：信号回调 —— 当有物品进入玩家检测区域时，将其加入可交互列表。</summary>
-	/// <param name="node">进入检测区域的节点。</param>
-	public void DetectionAreaStart(Node node)
+    /// <summary>注：信号回调 —— 当有物品进入玩家检测区域时，将其加入可交互列表。</summary>
+    /// <param name="node">进入检测区域的节点。</param>
+    public void DetectionAreaStart(Node node)
 	{
 		if (node is not ItemComp) return;
 
@@ -80,6 +92,8 @@ public partial class Player : Humanoid
 			GD.Print($"物品[{item.Name}]离开检测区域，已从列表移除，当前列表数量：{m_InRangeItems.Count}");
 		}
 	}
+
+	[Obsolete("暂时弃用")]
 
 	/// <summary>注：每物理帧执行距离最近物品的交互检测，根据 E/F 键触发对应动作。</summary>
 	/// <param name="delta">物理帧间隔（秒）。</param>
@@ -113,9 +127,12 @@ public partial class Player : Humanoid
 		}
 	}
 
-	
-	/// <summary>注：处理与 UI 相关的按键输入。</summary>
-	private void ProcessUIInputs()
+
+
+
+
+    /// <summary>注：处理与 UI 相关的按键输入。</summary>
+    private void ProcessUIInputs()
 	{
 		if (Input.IsActionJustPressed("cat_Console")) m_ConsoleComp.ToggleUI();
 		if (Input.IsActionJustPressed("cat_Tab"))
@@ -126,7 +143,7 @@ public partial class Player : Humanoid
 		if (Input.IsActionJustPressed("cat_Esc")) m_EscComp.ToggleUI();
 	}
 
-	
+
 	/// <summary>注：根据当前打开的 UI 面板自动切换鼠标模式与 UI 状态标志。</summary>
 	private void UpdateMouseMode()
 	{
@@ -143,7 +160,9 @@ public partial class Player : Humanoid
 	}
 
 	private void InitPlayerController() => m_Controller ??= new PlayerController(this);
-	private void InitPlayerAnimKeys() => m_PlayerAnimKeys ??= new PlayerAnimKeys(m_AnimationTree);
+
+
+    private void InitPlayerAnimKeys() => m_PlayerAnimKeys ??= new PlayerAnimKeys(m_AnimationTree);
 	private void InitInventory()
 	{
 		if (m_InventoryComp != null) return;
@@ -152,7 +171,7 @@ public partial class Player : Humanoid
 		if (UI == null) return;
 		if (UI is not InventoryComp script) return;
 
-		script.BindPlayer(this);
+		script.Holder = this;
 		m_InventoryComp = script;
 		UI.Visible = false;
 		m_CanvasLayer.AddChild(UI);
@@ -224,4 +243,21 @@ public partial class Player : Humanoid
 		}
 		return true;
 	}
+
+
+
+
+	#region 测试方法
+
+	public InventoryComp GetInventory() => m_InventoryComp;
+
+	public CanvasLayer GetCanvasLayer() => m_CanvasLayer;
+
+	public Vector3 GetDropPosition() => m_eye.GlobalPosition + m_eye.GlobalBasis.Z * -1.0f;
+
+	public Godot.Collections.Dictionary<int, ItemData> LoadInventory() => m_PlayerData.m_InventoryData ?? [];
+
+	public void SaveInventory(Array<SlotComp> slotComps) => m_PlayerData.UpdateInventoryData(slotComps);
+
+	#endregion
 }
