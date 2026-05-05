@@ -9,6 +9,8 @@
 [ext_resource type="Texture2D" uid="uid://c1066cwr4ibtc" path="res://Mat/道路-1/Ground067_1K-PNG_NormalGL.png" id="6_4sfak"]
 [ext_resource type="PackedScene" uid="uid://ccyut3db0phlt" path="res://Prefab/Npc/Npc.tscn" id="8_qutry"]
 [ext_resource type="Script" uid="uid://coweqxoimmlvb" path="res://Dll/Data/NpcData.cs" id="9_4sfak"]
+[ext_resource type="PackedScene" uid="uid://b67gkoovomi8k" path="res://Prefab/Piece/et_板条箱.tscn" id="10_3ycm5"]
+[ext_resource type="PackedScene" uid="uid://dohla8te3p0fh" path="res://Prefab/Vegetation/ET-树.tscn" id="11_e120r"]
 
 [sub_resource type="Gradient" id="Gradient_vr1m7"]
 offsets = PackedFloat32Array(0.2, 1)
@@ -163,5 +165,11 @@ shadow_enabled = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2394395, 0)
 
 [node name="Npc" parent="." unique_id=1650011338 instance=ExtResource("8_qutry")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25.448751, 0, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25.448751, 0.66448, 0)
 m_NpcData = SubResource("Resource_3ycm5")
+
+[node name="ET-板条箱" parent="." unique_id=868758898 instance=ExtResource("10_3ycm5")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.4030952, 0, -2.052538)
+
+[node name="ET-树" parent="." unique_id=798133478 instance=ExtResource("11_e120r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.67054, 0, 4.9373307)

@@ -61,92 +61,31 @@ public partial class InventoryComp : UIPanelBase
 
         return true;
     }
-
-    /// <summary>直接尝试放入物品（不拷贝，会修改 itemData.m_Stack）。跨库存专用。</summary>
-    public bool TryAddItemDirect(ItemData itemData, int preferredSlot = -1)
+    public void SwapSlots(SlotComp SlotThis, SlotComp SlotTarget)
     {
-        if (itemData == null || itemData.m_Stack <= 0) return false;
+        if (SlotThis == null || SlotTarget == null) return;
 
-        // 1. 尝试指定格子
-        if (preferredSlot >= 0 && preferredSlot < m_InventorySlots.Count)
+        if (SlotTarget.IsSlotEmpty)
         {
-            SlotComp slot = m_InventorySlots[preferredSlot];
-            if (slot.IsSlotEmpty)
-            {
-                slot.m_ItemData = itemData;
-                itemData.m_Stack = 0;
-                slot.Refresh();
-                OnInventoryChanged?.Invoke();
-                return true;
-            }
-            else
-            {
-                slot.TryStack(itemData);
-                if (itemData.m_Stack <= 0)
-                {
-                    slot.Refresh();
-                    OnInventoryChanged?.Invoke();
-                    return true;
-                }
-            }
-        }
+            SlotTarget.m_ItemData = SlotThis.m_ItemData.DeepCopy();
 
-        // 2. 尝试与其他格子堆叠
-        foreach (var slot in m_InventorySlots)
+            SlotThis.m_ItemData = null;
+
+            RefSlot();
+        }
+        else if(SlotTarget.m_ItemData == SlotThis.m_ItemData)
         {
-            if (slot.IsSlotEmpty) continue;
-            slot.TryStack(itemData);
-            if (itemData.m_Stack <= 0)
-            {
-                slot.Refresh();
-                OnInventoryChanged?.Invoke();
-                return true;
-            }
+            SlotTarget.m_ItemData.TryStack(SlotThis.m_ItemData);
+            RefSlot();
         }
-
-        // 3. 放入空位
-        SlotComp empty = FindEmptySlot();
-        if (empty != null)
+        else if (SlotTarget.m_ItemData != SlotThis.m_ItemData)
         {
-            empty.m_ItemData = itemData;
-            itemData.m_Stack = 0;
-            empty.Refresh();
-            OnInventoryChanged?.Invoke();
-            return true;
+            ItemData dataA = SlotThis.m_ItemData.DeepCopy();
+            ItemData dataB = SlotTarget.m_ItemData.DeepCopy();
+            SlotThis.m_ItemData = dataB;
+            SlotTarget.m_ItemData = dataA;
+            RefSlot();
         }
-
-        return false;
-    }
-    public ItemData RemoveItem(int slotIndex)
-    {
-        if (slotIndex < 0 || slotIndex >= m_InventorySlots.Count) return null;
-        SlotComp slot = m_InventorySlots[slotIndex];
-        if (slot.IsSlotEmpty) return null;
-
-        ItemData removed = slot.m_ItemData; // 直接交出引用（注意：不再拷贝）
-        slot.m_ItemData = null;
-        slot.Refresh();
-        OnInventoryChanged?.Invoke();
-        return removed;
-    }
-
-
-    public void SwapSlots(int indexA, int indexB)
-    {
-        if (indexA < 0 || indexA >= m_InventorySlots.Count) return;
-        if (indexB < 0 || indexB >= m_InventorySlots.Count) return;
-        if (indexA == indexB) return;
-
-
-
-        SlotComp slotA = m_InventorySlots[indexA];
-        SlotComp slotB = m_InventorySlots[indexB];
-
-        ItemData temp = slotA.m_ItemData;
-        slotA.m_ItemData = slotB.m_ItemData;
-        slotB.m_ItemData = temp;
-
-        RefSlot();
     }
 
     /// <summary>注：刷新背包格子显示，并同步存档数据。</summary>
@@ -162,14 +101,6 @@ public partial class InventoryComp : UIPanelBase
     {
         foreach (var comp in m_InventorySlots) if (comp.IsSlotEmpty) return comp;
         return null;
-    }
-
-    /// <summary>注：检测背包是否还有空位。</summary>
-    /// <returns>是/否。</returns>
-    private bool IsInventoryEmpty()
-    {
-        foreach (var comp in m_InventorySlots) if (comp.IsSlotEmpty) return true;
-        return false;
     }
 
     private Array<SlotComp> FindStackableSlot(ItemData itemData)
@@ -221,4 +152,18 @@ public partial class InventoryComp : UIPanelBase
     }
 
     public void ToggleUI() => this.Visible = !this.Visible;
+
+    [Obsolete("暂时没用")]
+    private ItemData RemoveItem(int slotIndex)
+    {
+        if (slotIndex < 0 || slotIndex >= m_InventorySlots.Count) return null;
+        SlotComp slot = m_InventorySlots[slotIndex];
+        if (slot.IsSlotEmpty) return null;
+
+        ItemData removed = slot.m_ItemData; // 直接交出引用（注意：不再拷贝）
+        slot.m_ItemData = null;
+        slot.Refresh();
+        OnInventoryChanged?.Invoke();
+        return removed;
+    }
 }

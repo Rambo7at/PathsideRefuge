@@ -9,7 +9,16 @@ namespace 途畔归所.Dll.Data
 
 		[Export] public Godot.Collections.Dictionary<int, PlayerData> m_PlyaerDataDict { get; set; } = [];
 
+
+        [Export] public Godot.Collections.Dictionary<string, Variant> PlacedRuntimeData = [];
+
         [Export] public int PickPlayer = 0;
+
+
+
+
+
+
 
         /// <summary> 注：获取选择的玩家 </summary>
         /// <returns>玩家数据</returns>
@@ -55,8 +64,6 @@ namespace 途畔归所.Dll.Data
 
             return ids;
         }
-
-
 
         private bool CheckPlyaerDataDict()
         {

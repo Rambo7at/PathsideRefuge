@@ -91,29 +91,11 @@ public partial class SlotComp : UIPanelBase
 			if (targetSlot == null) DropItem();
 			return;
 		}
-
 		if (m_OwnerInventory == null || targetSlot.m_OwnerInventory == null) return;
+        m_OwnerInventory.SwapSlots(this, targetSlot);
+        targetSlot.m_OwnerInventory.RefSlot();
 
-
-		// 同库存 → 交给库存处理
-		if (m_OwnerInventory == targetSlot.m_OwnerInventory)
-		{
-			m_OwnerInventory.SwapSlots(m_SlotID, targetSlot.m_SlotID);
-			return;
-		}
-
-		// 跨库存 → 先移除自己的物品
-		ItemData movingItem = m_OwnerInventory.RemoveItem(m_SlotID);
-		if (movingItem == null) return;
-
-		// 尝试放入目标库存（直接操作引用）
-		bool success = targetSlot.m_OwnerInventory.TryAddItemDirect(movingItem, targetSlot.m_SlotID);
-		if (!success)
-			m_OwnerInventory.TryAddItemDirect(movingItem); // 回退也用Direct
-
-		m_OwnerInventory.RefSlot();
-		targetSlot.m_OwnerInventory.RefSlot();
-	}
+    }
 
 	/// <summary>注：在当前鼠标没有指向任何格子时丢弃物品到世界。</summary>
 	private void DropItem()

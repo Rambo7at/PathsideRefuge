@@ -19,18 +19,18 @@ public partial class ItemComp : RigidBody3D, IInteractable
 	}
 
 
-    public void Init()
-    {
-        if (m_ItemData != null) return;
+	public void Init()
+	{
+		if (m_ItemData != null) return;
 
 		GD.Print("物品初始化失败");
-    }
+	}
 
 
-    /// <summary>互动：拾取功能 </summary>
-    private void PickUp(Player player)
+	/// <summary>互动：拾取功能 </summary>
+	private void PickUp(Player player)
 	{
-		player.m_InventoryComp.TryAddItem(m_ItemData);
+		player.m_PlayerUIHandler.m_InventoryComp.TryAddItem(m_ItemData);
 		GD.Print($"已拾取物品[{m_ItemData.m_Name}]，添加到背包");
 		QueueFree();
 		// 拾取后从列表移除并隐藏UI

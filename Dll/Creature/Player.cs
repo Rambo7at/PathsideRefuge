@@ -11,66 +11,94 @@ using 途畔归所.Dll.Data;
 using 途畔归所.Dll.Interface;
 using 途畔归所.Dll.Manager;
 
-public partial class Player : Humanoid, IInventoryHolder
+public partial class Player : Humanoid
 {
 	[Export] public Camera3D m_Camera;
 	[Export] public Node3D m_PlayerModel;
-	[Export] public Control m_PickUpUI;
 	[Export] public CanvasLayer m_CanvasLayer;
 
-	public string PlayerName { get => m_PlayerData.m_Name; }
-	private bool m_IsPlayerMenu = false;
+
+    [Export] public float m_BaseAttackDamage = 20f;
+    public PlayerUIHandler m_PlayerUIHandler;
+
+
+    private bool m_IsPlayerMenu = false;
 	public bool m_OnUI = false;
 
-
 	public PlayerData m_PlayerData;
-	public InventoryComp m_InventoryComp;
-	public ConsoleComp m_ConsoleComp;
-	public EscComp m_EscComp;
 	private PlayerController m_Controller;
 	public PlayerAnimKeys m_PlayerAnimKeys;
 	public List<ItemComp> m_InRangeItems = new List<ItemComp>();
 
 
-	public override void _Ready()
+    private void Attack()
+    {
+        if (!Input.IsActionJustPressed("cat_Attack")) return;
+
+        m_AnimationTree?.Set("parameters/Attack/request", (int)AnimationNodeOneShot.OneShotRequest.Fire);
+
+    }
+    public override void _Ready()
 	{
-		m_PickUpUI.Visible = false;
 		if (!ValidateComponents()) return;
 		InitPlayerAnimKeys();
+		InitPlayerUIHandler();
 		InitPlayerController();
-		InitInventory();
-		InitConsole();
-		InitEsc();
 	}
+
 	public override void _Process(double delta)
 	{
 		m_Controller.Update(delta);
-		ProcessUIInputs();
-		UpdateMouseMode();
-		
+		m_PlayerUIHandler.Updata();
+		Attack();
 
     }
+
 	public override void _PhysicsProcess(double delta)
 	{
 		if (!IsInsideTree()) return;
 		m_Controller.PhysicsUpdate(delta);
-        Test();
-    }
+		CheckRaycastInteract();
+	}
 
-    public void Test()
+    /// <summary>
+    /// 注：执行一次攻击，使用射线检测命中的目标并造成伤害
+    /// </summary>
+    private void PerformAttack()
     {
-        if (!m_eye.IsColliding()) return;
+        if (m_eye == null || !m_eye.IsColliding()) return;
 
-        if (m_eye.GetCollider() is not ItemComp itemComp) return;
+        var target = m_eye.GetCollider();
+        if (target == null) return;
 
-        itemComp.PlayerInteract(Input.IsActionJustPressed("cat_E"), Input.IsActionJustPressed("cat_F"), this);
-        GD.Print("测试:找到物品了");
+        if (target is IDamageable damageable)
+        {
+            damageable.TakeDamage(m_BaseAttackDamage, this);
+            GD.Print($"[Player] 攻击命中目标: {((Node)target).Name}");
+        }
     }
 
+    /// <summary> 注：视线射线检测交互对象 </summary>
+    public void CheckRaycastInteract()
+	{
+		if (!m_eye.IsColliding()) return;
 
-    /// <summary>注：信号回调 —— 当有物品进入玩家检测区域时，将其加入可交互列表。</summary>
-    /// <param name="node">进入检测区域的节点。</param>
-    public void DetectionAreaStart(Node node)
+		var ojb = m_eye.GetCollider();
+
+		if (ojb == null) return;
+
+		if (ojb is ItemComp itemComp)
+		{
+			itemComp.PlayerInteract(Input.IsActionJustPressed("cat_E"), Input.IsActionJustPressed("cat_F"), this);
+		}
+		else if (ojb is ContainerComp containerComp)
+		{
+			containerComp.PlayerInteract(Input.IsActionJustPressed("cat_E"), Input.IsActionJustPressed("cat_F"), this);
+		}
+	}
+
+	/// <summary> 注：物品进入检测区域时添加到列表 </summary>
+	public void DetectionAreaStart(Node node)
 	{
 		if (node is not ItemComp) return;
 
@@ -80,8 +108,7 @@ public partial class Player : Humanoid, IInventoryHolder
 		GD.Print($"物品[{item.Name}]进入检测区域，已加入列表，当前列表数量：{m_InRangeItems.Count}");
 	}
 
-	/// <summary>注：信号回调 —— 当有物品离开玩家检测区域时，将其从可交互列表移除。</summary>
-	/// <param name="node">离开检测区域的节点。</param>
+	/// <summary> 注：物品离开检测区域时从列表移除 </summary>
 	public void DetectionAreaEnd(Node node)
 	{
 		if (node is not ItemComp) return;
@@ -94,9 +121,7 @@ public partial class Player : Humanoid, IInventoryHolder
 	}
 
 	[Obsolete("暂时弃用")]
-
-	/// <summary>注：每物理帧执行距离最近物品的交互检测，根据 E/F 键触发对应动作。</summary>
-	/// <param name="delta">物理帧间隔（秒）。</param>
+	/// <summary> 注：更新交互检测（已弃用） </summary>
 	public void UpdateInteractDetection(double delta)
 	{
 		if (!IsInsideTree() || m_InRangeItems.Count == 0) return;
@@ -123,88 +148,20 @@ public partial class Player : Humanoid, IInventoryHolder
 		if (closestItem != null)
 		{
 			closestItem.PlayerInteract(Input.IsActionJustPressed("cat_E"), Input.IsActionJustPressed("cat_F"), this);
-			m_PickUpUI.Visible = false;
 		}
 	}
 
-
-
-
-
-    /// <summary>注：处理与 UI 相关的按键输入。</summary>
-    private void ProcessUIInputs()
-	{
-		if (Input.IsActionJustPressed("cat_Console")) m_ConsoleComp.ToggleUI();
-		if (Input.IsActionJustPressed("cat_Tab"))
-		{
-			m_InventoryComp.RefSlot();
-			m_InventoryComp.ToggleUI();
-		}
-		if (Input.IsActionJustPressed("cat_Esc")) m_EscComp.ToggleUI();
-	}
-
-
-	/// <summary>注：根据当前打开的 UI 面板自动切换鼠标模式与 UI 状态标志。</summary>
-	private void UpdateMouseMode()
-	{
-		if (m_ConsoleComp.Visible || m_InventoryComp.Visible || m_EscComp.Visible)
-		{
-			Input.MouseMode = Input.MouseModeEnum.Visible;
-			m_OnUI = true;
-		}
-		else
-		{
-			Input.MouseMode = Input.MouseModeEnum.Captured;
-			m_OnUI = false;
-		}
-	}
-
+	/// <summary> 注：初始化玩家控制器 </summary>
 	private void InitPlayerController() => m_Controller ??= new PlayerController(this);
 
+	/// <summary> 注：初始化玩家UI处理器 </summary>
+	private void InitPlayerUIHandler() => m_PlayerUIHandler ??= new PlayerUIHandler(this);
 
-    private void InitPlayerAnimKeys() => m_PlayerAnimKeys ??= new PlayerAnimKeys(m_AnimationTree);
-	private void InitInventory()
-	{
-		if (m_InventoryComp != null) return;
+	/// <summary> 注：初始化玩家动画参数键 </summary>
+	private void InitPlayerAnimKeys() => m_PlayerAnimKeys ??= new PlayerAnimKeys(m_AnimationTree);
 
-		var UI = UIManager.Instance.GetUI("InventoryUI");
-		if (UI == null) return;
-		if (UI is not InventoryComp script) return;
-
-		script.Holder = this;
-		m_InventoryComp = script;
-		UI.Visible = false;
-		m_CanvasLayer.AddChild(UI);
-	}
-	private void InitConsole()
-	{
-		if (m_ConsoleComp != null) return;
-
-		var UI = UIManager.Instance.GetUI("ConsoleUI");
-		if (UI == null) return;
-		if (UI is not ConsoleComp script) return;
-
-		m_ConsoleComp = script;
-		m_ConsoleComp.GetPlayer(this);
-		UI.Visible = false;
-		m_CanvasLayer.AddChild(UI);
-	}
-	private void InitEsc()
-	{
-		if (m_EscComp != null) return;
-
-		var UI = UIManager.Instance.GetUI("esc_ui");
-		if (UI == null) return;
-		if (UI is not EscComp script) return;
-
-		m_EscComp = script;
-		UI.Visible = false;
-		m_CanvasLayer.AddChild(UI);
-	}
-
-	/// <summary>注：验证所有关键组件引用非空，避免后续操作因空引用崩溃。</summary>
-	/// <returns>所有必要组件均存在时返回 true，否则 false。</returns>
-	private bool ValidateComponents()
+    /// <summary> 注：验证所有关键组件是否非空 </summary>
+    private bool ValidateComponents()
 	{
 		if (m_eye == null)
 		{
@@ -219,11 +176,6 @@ public partial class Player : Humanoid, IInventoryHolder
 		if (m_PlayerModel == null)
 		{
 			GD.PrintErr("[Player.ValidateComponents]：m_PlayerModel 字段为空");
-			return false;
-		}
-		if (m_PickUpUI == null)
-		{
-			GD.PrintErr("[Player.ValidateComponents]：m_PickUpUI 字段为空");
 			return false;
 		}
 		if (m_CanvasLayer == null)
@@ -243,21 +195,4 @@ public partial class Player : Humanoid, IInventoryHolder
 		}
 		return true;
 	}
-
-
-
-
-	#region 测试方法
-
-	public InventoryComp GetInventory() => m_InventoryComp;
-
-	public CanvasLayer GetCanvasLayer() => m_CanvasLayer;
-
-	public Vector3 GetDropPosition() => m_eye.GlobalPosition + m_eye.GlobalBasis.Z * -1.0f;
-
-	public Godot.Collections.Dictionary<int, ItemData> LoadInventory() => m_PlayerData.m_InventoryData ?? [];
-
-	public void SaveInventory(Array<SlotComp> slotComps) => m_PlayerData.UpdateInventoryData(slotComps);
-
-	#endregion
 }
