@@ -49,6 +49,8 @@ namespace 途畔归所.Dll.Creature
 
         private void HandlePlayerMovement(double delta)
         {
+
+            if (player.m_StateMachine.s_PlayerState == StateMachine.PlayerState.Attack) return;
             Vector3 velocity = player.Velocity;
 
             // 跳跃
@@ -115,7 +117,6 @@ namespace 途畔归所.Dll.Creature
         private void PlayerMoveAnimationDirection(double delta)
         {
             
-
             float cameraAngle = m_Camera3D.GlobalRotation.Y;
 
             Vector2 inputDir = Input.GetVector("cat_Left", "cat_Right", "cat_Forward", "cat_Backward");

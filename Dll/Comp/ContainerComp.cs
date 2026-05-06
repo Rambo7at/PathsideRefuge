@@ -76,15 +76,13 @@ namespace 途畔归所.Dll.Comp
 
 			var UI = UIManager.Instance.GetUI("ContainerUI");
 			if (UI == null) return;
+
+
 			if (UI is not InventoryComp script) return;
+
+
 			script.Holder = this;
 			m_ContainerComp = script;
-
-
-
-
-
-
 		}
 
 

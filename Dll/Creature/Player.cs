@@ -16,6 +16,7 @@ public partial class Player : Humanoid
 	[Export] public Camera3D m_Camera;
 	[Export] public Node3D m_PlayerModel;
 	[Export] public CanvasLayer m_CanvasLayer;
+    [Export] public StateMachine m_StateMachine;
 
 
     [Export] public float m_BaseAttackDamage = 20f;
@@ -31,26 +32,21 @@ public partial class Player : Humanoid
 	public List<ItemComp> m_InRangeItems = new List<ItemComp>();
 
 
-    private void Attack()
-    {
-        if (!Input.IsActionJustPressed("cat_Attack")) return;
 
-        m_AnimationTree?.Set("parameters/Attack/request", (int)AnimationNodeOneShot.OneShotRequest.Fire);
 
-    }
     public override void _Ready()
 	{
 		if (!ValidateComponents()) return;
 		InitPlayerAnimKeys();
 		InitPlayerUIHandler();
 		InitPlayerController();
-	}
+
+    }
 
 	public override void _Process(double delta)
 	{
 		m_Controller.Update(delta);
 		m_PlayerUIHandler.Updata();
-		Attack();
 
     }
 
@@ -193,6 +189,12 @@ public partial class Player : Humanoid
 			GD.PrintErr("[Player.ValidateComponents]：m_AnimationTree 字段为空");
 			return false;
 		}
+		if (m_StateMachine == null)
+		{
+            GD.PrintErr("[Player.ValidateComponents]：m_StateMachine 字段为空");
+            return false;
+
+        }
 		return true;
 	}
 }
