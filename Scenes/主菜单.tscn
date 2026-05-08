@@ -1,7 +1,6 @@
 [gd_scene format=3 uid="uid://brf4o0xvfmd8h"]
 
 [ext_resource type="Script" uid="uid://hy5ixgsowtf" path="res://Dll/Scene/MainMenu.cs" id="1_ckshb"]
-[ext_resource type="Theme" uid="uid://cxjqe8iwko2rk" path="res://Theme/角色创建.tres" id="3_4lmad"]
 [ext_resource type="Script" uid="uid://dqaqw1bmsw1s4" path="res://Dll/Scene/PlayerSaveMenu.cs" id="4_7d8j3"]
 [ext_resource type="Theme" uid="uid://ddcpo5it8afda" path="res://Theme/主菜单UI.tres" id="7_cjyvh"]
 
@@ -18,45 +17,17 @@ sky = SubResource("Sky_4lmad")
 tonemap_mode = 2
 glow_enabled = true
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4lmad"]
-bg_color = Color(0.6, 0.6, 0.6, 0)
-border_width_left = 5
-border_width_top = 5
-border_width_right = 5
-border_width_bottom = 5
-border_color = Color(0.6117488, 0, 0.32694855, 1)
-corner_radius_top_left = 12
-corner_radius_top_right = 12
-corner_radius_bottom_right = 12
-corner_radius_bottom_left = 12
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7d8j3"]
-bg_color = Color(0.6, 0.6, 0.6, 0)
-border_width_left = 8
-border_width_top = 8
-border_width_right = 8
-border_width_bottom = 8
-border_color = Color(0.6117488, 0, 0.32694855, 1)
-border_blend = true
-corner_radius_top_left = 12
-corner_radius_top_right = 12
-corner_radius_bottom_right = 12
-corner_radius_bottom_left = 12
-corner_detail = 9
-
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ckshb"]
 albedo_color = Color(0.08321554, 8.928254e-06, 0.39188647, 1)
 
 [sub_resource type="BoxMesh" id="BoxMesh_4lmad"]
 material = SubResource("StandardMaterial3D_ckshb")
 
-[node name="主菜单" type="Node3D" unique_id=650275170 node_paths=PackedStringArray("菜单UI", "开始UI", "创建UI", "门牌UI", "房间名称")]
+[node name="主菜单" type="Node3D" unique_id=650275170 node_paths=PackedStringArray("m_Start", "m_Lobby", "m_RoomInfo")]
 script = ExtResource("1_ckshb")
-"菜单UI" = NodePath("CanvasLayer/主菜单_画布")
-"开始UI" = NodePath("CanvasLayer/大厅界面")
-"创建UI" = NodePath("CanvasLayer/创建选项")
-"门牌UI" = NodePath("CanvasLayer/大厅界面/门牌")
-"房间名称" = NodePath("CanvasLayer/创建选项/HBoxContainer/LineEdit")
+m_Start = NodePath("CanvasLayer/开始界面")
+m_Lobby = NodePath("CanvasLayer/大厅界面")
+m_RoomInfo = NodePath("CanvasLayer/大厅界面/PanelContainer2/VBoxContainer/HBoxContainer/Label")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=991670717]
 environment = SubResource("Environment_7d8j3")
@@ -67,7 +38,8 @@ shadow_enabled = true
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=2130164997]
 
-[node name="主菜单_画布" type="Control" parent="CanvasLayer" unique_id=22447098]
+[node name="开始界面" type="Control" parent="CanvasLayer" unique_id=22447098]
+visible = false
 layout_mode = 3
 anchors_preset = 8
 anchor_left = 0.5
@@ -77,7 +49,7 @@ anchor_bottom = 0.5
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="PanelContainer" type="PanelContainer" parent="CanvasLayer/主菜单_画布" unique_id=1741501806]
+[node name="PanelContainer" type="PanelContainer" parent="CanvasLayer/开始界面" unique_id=1741501806]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -92,14 +64,14 @@ grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("7_cjyvh")
 
-[node name="Label" type="Label" parent="CanvasLayer/主菜单_画布/PanelContainer" unique_id=1807453700]
+[node name="Label" type="Label" parent="CanvasLayer/开始界面/PanelContainer" unique_id=1807453700]
 layout_mode = 2
 theme = ExtResource("7_cjyvh")
 text = "途畔归所"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/主菜单_画布" unique_id=1739493526]
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/开始界面" unique_id=1739493526]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -114,17 +86,17 @@ grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("7_cjyvh")
 
-[node name="开始游戏" type="Button" parent="CanvasLayer/主菜单_画布/VBoxContainer" unique_id=529472026]
+[node name="开始游戏" type="Button" parent="CanvasLayer/开始界面/VBoxContainer" unique_id=529472026]
 layout_mode = 2
 theme = ExtResource("7_cjyvh")
 text = "开始游戏"
 
-[node name="设置" type="Button" parent="CanvasLayer/主菜单_画布/VBoxContainer" unique_id=1978045722]
+[node name="设置" type="Button" parent="CanvasLayer/开始界面/VBoxContainer" unique_id=1978045722]
 layout_mode = 2
 theme = ExtResource("7_cjyvh")
 text = "设置"
 
-[node name="退出" type="Button" parent="CanvasLayer/主菜单_画布/VBoxContainer" unique_id=856146456]
+[node name="退出" type="Button" parent="CanvasLayer/开始界面/VBoxContainer" unique_id=856146456]
 layout_mode = 2
 theme = ExtResource("7_cjyvh")
 text = "退出"
@@ -136,31 +108,17 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -960.0
-offset_top = -540.0
-offset_right = -960.0
-offset_bottom = -540.0
 grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 
-[node name="门牌" type="Button" parent="CanvasLayer/大厅界面" unique_id=842479806]
-layout_mode = 0
-offset_left = 321.0
-offset_top = 242.0
-offset_right = 589.0
-offset_bottom = 303.0
-size_flags_horizontal = 4
-size_flags_vertical = 4
-theme = ExtResource("7_cjyvh")
-
 [node name="返回" type="Button" parent="CanvasLayer/大厅界面" unique_id=26038958]
 layout_mode = 0
-offset_left = 616.0
-offset_top = 242.0
-offset_right = 782.0
-offset_bottom = 303.0
+offset_left = -333.0
+offset_top = -298.0
+offset_right = -167.0
+offset_bottom = -237.0
 size_flags_horizontal = 4
 size_flags_vertical = 4
 theme = ExtResource("7_cjyvh")
@@ -168,43 +126,43 @@ text = "返回"
 
 [node name="本地游戏" type="Button" parent="CanvasLayer/大厅界面" unique_id=1855247805]
 layout_mode = 0
-offset_left = 795.0
-offset_top = 242.0
-offset_right = 961.0
-offset_bottom = 303.0
+offset_left = -154.0
+offset_top = -298.0
+offset_right = 12.0
+offset_bottom = -237.0
 size_flags_horizontal = 4
 size_flags_vertical = 4
 theme = ExtResource("7_cjyvh")
 text = "本地游戏"
 
-[node name="创建大厅" type="Button" parent="CanvasLayer/大厅界面" unique_id=167667823]
+[node name="多人游戏" type="Button" parent="CanvasLayer/大厅界面" unique_id=167667823]
 layout_mode = 0
-offset_left = 978.0
-offset_top = 242.0
-offset_right = 1144.0
-offset_bottom = 303.0
+offset_left = 29.0
+offset_top = -298.0
+offset_right = 195.0
+offset_bottom = -237.0
 size_flags_horizontal = 4
 size_flags_vertical = 4
 theme = ExtResource("7_cjyvh")
-text = "创建大厅"
+text = "多人游戏"
 
-[node name="加入游戏" type="Button" parent="CanvasLayer/大厅界面" unique_id=1549941776]
+[node name="搜索大厅" type="Button" parent="CanvasLayer/大厅界面" unique_id=1549941776]
 layout_mode = 0
-offset_left = 1152.0
-offset_top = 242.0
-offset_right = 1318.0
-offset_bottom = 303.0
+offset_left = 203.0
+offset_top = -298.0
+offset_right = 369.0
+offset_bottom = -237.0
 size_flags_horizontal = 4
 size_flags_vertical = 4
 theme = ExtResource("7_cjyvh")
-text = "加入游戏"
+text = "搜索大厅"
 
 [node name="PanelContainer2" type="PanelContainer" parent="CanvasLayer/大厅界面" unique_id=184942701]
 layout_mode = 0
-offset_left = 613.0
-offset_top = 312.0
-offset_right = 1313.0
-offset_bottom = 862.0
+offset_left = -336.0
+offset_top = -228.0
+offset_right = 364.0
+offset_bottom = 322.0
 size_flags_horizontal = 4
 size_flags_vertical = 4
 theme = ExtResource("7_cjyvh")
@@ -212,87 +170,31 @@ theme = ExtResource("7_cjyvh")
 [node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/大厅界面/PanelContainer2" unique_id=634160728]
 layout_mode = 2
 
-[node name="PanelContainer3" type="PanelContainer" parent="CanvasLayer/大厅界面" unique_id=1186097564]
-layout_mode = 0
-offset_left = 306.0
-offset_top = 312.0
-offset_right = 606.0
-offset_bottom = 862.0
-size_flags_horizontal = 4
-size_flags_vertical = 4
-theme = ExtResource("7_cjyvh")
-
-[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/大厅界面/PanelContainer3" unique_id=1068799083]
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/大厅界面/PanelContainer2/VBoxContainer" unique_id=824334434]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="CanvasLayer/大厅界面/PanelContainer3/VBoxContainer" unique_id=682088320]
+[node name="Label" type="Label" parent="CanvasLayer/大厅界面/PanelContainer2/VBoxContainer/HBoxContainer" unique_id=423003426]
 layout_mode = 2
-theme = ExtResource("3_4lmad")
-theme_override_font_sizes/font_size = 35
-text = "玩家："
-vertical_alignment = 1
+text = "大厅信息"
 
-[node name="创建选项" type="Control" parent="CanvasLayer" unique_id=648374964]
+[node name="Button" type="Button" parent="CanvasLayer/大厅界面/PanelContainer2/VBoxContainer/HBoxContainer" unique_id=864876074]
+layout_mode = 2
+text = "加入"
+
+[node name="存档菜单" type="Control" parent="CanvasLayer" unique_id=573337085 node_paths=PackedStringArray("PlayerName", "PlayerBox", "SavePice", "SaveBox", "PlayerDataInfo")]
 layout_mode = 3
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -960.0
-offset_top = -540.0
-offset_right = -960.0
-offset_bottom = -540.0
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
 grow_horizontal = 2
 grow_vertical = 2
-
-[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/创建选项" unique_id=958339577]
-layout_mode = 0
-offset_left = 616.0
-offset_top = 151.0
-offset_right = 1326.0
-offset_bottom = 222.0
-
-[node name="Label" type="Label" parent="CanvasLayer/创建选项/HBoxContainer" unique_id=1779093718]
-layout_mode = 2
-theme = ExtResource("7_cjyvh")
-theme_type_variation = &"HeaderLarge"
-theme_override_colors/font_color = Color(0.39393985, 0.79588807, 0.8771001, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 0)
-theme_override_colors/font_outline_color = Color(0.6117647, 0, 0, 1)
-theme_override_constants/outline_size = 3
-theme_override_font_sizes/font_size = 40
-theme_override_styles/normal = SubResource("StyleBoxFlat_4lmad")
-text = "房间名"
-
-[node name="LineEdit" type="LineEdit" parent="CanvasLayer/创建选项/HBoxContainer" unique_id=1507318601]
-layout_mode = 2
 size_flags_horizontal = 4
-size_flags_vertical = 4
-theme_override_colors/font_color = Color(0.19607843, 0.8745098, 0.8745098, 1)
-theme_override_constants/minimum_character_width = 10
-theme_override_font_sizes/font_size = 40
-theme_override_styles/normal = SubResource("StyleBoxFlat_7d8j3")
-
-[node name="Button" type="Button" parent="CanvasLayer/创建选项/HBoxContainer" unique_id=1081881956]
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 4
-theme = ExtResource("7_cjyvh")
-text = "创建"
-
-[node name="Button2" type="Button" parent="CanvasLayer/创建选项/HBoxContainer" unique_id=828286586]
-layout_mode = 2
-size_flags_horizontal = 4
-size_flags_vertical = 4
-theme = ExtResource("7_cjyvh")
-text = "返回"
-
-[node name="存档菜单" type="Control" parent="CanvasLayer" unique_id=573337085 node_paths=PackedStringArray("PlayerName", "PlayerBox", "SavePice", "SaveBox", "PlayerDataInfo")]
-layout_mode = 3
-anchors_preset = 0
-offset_right = 40.0
-offset_bottom = 40.0
 script = ExtResource("4_7d8j3")
 PlayerName = NodePath("PanelContainer4/人物信息/playerName")
 PlayerBox = NodePath("PanelContainer4/人物信息/playeBox")
@@ -302,10 +204,10 @@ PlayerDataInfo = NodePath("PanelContainer4/人物信息")
 
 [node name="PanelContainer4" type="PanelContainer" parent="CanvasLayer/存档菜单" unique_id=1104802110]
 layout_mode = 0
-offset_left = 1318.0
-offset_top = 312.0
-offset_right = 1618.0
-offset_bottom = 862.0
+offset_left = 433.0
+offset_top = -208.0
+offset_right = 733.0
+offset_bottom = 342.0
 size_flags_horizontal = 4
 size_flags_vertical = 4
 theme = ExtResource("7_cjyvh")
@@ -329,10 +231,10 @@ theme_override_constants/separation = 56
 [node name="创建" type="Button" parent="CanvasLayer/存档菜单" unique_id=1717617881]
 visibility_layer = 524288
 layout_mode = 0
-offset_left = 1326.0
-offset_top = 242.0
-offset_right = 1462.0
-offset_bottom = 303.0
+offset_left = 441.0
+offset_top = -278.0
+offset_right = 577.0
+offset_bottom = -217.0
 size_flags_horizontal = 4
 size_flags_vertical = 4
 theme = ExtResource("7_cjyvh")
@@ -340,10 +242,10 @@ text = "创建"
 
 [node name="选择" type="Button" parent="CanvasLayer/存档菜单" unique_id=1232322588]
 layout_mode = 0
-offset_left = 1471.0
-offset_top = 242.0
-offset_right = 1607.0
-offset_bottom = 303.0
+offset_left = 586.0
+offset_top = -278.0
+offset_right = 722.0
+offset_bottom = -217.0
 size_flags_horizontal = 4
 size_flags_vertical = 4
 theme = ExtResource("7_cjyvh")
@@ -356,13 +258,12 @@ mesh = SubResource("BoxMesh_4lmad")
 [node name="Camera3D" type="Camera3D" parent="." unique_id=1793849891]
 transform = Transform3D(1, 0, 0, 0, 0.9924587, 0.12257956, 0, 0.12257956, -0.9924587, 0, 2.6937778, -7.647185)
 
-[connection signal="pressed" from="CanvasLayer/主菜单_画布/VBoxContainer/开始游戏" to="." method="StartGame"]
-[connection signal="pressed" from="CanvasLayer/主菜单_画布/VBoxContainer/退出" to="." method="Quit"]
-[connection signal="pressed" from="CanvasLayer/大厅界面/返回" to="." method="Return"]
+[connection signal="pressed" from="CanvasLayer/开始界面/VBoxContainer/开始游戏" to="." method="StartGame"]
+[connection signal="pressed" from="CanvasLayer/开始界面/VBoxContainer/退出" to="." method="QuitGame"]
+[connection signal="pressed" from="CanvasLayer/大厅界面/返回" to="." method="ReturnToStart"]
 [connection signal="pressed" from="CanvasLayer/大厅界面/本地游戏" to="." method="LocalGame"]
-[connection signal="pressed" from="CanvasLayer/大厅界面/创建大厅" to="." method="CreateLobby"]
-[connection signal="pressed" from="CanvasLayer/大厅界面/加入游戏" to="." method="JoinLobby"]
-[connection signal="pressed" from="CanvasLayer/创建选项/HBoxContainer/Button" to="." method="GoLobby"]
-[connection signal="pressed" from="CanvasLayer/创建选项/HBoxContainer/Button2" to="." method="GoLobby"]
+[connection signal="pressed" from="CanvasLayer/大厅界面/多人游戏" to="." method="MultiplayerGame"]
+[connection signal="pressed" from="CanvasLayer/大厅界面/搜索大厅" to="." method="FindLobby"]
+[connection signal="pressed" from="CanvasLayer/大厅界面/PanelContainer2/VBoxContainer/HBoxContainer/Button" to="." method="JoinRoom"]
 [connection signal="pressed" from="CanvasLayer/存档菜单/创建" to="CanvasLayer/存档菜单" method="Creator"]
 [connection signal="pressed" from="CanvasLayer/存档菜单/选择" to="CanvasLayer/存档菜单" method="OpenSaveSelection"]

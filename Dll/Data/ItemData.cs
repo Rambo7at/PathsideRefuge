@@ -1,21 +1,36 @@
 using Godot;
 using 维修公司.Utils;
 using 途畔归所.Dll.Manager;
+using static 维修公司.Dll.data.ItemData;
 
 namespace 维修公司.Dll.data
 {
 	[GlobalClass]
 	public partial class ItemData : Resource
 	{
-
 		public enum ItemType
 		{
-			消耗品,
-			工具,
-			收纳
+			消耗品 = 0,
+			工具 = 1,
+            武器 = 2
 		}
 
-		[Export] public string m_ID { get; set; }
+        public enum WeaponType
+        {
+            刀 = 0
+        }
+        public enum AttackType
+        {
+            消耗品 = 0,
+            工具 = 1,
+            武器 = 2
+        }
+
+
+
+
+        [ExportGroup("基础")]
+        [Export] public string m_ID { get; set; }
 		[Export] public string m_Name { get; set; } = string.Empty;
 		[Export] public ItemType m_Type { get; set; }
 		[Export] public string m_Description { get; set; }
@@ -27,11 +42,21 @@ namespace 维修公司.Dll.data
 		[Export] public int m_Capacity { get; set; } = 1;
 		[Export] public int m_MaxCapacity { get; set; } = 1;
 
-		public bool m_IsStackable { get => m_Stack < m_MaxStack; }
+
+
+        [ExportGroup("武器")]
+        [Export] public WeaponType m_WeaponType { get; set; }
+        [Export] public int m_Damage { get; set; }
 
 
 
-		public ItemData DeepCopy() => this.DuplicateDeep() as ItemData;
+
+		public bool m_IsStackable => m_Stack < m_MaxStack;
+
+
+
+
+        public ItemData DeepCopy() => this.DuplicateDeep() as ItemData;
 
 		public RigidBody3D DataToDrop()
 		{

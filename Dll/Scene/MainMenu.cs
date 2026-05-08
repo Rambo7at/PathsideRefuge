@@ -10,62 +10,35 @@ using 途畔归所.Dll.Manager;
 public partial class MainMenu : Node3D
 {
 
-	[Export] private Control 菜单UI;
-	[Export] private Control 开始UI;
-	[Export] private Control 创建UI;
-
-	[Export] private Button 门牌UI;
-	[Export] private LineEdit 房间名称;
-
-	public override void _Ready()
+	[Export] private Control m_Start;
+	[Export] private Control m_Lobby;
+    [Export] private Label m_RoomInfo;
+    public override void _Ready()
 	{
-		IsAllFieldsnNull();
-
-		菜单UI.Visible = true;
-		开始UI.Visible = false;
-		创建UI.Visible = false;
-	}
+		ReturnToStart();
+    }
 
 
-	public override void _Process(double delta)
+	public override void _Process(double delta) { }
+
+    /// <summary>回调函数：进入大厅菜单</summary>
+    private void StartGame()
 	{
+        m_Start.Visible = false;
+        m_Lobby.Visible = true;
+    }
+    /// <summary>回调函数：退出游戏</summary>
+    public void QuitGame() => GetTree().Quit();
 
-	   
+    /// <summary>回调函数：返回开始主界面</summary>
+    public void ReturnToStart()
+    {
+        m_Start.Visible = true;
+        m_Lobby.Visible = false;
+    }
 
-
-	}
-
-
-	#region 主菜单_画布-按钮信号
-	/// <summary>注：开始游戏按钮</summary>
-	public void StartGame()
-	{
-		菜单UI.Visible = false;
-		开始UI.Visible = true;
-	}
-
-
-	/// <summary>注：退出游戏</summary>
-	public void Quit() => GetTree().Quit();
-	#endregion
-
-
-
-
-
-	#region  大厅界面-按钮信号
-
-	/// <summary>注：返回按钮 </summary>
-	public void Return()
-	{
-		菜单UI.Visible = true;
-		开始UI.Visible = false;
-		创建UI.Visible = false;
-		房间名称.Text = "";
-	}
-
-	/// <summary>注：本地游戏 </summary>
-	public void LocalGame()
+    /// <summary>回调函数：本地游戏 </summary>
+    public void LocalGame()
 	{
 		if (SaveManager.Instance.IsValidPlayerSaveData() == false)
 		{
@@ -76,76 +49,62 @@ public partial class MainMenu : Node3D
 		GetTree().ChangeSceneToFile("res://Scenes/测试场景.tscn");
 	}
 
-	/// <summary>注：在线游戏 </summary>
-	public void CreateLobby()
+    /// <summary>回调函数：在线游戏 </summary>
+    public void MultiplayerGame()
 	{
-		var X = SaveManager.Instance.GetPickPlayerData();
+        if (SaveManager.Instance.IsValidPlayerSaveData() == false)
+        {
+            GetTree().ChangeSceneToFile("res://Scenes/角色创建.tscn");
+            return;
+        }
+        NetCore.Instance.StartLANHost();
+        NetCore.Instance.StartBroadcast("我的房间", 1, NetCore.Max_Player);
 
-		if (X == null) return;
+        GetTree().ChangeSceneToFile("res://Scenes/测试场景.tscn");
+    }
 
-		创建UI.Visible = true;
 
-	}
+    private string foundIP = "";
+    private int foundPort = 0;
+    /// <summary>回调函数：搜索大厅 </summary>
+    public void FindLobby()
+    {
+        if (SaveManager.Instance.IsValidPlayerSaveData() == false)
+        {
+            GetTree().ChangeSceneToFile("res://Scenes/角色创建.tscn");
+            return;
+        }
 
-	/// <summary>注：加入游戏 </summary>
-	public void JoinLobby()
+        // 信号只连接一次
+        if (!NetCore.Instance.IsConnected("RoomFound", new Callable(this, nameof(OnRoomFound))))
+        {
+            NetCore.Instance.Connect("RoomFound", new Callable(this, nameof(OnRoomFound)));
+        }
+
+        NetCore.Instance.StartListening();
+        // m_RoomInfo 保持为空，直到找到房间
+    }
+
+    private void OnRoomFound(string roomName, string ip, int port, int playerCount, int maxPlayers)
+    {
+        foundIP = ip;
+        foundPort = port;
+        m_RoomInfo.Text = roomName;   // 只显示房间名
+    }
+
+    public void JoinRoom()
 	{
-		NetworkCore.Instance.JoinLAN("192.168.71.36");
-	}
+        if (string.IsNullOrEmpty(foundIP))
+        {
+            m_RoomInfo.Text = "没有可加入的房间";
+            return;
+        }
 
+        NetCore.Instance.StopListening();
+        NetCore.Instance.JoinLAN(foundIP, foundPort);
+        GetTree().ChangeSceneToFile("res://Scenes/测试场景.tscn");
+        m_RoomInfo.Text = $"正在连接 {foundIP}...";
 
-
-	public void GoLobby()
-	{
-		NetworkCore.Instance.StartLANHost();
-		门牌UI.Text = 房间名称.Text;
-		创建UI.Visible = false;
-		房间名称.Text = "";
-	}
-
-
-
-
-
-
-
-	#endregion
-
-	
-
-
-	
-
-
-
-	private bool IsAllFieldsnNull()
-	{
-		if (菜单UI == null)
-		{
-			GD.PrintErr("[MainMenu]：初始化字段：[菜单UI]是空");
-			return false;
-		}
-		if (开始UI == null)
-		{
-			GD.PrintErr("[MainMenu]：初始化字段：[开始UI]是空");
-			return false;
-		}
-		if (创建UI == null)
-		{
-			GD.PrintErr("[MainMenu]：初始化字段：[创建UI]是空");
-			return false;
-		}
-		if (门牌UI == null)
-		{
-			GD.PrintErr("[MainMenu]：初始化字段：[门牌UI]是空");
-			return false;
-		}
-		if (房间名称 == null)
-		{
-			GD.PrintErr("[MainMenu]：初始化字段：[房间名称]是空");
-			return false;
-		}
-		return true;
-	}
+    }
 
 }

@@ -135,7 +135,7 @@ public partial class Npc : Humanoid
 		if (m_NavigationAgent3D.IsNavigationFinished())
 		{
 			m_NavStopTimer = m_NpcData.m_stopTime;
-			GD.Print($"[Npc] 到达巡逻点，停留 {m_NavStopTimer}s");
+			//GD.Print($"[Npc] 到达巡逻点，停留 {m_NavStopTimer}s");
 		}
 	}
 
@@ -162,7 +162,7 @@ public partial class Npc : Humanoid
 			if (d <= radius && d > m_NpcData.m_targetDistance * 1.5f)
 			{
 				m_NavPatrolTarget = closest;
-				GD.Print($"[Npc] 新巡逻目标：{m_NavPatrolTarget}");
+				//GD.Print($"[Npc] 新巡逻目标：{m_NavPatrolTarget}");
 				return;
 			}
 		}

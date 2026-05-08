@@ -30,13 +30,12 @@ namespace 途畔归所.Dll.Manager
 
         /// <summary>注：获取存档全部的玩家ID </summary>
         /// <returns>玩家ID数组</returns>
-        public List<int> GetPlayerList() => DATA.GetAllID();
+        public List<int> GetPlayerIDList() => DATA.GetAllPlayerID();
 
-        /// <summary>注：选择玩家存档 </summary>
-        public void PickPlayerData(int id) => DATA.PickPlayer = id;
+        /// <summary>注：设置选择玩家存档 </summary>
+        public void SetPickPlayer(int id) => DATA.PickPlayer = id;
 
         public PlayerData GetPickPlayerData() => DATA.GetPickPlayerData();
-
 
         public void CreatPlayer(string str) => DATA.CreatPlayer(str);
 

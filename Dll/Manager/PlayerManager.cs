@@ -16,10 +16,13 @@ namespace 途畔归所.Dll.Manager
 
         private PlayerManager() { }
 
+
+
         private PackedScene playerPrefab;
 
         public Dictionary<int, Player> ActivePlayers = [];
 
+        private Player m_LocalPlayers;
 
         /// <summary>注：加载资源</summary>
         public void Init()
@@ -41,10 +44,22 @@ namespace 途畔归所.Dll.Manager
                     return data.Value;
                 }
             }
+           
             return null;
         }
 
+        public Player GetLocalPlayer()
+        {
+            foreach (var item in ActivePlayers)
+            {
+                if (item.Value != null)
+                {
+                    return item.Value;
+                }
+            }
 
+            return null;
+        }
 
         /// <summary>注：获取实例化玩家</summary>
         /// <returns>Player节点</returns>
@@ -58,7 +73,18 @@ namespace 途畔归所.Dll.Manager
 
         public int GetActivePlayersIndex() => ActivePlayers.Count;
 
-        
+        public void SpawnRemotePlayer(long peerId)
+        {
+            Player pl = playerPrefab.Instantiate() as Player;
+            pl.Name = $"Player_{peerId}";
+            pl.SetMultiplayerAuthority((int)peerId);  // 设置网络所有权
+
+            
+            // 添加到场景
+            GameCore.Instance.GetTree().CurrentScene.AddChild(pl);
+            ActivePlayers[(int)peerId] = pl;
+            pl.GlobalPosition = new Vector3(0, 2, 0);  // 临时出生点
+        }
 
     }
 }

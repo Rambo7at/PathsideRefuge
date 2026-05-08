@@ -16,11 +16,12 @@ public partial class Player : Humanoid
 	[Export] public Camera3D m_Camera;
 	[Export] public Node3D m_PlayerModel;
 	[Export] public CanvasLayer m_CanvasLayer;
+
     [Export] public StateMachine m_StateMachine;
-
-
-    [Export] public float m_BaseAttackDamage = 20f;
     public PlayerUIHandler m_PlayerUIHandler;
+
+    [Export] public BoneAttachment3D m_HandL;
+    [Export] public BoneAttachment3D m_HandR;
 
 
     private bool m_IsPlayerMenu = false;
@@ -29,9 +30,18 @@ public partial class Player : Humanoid
 	public PlayerData m_PlayerData;
 	private PlayerController m_Controller;
 	public PlayerAnimKeys m_PlayerAnimKeys;
-	public List<ItemComp> m_InRangeItems = new List<ItemComp>();
 
+    [Obsolete("弃用字段")] public float m_BaseAttackDamage = 20f;
+    [Obsolete("弃用字段")] private List<ItemComp> m_InRangeItems = [];
 
+	public void Equip(ItemData itemData)
+	{
+		var drop = itemData.DataToDrop();
+        if (drop == null ) return;
+
+        var item = drop as ItemComp;
+        m_HandR.AddChild(item);
+    }
 
 
     public override void _Ready()

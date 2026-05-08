@@ -7,13 +7,13 @@ using static Godot.Control;
 
 public partial class SlotComp : UIPanelBase
 {
-
-
-
 	[Export] public Button m_button;
 	[Export] public TextureRect m_icon;
 	[Export] public Label m_text;
-	public InventoryComp m_OwnerInventory { get; set; }
+	[Export] public CheckBox m_checkBox;
+
+
+    public InventoryComp m_OwnerInventory { get; set; }
 	public bool IsSlotEmpty { get => m_ItemData == null; }
 
 	public int m_SlotID;
@@ -22,9 +22,27 @@ public partial class SlotComp : UIPanelBase
 	private bool m_IsDragging = false;
 	private TextureRect m_DragIcon;
 
-	public override void _Ready() { }
 
-	/// <summary>注：处理格子上的 GUI 输入事件（鼠标按下/移动）。</summary>
+	/// <summary>回调函数：检测装备按钮是否被按下 </summary>
+	public void CheckEquip()
+	{
+		if (m_ItemData == null) return;
+		if (m_checkBox.ButtonPressed)
+		{
+			GD.Print("启用了装备");
+            m_OwnerInventory.Equip(m_ItemData);
+
+        }
+	}
+
+
+    public override void _Ready() 
+	{
+       
+
+    }
+
+	/// <summary>回调函数：处理格子上的 GUI 输入事件（鼠标按下/移动）。</summary>
 	/// <param name="mInput">输入事件对象。</param>
 	public void OnGuiInput(InputEvent mInput)
 	{

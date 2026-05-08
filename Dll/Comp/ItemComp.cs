@@ -1,4 +1,5 @@
 using Godot;
+using Godot.Collections;
 using 维修公司.Dll.data;
 using 维修公司.Dll.Interface;
 using 途畔归所.Dll.Core;
@@ -8,24 +9,34 @@ using 途畔归所.Dll.Core;
 public partial class ItemComp : RigidBody3D, IInteractable
 {
 	[Export] public ItemData m_ItemData { get; set; }
+	[Export] public Area3D m_WeaponHitBox { get; set; }
 
-	/// <summary>注：收纳类物品的 </summary>
-	public ItemData m_boxItem { get; set; }
+	public bool IsEquipped { get; set; } = false;
+	private Player m_player;
 
-	public override void _Ready() => Init();
+
+	public override void _Ready()
+	{
+		if (m_ItemData == null) return;
+		InitWeapon();
+	}
 
 	public override void _Process(double delta)
 	{
+
+
 	}
 
-
-	public void Init()
+	private void InitWeapon()
 	{
-		if (m_ItemData != null) return;
-
-		GD.Print("物品初始化失败");
+		if (m_ItemData.m_Type != ItemData.ItemType.武器) return;
+		if (m_WeaponHitBox == null)
+		{
+			GD.PrintErr($"[ItemComp.InitWeapon]：检测{m_ItemData.m_Name}-未添加 HitBox");
+			return;
+		}
+		if (IsEquipped) Freeze = true;
 	}
-
 
 	/// <summary>互动：拾取功能 </summary>
 	private void PickUp(Player player)
@@ -33,26 +44,10 @@ public partial class ItemComp : RigidBody3D, IInteractable
 		player.m_PlayerUIHandler.m_InventoryComp.TryAddItem(m_ItemData);
 		GD.Print($"已拾取物品[{m_ItemData.m_Name}]，添加到背包");
 		QueueFree();
-		// 拾取后从列表移除并隐藏UI
-		player.m_InRangeItems.Remove(this);
 	}
 
-	/// <summary>互动：拆快递 </summary>
-	private void Unbox()
-	{
-		if (m_ItemData.m_Type is ItemData.ItemType.收纳 && m_boxItem != null)
-		{
-
-			var drop = m_boxItem.DataToDrop();
-
-			m_boxItem = null;
-
-			GetTree().CurrentScene.AddChild(drop);
-
-			drop.GlobalPosition = new Vector3(this.GlobalPosition.X, this.GlobalPosition.Y + 2, this.GlobalPosition.Z); 
-
-		}
-	}
+	/// <summary>注：绑定装备的玩家类(这个方法后续将会重写，由玩家管理器进行统一) </summary>
+	public void BindPlayer(Player player) => m_player = player;
 
 	public void PlayerInteract(bool InputE,bool InputF, Player player)
 	{
@@ -60,13 +55,6 @@ public partial class ItemComp : RigidBody3D, IInteractable
 		{
 			PickUp(player);
 		}
-
-		if (InputF)
-		{
-			Unbox();
-		}
-
 	}
-
 
 }

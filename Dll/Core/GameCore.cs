@@ -11,27 +11,31 @@ using 途畔归所.Dll.Manager;
 
 namespace 途畔归所.Dll.Core
 {
-	public partial class GameCore : Node
-	{
+    public partial class GameCore : Node
+    {
 
-		public static GameCore Instance;
+        public static GameCore Instance;
 
         public override void _Ready()
-		{
-			Instance = this;
-			InitManagers();
+        {
+            Instance = this;
+            InitManagers();
             GD.Print("[GameCore]：初始化完成");
-		}
+        }
 
-		/// <summary>注：初始化全部管理器 </summary>
-		private void InitManagers()
-		{
+        /// <summary>注：初始化全部管理器 </summary>
+        private void InitManagers()
+        {
+            NetCore netCore = new NetCore();
+            NetCore.Instance = netCore;
+            AddChild(netCore);
 
-			ResourceManager.Instance.Init();
+
+            ResourceManager.Instance.Init();
             SaveManager.Instance.Init();
-			ItemManager.Instance.Init();
+            ItemManager.Instance.Init();
             UIManager.Instance.Init();
-			PlayerManager.Instance.Init();
+            PlayerManager.Instance.Init();
 
 
             TimeManager timeMgr = new TimeManager();
@@ -41,10 +45,6 @@ namespace 途畔归所.Dll.Core
             ConsoleManager consoleMgr = new ConsoleManager();
             ConsoleManager.Instance = consoleMgr;
             AddChild(consoleMgr);
-
-            NetworkCore netCore = new NetworkCore();
-            NetworkCore.Instance = netCore;
-            AddChild(netCore);
         }
 
 
@@ -61,11 +61,11 @@ namespace 途畔归所.Dll.Core
         /// <typeparam name="T">管理器类型</typeparam>
         /// <param name="manager">管理器实例</param>
         public void RegisterManager<T>(ref T manager) where T : class, new()
-		{
-			if (manager == null) manager = new();
-		}
+        {
+            if (manager == null) manager = new();
+        }
 
-		#endregion
+        #endregion
 
-	}
+    }
 }

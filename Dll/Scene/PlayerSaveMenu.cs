@@ -38,7 +38,7 @@ public partial class PlayerSaveMenu : Control
 
 	}
 
-	// Called every frame. 'delta' is the elapsed time since the previous frame.
+
 	public override void _Process(double delta)
 	{
 		PlayerData playerData = SaveManager.Instance.GetPickPlayerData();
@@ -47,9 +47,6 @@ public partial class PlayerSaveMenu : Control
 
 		ApplyPlayerInfo(playerData);
 	}
-
-
-
 
 
 	/// <summary>回调函数：进入存档选择界面</summary>
@@ -66,7 +63,6 @@ public partial class PlayerSaveMenu : Control
 	/// <summary>回调函数：进入创建界面</summary>
 	private void Creator()
 	{
-
 		GetTree().ChangeSceneToFile("res://Scenes/角色创建.tscn");
 	}
 
@@ -80,7 +76,9 @@ public partial class PlayerSaveMenu : Control
 		PlayerBox.Text = "背包库存：" + playerData.GetInventoryItemCount();
 	}
 
-
+	/// <summary>
+	/// 注：刷新存档格子
+	/// </summary>
 	private void RefreshSaveBox()
 	{
 		if (SaveBoxArray.Count != 0)
@@ -92,7 +90,7 @@ public partial class PlayerSaveMenu : Control
 		}
 		SaveBoxArray.Clear();
 
-		var IDs = SaveManager.Instance.GetPlayerList();
+		var IDs = SaveManager.Instance.GetPlayerIDList();
 
 		if (IDs.Count <= 1) return;
 

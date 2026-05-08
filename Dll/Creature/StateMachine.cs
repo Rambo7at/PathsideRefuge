@@ -56,7 +56,7 @@ namespace 途畔归所.Dll.Creature
 			m_CurrentState = newState;
 			// 这里以后可以加：OnEnterState(newState);
 
-			GD.Print($"[State] Changed to: {newState}");
+			//GD.Print($"[State] Changed to: {newState}");
 		}
 
 		/// <summary> 注：根据玩家速度和是否在地面自动切换物理状态 </summary>

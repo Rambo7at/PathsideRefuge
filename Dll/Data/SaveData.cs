@@ -49,7 +49,7 @@ namespace 途畔归所.Dll.Data
 
 
         /// <summary> 注：获取全部ID </summary>
-        public List<int> GetAllID()
+        public List<int> GetAllPlayerID()
         {
             List<int> ids = [];
 

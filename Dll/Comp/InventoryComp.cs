@@ -95,6 +95,31 @@ public partial class InventoryComp : UIPanelBase
         Holder.SaveInventory(m_InventorySlots);
     }
 
+
+    public void Equip(ItemData itemData)
+    {
+        if (itemData == null) return;
+
+        var pl = PlayerManager.Instance.GetLocalPlayer();
+
+        if (pl == null)
+        {
+            GD.PrintErr("【[InventoryComp.Equip]：获取的玩家对象是空的");
+            return;
+        }
+
+        pl.Equip(itemData);
+    }
+
+
+
+
+
+
+
+
+
+
     /// <summary>注：查询背包中的空格子。</summary>
     /// <returns>空的格子组件。</returns>
     private SlotComp FindEmptySlot()
