@@ -1,7 +1,7 @@
 using Godot;
 using Godot.Collections;
 using System;
-using 维修公司.Utils;
+using 途畔归所.Dll.Utils;
 
 namespace 途畔归所.Dll.Manager
 {
@@ -28,7 +28,7 @@ namespace 途畔归所.Dll.Manager
 
             foreach (var ui in ResourceManager.Instance.m_UIAssetList)
             {
-                string uiName = ToolUtils.GetResourceName(ui.ResourcePath);
+                string uiName = CatUtils.GetResourceName(ui.ResourcePath);
                 if (uiName == null) continue;
                 if (m_UiDict.ContainsKey(uiName))
                 {

@@ -1,6 +1,6 @@
 using Godot;
-using 维修公司.Utils;
 using 途畔归所.Dll.Manager;
+using 途畔归所.Dll.Utils;
 using static 维修公司.Dll.data.ItemData;
 
 namespace 维修公司.Dll.data
@@ -12,25 +12,25 @@ namespace 维修公司.Dll.data
 		{
 			消耗品 = 0,
 			工具 = 1,
-            武器 = 2
+			武器 = 2
 		}
 
-        public enum WeaponType
-        {
-            刀 = 0
-        }
-        public enum AttackType
-        {
-            消耗品 = 0,
-            工具 = 1,
-            武器 = 2
-        }
+		public enum WeaponType
+		{
+			刀 = 0
+		}
+		public enum AttackType
+		{
+			消耗品 = 0,
+			工具 = 1,
+			武器 = 2
+		}
 
 
 
 
-        [ExportGroup("基础")]
-        [Export] public string m_ID { get; set; }
+		[ExportGroup("基础")]
+		[Export] public string m_ID { get; set; }
 		[Export] public string m_Name { get; set; } = string.Empty;
 		[Export] public ItemType m_Type { get; set; }
 		[Export] public string m_Description { get; set; }
@@ -44,9 +44,9 @@ namespace 维修公司.Dll.data
 
 
 
-        [ExportGroup("武器")]
-        [Export] public WeaponType m_WeaponType { get; set; }
-        [Export] public int m_Damage { get; set; }
+		[ExportGroup("武器")]
+		[Export] public WeaponType m_WeaponType { get; set; }
+		[Export] public int m_Damage { get; set; }
 
 
 
@@ -56,14 +56,14 @@ namespace 维修公司.Dll.data
 
 
 
-        public ItemData DeepCopy() => this.DuplicateDeep() as ItemData;
+		public ItemData DeepCopy() => this.DuplicateDeep() as ItemData;
 
 		public RigidBody3D DataToDrop()
 		{
 			var drop = ItemManager.Instance.GetItemDrop(this.m_ID);
-			ToolUtils.GetNodeScript<ItemComp>(drop).m_ItemData = this;
-			(drop as ItemComp).m_ItemData = this;
+			if (drop is not ItemComp comp) return null;
 
+			comp.m_ItemData = this;
 			return drop;
 		}
 

@@ -1,7 +1,7 @@
 using Godot;
 using Godot.Collections;
 using System;
-using 维修公司.Utils;
+using 途畔归所.Dll.Utils;
 
 namespace 途畔归所.Dll.Manager
 {
@@ -22,7 +22,7 @@ namespace 途畔归所.Dll.Manager
 
             foreach (var Placed in ResourceManager.Instance.m_PlacedAssetList)
             {
-                string prefabName = ToolUtils.GetResourceName(Placed.ResourcePath);
+                string prefabName = CatUtils.GetResourceName(Placed.ResourcePath);
                 if (string.IsNullOrEmpty(prefabName)) continue;
                 if (m_PieceDict.ContainsKey(prefabName))
                 {

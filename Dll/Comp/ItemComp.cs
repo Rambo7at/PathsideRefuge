@@ -8,6 +8,7 @@ using 途畔归所.Dll.Core;
 /// <summary> 注：游戏场景中可拾取的物品掉落实体，包含物品基础属性和拾取逻辑</summary>
 public partial class ItemComp : RigidBody3D, IInteractable
 {
+	
 	[Export] public ItemData m_ItemData { get; set; }
 	[Export] public Area3D m_WeaponHitBox { get; set; }
 
@@ -36,6 +37,7 @@ public partial class ItemComp : RigidBody3D, IInteractable
 			return;
 		}
 		if (IsEquipped) Freeze = true;
+
 	}
 
 	/// <summary>互动：拾取功能 </summary>

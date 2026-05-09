@@ -1,6 +1,8 @@
 using Godot;
 using Godot.Collections;
 using 途畔归所.Dll.Base;
+using 途畔归所.Dll.Utils;
+using static Godot.WebSocketPeer;
 
 namespace 途畔归所.Dll.Manager
 {
@@ -41,7 +43,9 @@ namespace 途畔归所.Dll.Manager
 			LoadAsset("res://Prefab/UI/主菜单/存档界面/存档信息.tscn");
             LoadAsset("res://Prefab/UI/容器/ContainerUI.tscn");
             CategorizeAssets();
-			GD.Print("[ResourceManager] 初始化完成");
+			RegisterNetObjManager();
+
+            GD.Print("[ResourceManager] 初始化完成");
 		}
 
 		public void CategorizeAssets()
@@ -81,16 +85,59 @@ namespace 途畔归所.Dll.Manager
 			}
 
 		}
-
-
-
 		private void LoadAsset(string res)
 		{
 			var scene = ResourceLoader.Load<PackedScene>(res);
 
-			if (scene != null) _ResourceList.Add(scene);
-			else GD.PrintErr($"[ResourceManager.LoadAsset]：资源加载失败资源检查路径：{res}");
+			if (scene != null)
+			{
+                _ResourceList.Add(scene);
+			}
+			else
+			{
+                GD.PrintErr($"[ResourceManager.LoadAsset]：资源加载失败资源检查路径：{res}");
+            }
 		}
 
-	}
+		private void RegisterNetObjManager()
+		{
+            NetObjectManager netObj = new NetObjectManager();
+            NetObjectManager.Instance = netObj;
+
+
+			foreach (var asset in _ResourceList)
+			{
+				if (asset == null) continue;
+
+				var info = asset.GetState();
+
+				if (info == null) continue;
+
+				var nodeName = info.GetNodeName(0);
+                var nodeType = info.GetNodeType(0);
+
+				if (nodeType == "Control") continue;
+
+                if (string.IsNullOrEmpty(nodeName))
+                {
+                    GD.Print($"[ResourceManager.RegisterNetObjManager]：执行发现未有预制名的资源，文件地址: {asset.ResourcePath}");
+                    continue;
+                }
+
+                asset.ResourceName = nodeName;
+				int hash = CatUtils.GetStableHashCode(nodeName);
+
+                if (NetObjectManager.Instance.m_PrefabDict.ContainsKey(hash))
+                {
+                    GD.PrintErr($"预制体名 '{nodeName}' 哈希冲突，请检查是否有重名根节点在: {asset.ResourcePath}");
+                    continue;
+                }
+
+                NetObjectManager.Instance.m_PrefabDict.Add(hash, asset);
+			}
+        }
+
+
+
+    }
 }

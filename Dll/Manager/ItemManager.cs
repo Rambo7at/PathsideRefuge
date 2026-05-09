@@ -2,11 +2,11 @@ using Godot;
 using Godot.Collections;
 using System;
 using 维修公司.Dll.data;
-using 维修公司.Utils;
+using 途畔归所.Dll.Utils;
 
 namespace 途畔归所.Dll.Manager
 {
-	/// <summary>物品资源管理器</summary>
+	/// <summary>注：物品资源管理器</summary>
 	public class ItemManager 
 	{
 
@@ -27,7 +27,7 @@ namespace 途畔归所.Dll.Manager
 
             foreach (var item in ResourceManager.Instance.m_ItemAssetList)
             {
-                string prefabName = ToolUtils.GetResourceName(item.ResourcePath);
+                string prefabName = CatUtils.GetResourceName(item.ResourcePath);
                 if (prefabName == null) continue;
                 if (m_ItemDict.ContainsKey(prefabName))
                 {
@@ -116,7 +116,15 @@ namespace 途畔归所.Dll.Manager
 		}
 
 
-	}
+
+        public bool HasPrefab(string prefabPath)
+        {
+            // 根据 m_ItemDict 的键值设计，可能需要存储完整路径，或在此处提取文件名
+            // 假设 Init 时已经用完整路径或名称作为 Key，此处按需匹配
+            string name = CatUtils.GetResourceName(prefabPath);
+            return name != null && m_ItemDict.ContainsKey(name);
+        }
+    }
 
 
 }

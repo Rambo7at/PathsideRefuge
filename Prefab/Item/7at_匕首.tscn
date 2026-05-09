@@ -5,6 +5,7 @@
 [ext_resource type="Texture2D" uid="uid://bd4ep2lljwap3" path="res://Asset/Character/Player_rogue_texture.png" id="2_nbal6"]
 
 [sub_resource type="Resource" id="Resource_n7s87"]
+resource_name = "7at_匕首"
 script = ExtResource("2_b3m6x")
 m_ID = "7at_匕首"
 m_Name = "匕首"
@@ -14,6 +15,7 @@ m_Damage = 30
 metadata/_custom_type_script = "uid://inh0sbmkkjuj"
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_fy1x4"]
+resource_name = "7at_匕首"
 size = Vector3(0.25929737, 1.2058458, 0.15174122)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4dkto"]

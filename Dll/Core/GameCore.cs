@@ -30,8 +30,12 @@ namespace 途畔归所.Dll.Core
             NetCore.Instance = netCore;
             AddChild(netCore);
 
-
             ResourceManager.Instance.Init();
+            AddChild(NetObjectManager.Instance);
+
+
+
+
             SaveManager.Instance.Init();
             ItemManager.Instance.Init();
             UIManager.Instance.Init();
