@@ -10,6 +10,7 @@ using 途畔归所.Dll.Creature;
 using 途畔归所.Dll.Data;
 using 途畔归所.Dll.Interface;
 using 途畔归所.Dll.Manager;
+using 途畔归所.Dll.NetWork;
 
 public partial class Player : Humanoid
 {
@@ -17,75 +18,89 @@ public partial class Player : Humanoid
 	[Export] public Node3D m_PlayerModel;
 	[Export] public CanvasLayer m_CanvasLayer;
 
-    [Export] public StateMachine m_StateMachine;
-    public PlayerUIHandler m_PlayerUIHandler;
+	[Export] public StateMachine m_StateMachine;
+	public PlayerUIHandler m_PlayerUIHandler;
+	[Export] private NetSyncBase m_SyncBase;
 
-    [Export] public BoneAttachment3D m_HandL;
-    [Export] public BoneAttachment3D m_HandR;
+	[Export] public BoneAttachment3D m_HandL;
+	[Export] public BoneAttachment3D m_HandR;
 
 
-    private bool m_IsPlayerMenu = false;
+	private bool m_IsPlayerMenu = false;
 	public bool m_OnUI = false;
 
 	public PlayerData m_PlayerData;
 	private PlayerController m_Controller;
 	public PlayerAnimKeys m_PlayerAnimKeys;
 
-    [Obsolete("弃用字段")] public float m_BaseAttackDamage = 20f;
-    [Obsolete("弃用字段")] private List<ItemComp> m_InRangeItems = [];
+	[Obsolete("弃用字段")] public float m_BaseAttackDamage = 20f;
+	[Obsolete("弃用字段")] private List<ItemComp> m_InRangeItems = [];
 
 	public void Equip(ItemData itemData)
 	{
 		var drop = itemData.DataToDrop();
-        if (drop == null ) return;
+		if (drop == null ) return;
 
-        var item = drop as ItemComp;
-        m_HandR.AddChild(item);
-    }
+		var item = drop as ItemComp;
+		m_HandR.AddChild(item);
+	}
 
 
-    public override void _Ready()
+	public override void _Ready()
 	{
 		if (!ValidateComponents()) return;
+
+		// 原有初始化全部保留（所有 Player 都需要动画、UI 等避免空引用）
+		PlayerManager.Instance.m_LocalPlayer = this;
 		InitPlayerAnimKeys();
 		InitPlayerUIHandler();
 		InitPlayerController();
 
-    }
+		// ✅ 利用已导出的 m_SyncBase 判断所有权
+		if (m_SyncBase != null && m_SyncBase.IsOwner)
+		{
+			m_Camera?.MakeCurrent();          // 本地玩家激活相机
+		}
+		else
+		{
+			if (m_Camera != null) m_Camera.Current = false; // 远端玩家关闭相机
+		}
+	}
 
 	public override void _Process(double delta)
 	{
+		if (m_SyncBase == null || !m_SyncBase.IsOwner) return;
 		m_Controller.Update(delta);
 		m_PlayerUIHandler.Updata();
-
-    }
+	}
 
 	public override void _PhysicsProcess(double delta)
 	{
+		if (m_SyncBase == null || !m_SyncBase.IsOwner) return;
 		if (!IsInsideTree()) return;
 		m_Controller.PhysicsUpdate(delta);
 		CheckRaycastInteract();
 	}
 
-    /// <summary>
-    /// 注：执行一次攻击，使用射线检测命中的目标并造成伤害
-    /// </summary>
-    private void PerformAttack()
-    {
-        if (m_eye == null || !m_eye.IsColliding()) return;
+	/// <summary>
+	/// 注：执行一次攻击，使用射线检测命中的目标并造成伤害
+	/// </summary>
+	private void PerformAttack()
+	{
+		if (m_eye == null || !m_eye.IsColliding()) return;
 
-        var target = m_eye.GetCollider();
-        if (target == null) return;
+		var target = m_eye.GetCollider();
+		if (target == null) return;
 
-        if (target is IDamageable damageable)
-        {
-            damageable.TakeDamage(m_BaseAttackDamage, this);
-            GD.Print($"[Player] 攻击命中目标: {((Node)target).Name}");
-        }
-    }
+		if (target is IDamageable damageable)
+		{
+			damageable.TakeDamage(m_BaseAttackDamage, this);
+			GD.Print($"[Player] 攻击命中目标: {((Node)target).Name}");
+		}
+	}
 
-    /// <summary> 注：视线射线检测交互对象 </summary>
-    public void CheckRaycastInteract()
+	/// <summary> 注：视线射线检测交互对象 </summary>
+	public void CheckRaycastInteract()
 	{
 		if (!m_eye.IsColliding()) return;
 
@@ -166,8 +181,8 @@ public partial class Player : Humanoid
 	/// <summary> 注：初始化玩家动画参数键 </summary>
 	private void InitPlayerAnimKeys() => m_PlayerAnimKeys ??= new PlayerAnimKeys(m_AnimationTree);
 
-    /// <summary> 注：验证所有关键组件是否非空 </summary>
-    private bool ValidateComponents()
+	/// <summary> 注：验证所有关键组件是否非空 </summary>
+	private bool ValidateComponents()
 	{
 		if (m_eye == null)
 		{
@@ -192,7 +207,8 @@ public partial class Player : Humanoid
 		if (m_PlayerData == null)
 		{
 			GD.PrintErr("[Player.ValidateComponents]：m_PlayerData 字段为空");
-			return false;
+			m_PlayerData = new PlayerData();
+
 		}
 		if (m_AnimationTree == null)
 		{
@@ -201,10 +217,10 @@ public partial class Player : Humanoid
 		}
 		if (m_StateMachine == null)
 		{
-            GD.PrintErr("[Player.ValidateComponents]：m_StateMachine 字段为空");
-            return false;
+			GD.PrintErr("[Player.ValidateComponents]：m_StateMachine 字段为空");
+			return false;
 
-        }
+		}
 		return true;
 	}
 }

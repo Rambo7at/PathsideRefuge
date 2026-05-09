@@ -1,23 +1,23 @@
+using Godot;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Godot;
+using 途畔归所.Dll.Manager;
 using 途畔归所.Dll.NetWork;
-using 途畔归所.Dll.Utils;   // 稳定哈希扩展方法
 
 public partial class NetCore : Node
 {
-    public static NetCore Instance { get; set; }
+    private static NetCore _instance;
 
-    public const int m_Port = 3043;
-    public const int u_Port = 3044;
+    public static NetCore Instance { get => _instance; set => _instance ??= value; }
+
+    private const int m_Port = 3043;
+    private const int u_Port = 3044;
     public const int Max_Player = 4;
 
     public bool IsHost => Multiplayer.IsServer();
     public bool IsClient => !Multiplayer.IsServer();
 
-    // 字段
-    private readonly Dictionary<NetID, NetSyncBase> _syncBaseMap = new();
     //─────────────── LAN 发现 ───────────────
     private PacketPeerUdp broadcastSender;
     private PacketPeerUdp broadcastListener;
@@ -31,46 +31,27 @@ public partial class NetCore : Node
 
     [Signal] public delegate void RoomFoundEventHandler(string roomName, string ip, int port, int playerCount, int maxPlayers);
 
-    //─────────────── 分布式对象同步 ───────────────
-    private readonly Dictionary<NetID, NetObject> _objects = new();
-    private readonly Dictionary<int, string> _prefabHashToPath = new();
-    private uint _nextObjID = 1;
-    private readonly Dictionary<long, PeerSyncState> _peerStates = new();
+    //─────────────── RPC 路由 ───────────────
     private readonly Dictionary<string, Action<long, byte[]>> _rpcHandlers = new();
 
-    private float _syncTimer = 0f;
-    private const float SyncInterval = 0.05f;   // 20 Hz
+    public long LocalPeerID => (long)Multiplayer.GetUniqueId();
 
-    // 事件
-    public event Action<NetID> OnSpawned;
-    public event Action<NetID> OnDestroyed;
-    public event Action<NetID> OnDataChanged;
-
-    public long LocalPeerID => (long)Multiplayer.GetUniqueId(); // 简化：直接使用 Godot 分配的 ID
-
-    //══════════════════════════════════════════════════
-    //  生命周期
-    //══════════════════════════════════════════════════
+    /// <summary>注：节点初始化，绑定网络事件并设置单例</summary>
     public override void _Ready()
     {
         Instance = this;
-
         Multiplayer.PeerConnected += OnPeerConnected;
         Multiplayer.PeerDisconnected += OnPeerDisconnected;
         Multiplayer.ConnectedToServer += OnConnectedToServer;
         Multiplayer.ConnectionFailed += OnConnectionFailed;
 
-        RegisterRpcHandler("ObjCreate", OnObjCreate);
-        RegisterRpcHandler("ObjDestroy", OnObjDestroy);
-        RegisterRpcHandler("ObjSync", OnObjSync);
-        RegisterRpcHandler("ObjRpc", OnObjRpc);
-
-        GD.Print("[NetCore]：已完成初始化（含分布式对象管理）");
+        GD.Print("[NetCore]：已完成初始化（通信层）");
     }
 
+    /// <summary>注：每帧更新，处理局域网广播、监听和自定义RPC接收</summary>
     public override void _Process(double delta)
     {
-        // LAN 广播/监听
+        // LAN 广播
         if (isBroadcasting && broadcastSender != null)
         {
             broadcastTimer += (float)delta;
@@ -81,6 +62,7 @@ public partial class NetCore : Node
             }
         }
 
+        // LAN 监听
         if (isListening && broadcastListener != null)
         {
             while (broadcastListener.GetAvailablePacketCount() > 0)
@@ -91,94 +73,36 @@ public partial class NetCore : Node
             }
         }
 
-        // 同步调度
-        _syncTimer += (float)delta;
-        if (_syncTimer >= SyncInterval)
-        {
-            _syncTimer = 0f;
-            SendObjUpdates();
-        }
-
         // 接收自定义 RPC 包
         ReceiveCustomPackets();
     }
 
-    //══════════════════════════════════════════════════
-    //  预制体注册
-    //══════════════════════════════════════════════════
-    public void RegisterPrefab(string path)
-    {
-        int hash = PathToHash(path);
-        _prefabHashToPath[hash] = path;
-    }
+    #region RPC 核心方法
 
-    //══════════════════════════════════════════════════
-    //  创建与销毁网络对象
-    //══════════════════════════════════════════════════
-    public NetObject Spawn(string prefabPath, Vector3 pos, Quaternion rot, long owner = -1)
-    {
-        if (owner == -1) owner = LocalPeerID;
-
-        int prefabHash = PathToHash(prefabPath);
-        var id = new NetID(LocalPeerID, _nextObjID++);
-        var netobj = new NetObject(id, pos, rot, prefabHash, owner);
-        _objects[id] = netobj;
-
-        byte[] payload = SerializeCreate(netobj);
-        BroadcastRpc("ObjCreate", payload);
-
-        return netobj;
-    }
-
-    public void Destroy(NetObject netobj)
-    {
-        if (netobj == null || !_objects.ContainsKey(netobj.Id)) return;
-        _objects.Remove(netobj.Id);
-
-        byte[] payload = SerializeNetID(netobj.Id);
-        BroadcastRpc("ObjDestroy", payload);
-    }
-
-    public NetObject GetNetObj(NetID id) => _objects.TryGetValue(id, out var netobj) ? netobj : null;
-
-    public bool IsOwner(NetID id) => _objects.TryGetValue(id, out var netobj) && netobj.IsOwner(LocalPeerID);
-
-    //══════════════════════════════════════════════════
-    //  RPC 路由
-    //══════════════════════════════════════════════════
+    /// <summary>注：注册RPC方法处理器</summary>
     public void RegisterRpcHandler(string method, Action<long, byte[]> handler)
     {
         _rpcHandlers[method] = handler;
     }
 
+    /// <summary>注：向指定客户端发送RPC消息</summary>
     public void SendRpcToPeer(long peerId, string method, byte[] payload)
     {
         var enetPeer = Multiplayer.MultiplayerPeer as ENetMultiplayerPeer;
-        if (enetPeer == null)
-        {
-            GD.PrintErr("NetCore: 当前 MultiplayerPeer 不是 ENetMultiplayerPeer");
-            return;
-        }
+        if (enetPeer == null) return;
 
         var packetPeer = enetPeer.GetPeer((int)peerId);
-        if (packetPeer == null)
-        {
-            GD.PrintErr($"NetCore: 未找到 Peer {peerId}");
-            return;
-        }
+        if (packetPeer == null) return;
 
         byte[] packet = BuildRpcPacket(method, payload);
         packetPeer.PutPacket(packet);
     }
 
+    /// <summary>注：向所有客户端广播RPC消息</summary>
     public void BroadcastRpc(string method, byte[] payload)
     {
         var enetPeer = Multiplayer.MultiplayerPeer as ENetMultiplayerPeer;
-        if (enetPeer == null)
-        {
-            GD.PrintErr("NetCore: 当前 MultiplayerPeer 不是 ENetMultiplayerPeer");
-            return;
-        }
+        if (enetPeer == null) return;
 
         byte[] packet = BuildRpcPacket(method, payload);
         foreach (int peerId in Multiplayer.GetPeers())
@@ -188,6 +112,7 @@ public partial class NetCore : Node
         }
     }
 
+    /// <summary>注：处理接收到的RPC消息，分发到对应处理器</summary>
     private void OnRpcReceived(long senderId, byte[] data)
     {
         string method = ExtractMethod(data);
@@ -198,6 +123,7 @@ public partial class NetCore : Node
             GD.PrintErr($"未注册的 RPC 方法: {method}");
     }
 
+    /// <summary>注：接收并处理所有客户端的自定义网络包</summary>
     private void ReceiveCustomPackets()
     {
         var enetPeer = Multiplayer.MultiplayerPeer as ENetMultiplayerPeer;
@@ -226,172 +152,11 @@ public partial class NetCore : Node
         }
     }
 
-    //══════════════════════════════════════════════════
-    //  内部 RPC 处理
-    //══════════════════════════════════════════════════
-    private void OnObjCreate(long sender, byte[] payload)
-    {
-        var (id, prefabHash, pos, rot, owner) = DeserializeCreate(payload);
-        var netobj = new NetObject(id, pos, rot, prefabHash, owner);
-        _objects[id] = netobj;
-        OnSpawned?.Invoke(id);
-    }
+    #endregion
 
-    private void OnObjDestroy(long sender, byte[] payload)
-    {
-        var id = DeserializeNetID(payload);
-        _objects.Remove(id);
-        OnDestroyed?.Invoke(id);
-    }
+    #region RPC 包构建/解析
 
-    private void OnObjSync(long sender, byte[] payload)
-    {
-        var updates = DeserializeSyncData(payload);
-        foreach (var (id, pos, rot, dataRev, ownerRev, ownerId, varsData) in updates)
-        {
-            if (_objects.TryGetValue(id, out var netobj))
-            {
-                netobj.Position = pos;
-                netobj.Rotation = rot;
-                netobj.DataRevision = dataRev;
-                netobj.OwnerRevision = ownerRev;
-                netobj.OwnerPeerID = ownerId;
-                // 如有 Vars 数据此处可反序列化合并
-                OnDataChanged?.Invoke(id);
-            }
-        }
-    }
-
-    //══════════════════════════════════════════════════
-    //  同步调度（支持多对象）
-    //══════════════════════════════════════════════════
-    private void SendObjUpdates()
-    {
-        if (Multiplayer.MultiplayerPeer == null) return;
-
-        foreach (int peerId in Multiplayer.GetPeers())
-        {
-            if (!_peerStates.TryGetValue(peerId, out var state))
-            {
-                state = new PeerSyncState { PeerID = peerId };
-                _peerStates[peerId] = state;
-            }
-
-            var dirty = new List<NetObject>();
-            foreach (var netobj in _objects.Values)
-            {
-                if (!state.KnownRevisions.TryGetValue(netobj.Id, out var known))
-                {
-                    dirty.Add(netobj);
-                    continue;
-                }
-                if (netobj.DataRevision > known.DataRev || netobj.OwnerRevision > known.OwnerRev)
-                    dirty.Add(netobj);
-            }
-
-            if (dirty.Count == 0) continue;
-
-            byte[] payload = SerializeSyncData(dirty);
-            SendRpcToPeer(peerId, "ObjSync", payload);
-
-            foreach (var netobj in dirty)
-                state.KnownRevisions[netobj.Id] = (netobj.DataRevision, netobj.OwnerRevision);
-        }
-    }
-
-    //══════════════════════════════════════════════════
-    //  稳定哈希（使用 CatUtils.GetStableHashCode）
-    //══════════════════════════════════════════════════
-    private static int PathToHash(string path) => path.GetStableHashCode();
-
-    //══════════════════════════════════════════════════
-    //  序列化（支持多对象）
-    //══════════════════════════════════════════════════
-    private byte[] SerializeCreate(NetObject netobj)
-    {
-        using var stream = new System.IO.MemoryStream();
-        using var writer = new System.IO.BinaryWriter(stream);
-        writer.Write(netobj.Id.UserID);
-        writer.Write(netobj.Id.ID);
-        writer.Write(netobj.PrefabHash);
-        writer.Write(netobj.Position.X); writer.Write(netobj.Position.Y); writer.Write(netobj.Position.Z);
-        writer.Write(netobj.Rotation.X); writer.Write(netobj.Rotation.Y); writer.Write(netobj.Rotation.Z); writer.Write(netobj.Rotation.W);
-        writer.Write(netobj.OwnerPeerID);
-        return stream.ToArray();
-    }
-
-    private (NetID id, int prefabHash, Vector3 pos, Quaternion rot, long owner) DeserializeCreate(byte[] data)
-    {
-        using var stream = new System.IO.MemoryStream(data);
-        using var reader = new System.IO.BinaryReader(stream);
-        var id = new NetID(reader.ReadInt64(), reader.ReadUInt32());
-        int prefabHash = reader.ReadInt32();
-        var pos = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
-        var rot = new Quaternion(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
-        long owner = reader.ReadInt64();
-        return (id, prefabHash, pos, rot, owner);
-    }
-
-    private byte[] SerializeNetID(NetID id)
-    {
-        using var stream = new System.IO.MemoryStream();
-        using var writer = new System.IO.BinaryWriter(stream);
-        writer.Write(id.UserID);
-        writer.Write(id.ID);
-        return stream.ToArray();
-    }
-
-    private NetID DeserializeNetID(byte[] data)
-    {
-        using var stream = new System.IO.MemoryStream(data);
-        using var reader = new System.IO.BinaryReader(stream);
-        return new NetID(reader.ReadInt64(), reader.ReadUInt32());
-    }
-
-    private byte[] SerializeSyncData(List<NetObject> list)
-    {
-        using var stream = new System.IO.MemoryStream();
-        using var writer = new System.IO.BinaryWriter(stream);
-        writer.Write(list.Count);  // 对象数量
-        foreach (var netobj in list)
-        {
-            writer.Write(netobj.Id.UserID);
-            writer.Write(netobj.Id.ID);
-            writer.Write(netobj.Position.X); writer.Write(netobj.Position.Y); writer.Write(netobj.Position.Z);
-            writer.Write(netobj.Rotation.X); writer.Write(netobj.Rotation.Y); writer.Write(netobj.Rotation.Z); writer.Write(netobj.Rotation.W);
-            writer.Write(netobj.DataRevision);
-            writer.Write(netobj.OwnerRevision);
-            writer.Write(netobj.OwnerPeerID);
-            // Vars 可后续扩展
-        }
-        return stream.ToArray();
-    }
-
-    private List<(NetID id, Vector3 pos, Quaternion rot, uint dataRev, ushort ownerRev, long ownerId, byte[] vars)>
-        DeserializeSyncData(byte[] data)
-    {
-        var results = new List<(NetID, Vector3, Quaternion, uint, ushort, long, byte[])>();
-        using var stream = new System.IO.MemoryStream(data);
-        using var reader = new System.IO.BinaryReader(stream);
-        int count = reader.ReadInt32();
-        for (int i = 0; i < count; i++)
-        {
-            var id = new NetID(reader.ReadInt64(), reader.ReadUInt32());
-            var pos = new Vector3(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
-            var rot = new Quaternion(reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
-            uint dataRev = reader.ReadUInt32();
-            ushort ownerRev = reader.ReadUInt16();
-            long ownerId = reader.ReadInt64();
-            // vars 预留
-            byte[] vars = null;
-            results.Add((id, pos, rot, dataRev, ownerRev, ownerId, vars));
-        }
-        return results;
-    }
-
-    //══════════════════════════════════════════════════
-    //  RPC 包构建与解析
-    //══════════════════════════════════════════════════
+    /// <summary>注：构建RPC数据包，包含方法名和载荷</summary>
     private byte[] BuildRpcPacket(string method, byte[] payload)
     {
         byte[] methodBytes = Encoding.UTF8.GetBytes(method);
@@ -404,6 +169,7 @@ public partial class NetCore : Node
         return stream.ToArray();
     }
 
+    /// <summary>注：从RPC包中解析出方法名</summary>
     private string ExtractMethod(byte[] packet)
     {
         using var stream = new System.IO.MemoryStream(packet);
@@ -412,6 +178,7 @@ public partial class NetCore : Node
         return Encoding.UTF8.GetString(reader.ReadBytes(len));
     }
 
+    /// <summary>注：从RPC包中解析出数据载荷</summary>
     private byte[] ExtractPayload(byte[] packet)
     {
         using var stream = new System.IO.MemoryStream(packet);
@@ -422,56 +189,32 @@ public partial class NetCore : Node
         return reader.ReadBytes(payloadLen);
     }
 
-    //══════════════════════════════════════════════════
-    //  连接回调
-    //══════════════════════════════════════════════════
-    private void OnPeerConnected(long id)
-    {
-        GD.Print($"[NetCore] 玩家连接: {id}");
-        _peerStates[id] = new PeerSyncState { PeerID = id };
-    }
+    #endregion
 
-    private void OnPeerDisconnected(long id)
-    {
-        GD.Print($"[NetCore] 玩家断开: {id}");
-        _peerStates.Remove(id);
-    }
-
-    private void OnConnectedToServer()
-    {
-        GD.Print("[NetCore] 成功连接服务器");
-    }
-
-    private void OnConnectionFailed()
-    {
-        GD.Print("[NetCore] 连接失败");
-    }
-
-    //══════════════════════════════════════════════════
-    //  LAN 发现
-    //══════════════════════════════════════════════════
+    #region LAN 发现
+    /// <summary>注：启动局域网主机，创建服务器</summary>
     public Error StartLANHost()
     {
         ENetMultiplayerPeer peer = new ENetMultiplayerPeer();
         Error err = peer.CreateServer(m_Port, Max_Player);
         if (err != Error.Ok) return err;
-
         Multiplayer.MultiplayerPeer = peer;
-        GD.Print("[NetworkCore] 已创建局域网房间");
+        GD.Print("[NetCore] 已创建局域网房间");
         return Error.Ok;
     }
 
+    /// <summary>注：加入指定IP的局域网房间</summary>
     public Error JoinLAN(string ipAddress, int port = m_Port)
     {
         ENetMultiplayerPeer peer = new ENetMultiplayerPeer();
         Error err = peer.CreateClient(ipAddress, port);
         if (err != Error.Ok) return err;
-
         Multiplayer.MultiplayerPeer = peer;
-        GD.Print($"[NetworkCore] 正在连接: {ipAddress}:{port}");
+        GD.Print($"[NetCore] 正在连接: {ipAddress}:{port}");
         return Error.Ok;
     }
 
+    /// <summary>注：断开网络连接，清理所有网络资源</summary>
     public void Disconnect()
     {
         StopBroadcast();
@@ -481,25 +224,24 @@ public partial class NetCore : Node
             Multiplayer.MultiplayerPeer.Close();
             Multiplayer.MultiplayerPeer = null;
         }
-        _objects.Clear();
-        _peerStates.Clear();
+        NetObjectRegistry.Instance?.ClearAll();
     }
 
+    /// <summary>注：启动局域网房间广播</summary>
     public void StartBroadcast(string name, int currentPlayers, int maxPlayers)
     {
         if (isBroadcasting) return;
         roomName = name;
         roomPlayerCount = currentPlayers;
         roomMaxPlayers = maxPlayers;
-
         broadcastSender = new PacketPeerUdp();
         broadcastSender.SetBroadcastEnabled(true);
         broadcastSender.SetDestAddress("255.255.255.255", u_Port);
         isBroadcasting = true;
         broadcastTimer = 0f;
-        GD.Print("[NetworkCore] 开始广播房间");
     }
 
+    /// <summary>注：停止局域网房间广播</summary>
     public void StopBroadcast()
     {
         if (!isBroadcasting) return;
@@ -508,6 +250,7 @@ public partial class NetCore : Node
         broadcastSender = null;
     }
 
+    /// <summary>注：发送局域网房间信息广播包</summary>
     private void SendBroadcastPacket()
     {
         var data = new Godot.Collections.Dictionary
@@ -522,15 +265,16 @@ public partial class NetCore : Node
         broadcastSender.PutPacket(Encoding.UTF8.GetBytes(json));
     }
 
+    /// <summary>注：启动局域网房间监听</summary>
     public void StartListening()
     {
         if (isListening) return;
         broadcastListener = new PacketPeerUdp();
         broadcastListener.Bind(u_Port);
         isListening = true;
-        GD.Print("[NetworkCore] 开始监听房间广播");
     }
 
+    /// <summary>注：停止局域网房间监听</summary>
     public void StopListening()
     {
         if (!isListening) return;
@@ -539,52 +283,59 @@ public partial class NetCore : Node
         broadcastListener = null;
     }
 
+    /// <summary>注：处理接收到的局域网广播数据</summary>
     private void ProcessBroadcastData(byte[] bytes, string senderIP)
     {
         string json = Encoding.UTF8.GetString(bytes);
         var data = Json.ParseString(json).AsGodotDictionary();
         if (data == null || (string)data["type"] != "room_info") return;
-
         string name = (string)data["name"];
         int playerCount = (int)(float)data["playerCount"];
         int maxPlayers = (int)(float)data["maxPlayers"];
         int port = (int)(float)data["gamePort"];
-
         EmitSignal("RoomFound", name, senderIP, port, playerCount, maxPlayers);
     }
 
-    // 注册/注销 NetSyncBase 映射
-    public void RegisterNetSyncBase(NetSyncBase syncBase)
+    #endregion
+
+    #region  连接回调（转发给 NetObjectRegistry 的部分由外部监听事件处理）
+    /// <summary>注：玩家连接时触发，通知对象管理器</summary>
+    private void OnPeerConnected(long id)
     {
-        _syncBaseMap[syncBase.NetID] = syncBase;
+        GD.Print($"[NetCore] 玩家连接: {id}");
+        NetObjectRegistry.Instance?.OnPeerConnected(id);
+
+        // ✅ 主机为新加入的客户端生成玩家角色
+        if (IsHost)
+        {
+            PlayerManager.Instance?.SpawnPlayerForPeer(id);
+        }
     }
 
-    public void UnregisterNetSyncBase(NetSyncBase syncBase)
+    /// <summary>注：玩家断开时触发，通知对象管理器</summary>
+    private void OnPeerDisconnected(long id)
     {
-        _syncBaseMap.Remove(syncBase.NetID);
+        GD.Print($"[NetCore] 玩家断开: {id}");
+        NetObjectRegistry.Instance?.OnPeerDisconnected(id);
     }
 
-    private void OnObjRpc(long sender, byte[] payload)
+    /// <summary>注：成功连接到服务器时触发</summary>
+    private void OnConnectedToServer()
     {
-        using var stream = new System.IO.MemoryStream(payload);
-        using var reader = new System.IO.BinaryReader(stream);
-        var netId = new NetID(reader.ReadInt64(), reader.ReadUInt32());
-        string methodName = reader.ReadString();
-        int argsLen = reader.ReadInt32();
-        byte[] args = reader.ReadBytes(argsLen);
-
-        if (_syncBaseMap.TryGetValue(netId, out var syncBase))
-            syncBase.ReceiveObjectRpc(sender, methodName, args);
+        GD.Print("[NetCore] 成功连接服务器");
     }
 
-    public string GetPrefabPathByHash(int hash)
+    /// <summary>注：连接服务器失败时触发</summary>
+    private void OnConnectionFailed()
     {
-        _prefabHashToPath.TryGetValue(hash, out var path);
-        return path;
+        GD.Print("[NetCore] 连接失败");
     }
+
+    #endregion
+
 }
 
-// 辅助类
+// 辅助类保留
 public class PeerSyncState
 {
     public long PeerID;

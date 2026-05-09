@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using 维修公司.Dll;
 using 途畔归所.Dll.Data;
 using 途畔归所.Dll.Manager;
+using 途畔归所.Dll.NetWork;
 
 namespace 途畔归所.Dll.Core
 {
@@ -26,20 +27,21 @@ namespace 途畔归所.Dll.Core
         /// <summary>注：初始化全部管理器 </summary>
         private void InitManagers()
         {
-            NetCore netCore = new NetCore();
+            NetCore netCore = new();
             NetCore.Instance = netCore;
             AddChild(netCore);
+
+            NetObjectRegistry netReg = new();
+            NetObjectRegistry.Instance = netReg;
+            AddChild(netReg);
 
             ResourceManager.Instance.Init();
             AddChild(NetObjectManager.Instance);
 
 
-
-
             SaveManager.Instance.Init();
             ItemManager.Instance.Init();
             UIManager.Instance.Init();
-            PlayerManager.Instance.Init();
 
 
             TimeManager timeMgr = new TimeManager();

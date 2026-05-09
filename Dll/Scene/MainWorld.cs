@@ -15,17 +15,17 @@ namespace 途畔归所.Dll.Scene
 
         public override void _Ready()
 		{
-			var pl = PlayerManager.Instance.GetPlyaer();
-			if (pl == null) return;
-
-			if (!pl.IsInsideTree())
+			if (NetCore.Instance.IsHost)
 			{
-				GetTree().CurrentScene.AddChild(pl);
-                PlayerManager.Instance.ActivePlayers.Add(pl.m_PlayerData.m_PlayerID,pl);
+				PlayerManager.Instance.SpawnLocalPlayer(SpawnPian.GlobalPosition);
 			}
+			else
+			{
+                
 
-			pl.GlobalPosition = SpawnPian.GlobalPosition;
-		}
+            }
+        }
+		
 
 
 		public override void _Process(double delta)
