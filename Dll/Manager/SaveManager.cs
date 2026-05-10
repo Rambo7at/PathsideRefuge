@@ -39,18 +39,15 @@ namespace 途畔归所.Dll.Manager
 
         public void CreatPlayer(string str) => DATA.CreatPlayer(str);
 
+       
+
 
         public void Init() { }
-
-
 
         public Godot.Collections.Dictionary<string, Variant> GetPlacedRuntimeData() => DATA.PlacedRuntimeData;
 
 
         public void SavePlacedRuntimeData(string GUID, Godot.Collections.Dictionary<string, Variant> data) => DATA.PlacedRuntimeData[GUID] = data;
-
-
-
 
         /// <summary> 注：加载游戏数据 </summary>
         private void LoadData()

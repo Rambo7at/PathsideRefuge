@@ -100,7 +100,7 @@ public partial class InventoryComp : UIPanelBase
     {
         if (itemData == null) return;
 
-        var pl = PlayerManager.Instance.GetLocalPlayer();
+        var pl = PlayerManager.Instance.m_LocalPlayer;
 
         if (pl == null)
         {

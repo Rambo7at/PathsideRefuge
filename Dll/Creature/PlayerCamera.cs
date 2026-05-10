@@ -1,23 +1,31 @@
 using Godot;
 using System;
+using 途畔归所.Dll.Core;
 
 public partial class PlayerCamera : SpringArm3D
 {
 
-	[Export] private Camera3D m_Camera3D;  // 引用子节点 Camera3D，可以不导出，通过 GetNode 获取
+	
 	[Export] private float m_MouseSensitivity = 0.005f;  // 鼠标灵敏度，弧度/像素
 	[Export] private float m_VerticalLimit = 1.4f;       // 垂直旋转限制（约80度），单位弧度
 
 	[Export] private RayCast3D m_RayCast3D;
 
+    private Camera3D m_Camera3D;  // 引用子节点 Camera3D，可以不导出，通过 GetNode 获取
+    public override void _Ready()
+    {
+        var cam = GameCore.Instance.GetCamera();
+        if (cam != null && cam.GetParent() != this)
+        {
+            cam.GetParent()?.RemoveChild(cam);
+            AddChild(cam);
+            m_Camera3D = cam;
+        }
+        m_Camera3D.Current = true;
+        Input.MouseMode = Input.MouseModeEnum.Captured;
+    }
 
-	public override void _Ready()
-	{
-		// 可选：启动时捕获鼠标
-		Input.MouseMode = Input.MouseModeEnum.Captured;
-	}
-
-	public override void _Process(double delta)
+    public override void _Process(double delta)
 	{
 		m_RayCast3D.GlobalRotation = this.GlobalRotation;
 

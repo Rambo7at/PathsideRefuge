@@ -46,7 +46,14 @@ public partial class PlayerSaveMenu : Control
 		if (playerData == null) return;
 
 		ApplyPlayerInfo(playerData);
+
+		PlayerManager.Instance.m_LocalPlayerData = playerData.DeepCopy();
 	}
+
+
+
+
+
 
 
 	/// <summary>回调函数：进入存档选择界面</summary>

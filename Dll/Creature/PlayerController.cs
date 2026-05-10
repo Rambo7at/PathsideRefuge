@@ -1,4 +1,5 @@
 using Godot;
+using 途畔归所.Dll.Core;
 
 namespace 途畔归所.Dll.Creature
 {
@@ -22,7 +23,7 @@ namespace 途畔归所.Dll.Creature
         {
             player = pl;
             m_PlayerMesh = player.m_PlayerModel;
-            m_Camera3D = player.m_Camera;
+            m_Camera3D = GameCore.Instance.GetCamera();
 
             Speed = player.m_PlayerData.m_Speed;
             JumpVelocity = player.m_PlayerData.m_Jump;

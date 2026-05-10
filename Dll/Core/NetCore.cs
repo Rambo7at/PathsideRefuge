@@ -9,7 +9,7 @@ public partial class NetCore : Node
 {
     private static NetCore _instance;
 
-    public static NetCore Instance { get => _instance; set => _instance ??= value; }
+    public static NetCore Instance { get => _instance??= new NetCore(); set => _instance ??= value; }
 
     private const int m_Port = 3043;
     private const int u_Port = 3044;

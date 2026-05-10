@@ -10,7 +10,7 @@ namespace 途畔归所.Dll.Manager
 
 
         private static NetObjectManager _instance;
-        public static NetObjectManager Instance { get => _instance; set => _instance ??= value; }
+        public static NetObjectManager Instance { get => _instance ??= new(); set => _instance ??= value; }
 
 
 
@@ -29,6 +29,7 @@ namespace 途畔归所.Dll.Manager
 
             GD.Print($"[NetObjectManager]：已完成初始化");
         }
+
 
 
         public PackedScene GetPrefab(int hash)
@@ -70,42 +71,27 @@ namespace 途畔归所.Dll.Manager
 
         private void HandleSpawned(NetID id)
         {
-            GD.Print($"[NetObjectManager] HandleSpawned 被调用, NetID={id}");
-
             NetObject netobj = NetObjectRegistry.Instance.GetNetObj(id);
-            if (netobj == null)
-            {
-                GD.PrintErr($"[NetObjectManager] 获取 NetObj 失败，NetID={id}");
-                return;
-            }
+            if (netobj == null) return;
 
-            if (!m_PrefabDict.TryGetValue(netobj.PrefabHash, out PackedScene scene))
-            {
-                GD.PrintErr($"[NetObjectManager] 找不到哈希 {netobj.PrefabHash} 对应的预制体");
-                GD.Print("当前字典中的键:");
-                foreach (var key in m_PrefabDict.Keys)
-                    GD.Print($"  {key}");
-                return;
-            }
+            if (!m_PrefabDict.TryGetValue(netobj.PrefabHash, out PackedScene scene)) return;
 
             Node instance = scene.Instantiate();
-
-            // 1. 设置初始变换（使用局部坐标，因为此时不在树中）
             if (instance is Node3D node3D)
             {
-                node3D.Position = netobj.Position;      // 因为父节点将设为 Root，所以 Position == GlobalPosition
+                node3D.Position = netobj.Position;
                 node3D.Quaternion = netobj.Rotation;
             }
 
-            // 2. 查找并绑定 NetSyncBase（必须在进入树前完成，保证后续物理帧可用）
-            NetSyncBase syncBase = instance.GetNode<NetSyncBase>("NetSyncBase")?? FindNetSyncBase(instance);
+            // 先绑定 NetSyncBase（此时节点未入树，_Ready 不会执行）
+            NetSyncBase syncBase = instance.GetNode<NetSyncBase>("NetSyncBase") ?? FindNetSyncBase(instance);
             syncBase?.Setup(netobj);
 
-            // 3. 最后加入场景树（此时所有依赖已就绪）
-            GetTree().Root.AddChild(instance);
+            // 先加入字典，再入树（保证入树后 _Ready 中如果需要查找某些依赖这个实例的管理器，不会为空）
             _instances[id] = instance;
 
-            GD.Print($"[NetObjectManager] 成功实例化 NetID={id}");
+            // 最后才入树，触发 _Ready
+            GetTree().Root.AddChild(instance);
         }
 
         private void HandleDestroyed(NetID id)

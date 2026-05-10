@@ -15,7 +15,7 @@ namespace 途畔归所.Dll.NetWork
 	{
 
 		private static NetObjectRegistry _instance;
-		public static NetObjectRegistry Instance { get => _instance; set => _instance ??= value; }
+		public static NetObjectRegistry Instance { get => _instance ??= new(); set => _instance ??= value; }
 
 		// ── 核心数据 ──
 		private readonly Dictionary<NetID, NetObject> _objects = [];
@@ -301,6 +301,20 @@ namespace 途畔归所.Dll.NetWork
 				_peerStates[id] = new PeerSyncState { PeerID = id };
 				GD.Print($"[NetObjectRegistry] Peer 已登记: {id}");
 			}
+
+			// ✅ 将当前所有网络对象全部补发给新客户端
+			SyncAllObjectsToPeer(id);
+		}
+
+		/// <summary> 将当前已存在的所有网络对象的创建消息发送给指定 Peer </summary>
+		private void SyncAllObjectsToPeer(long peerId)
+		{
+			foreach (var netobj in _objects.Values)
+			{
+				byte[] payload = SerializeCreate(netobj);
+				NetCore.Instance.SendRpcToPeer(peerId, "ObjCreate", payload);
+			}
+			GD.Print($"[NetObjectRegistry] 已向 Peer {peerId} 补发 {_objects.Count} 个对象");
 		}
 
 		public void OnPeerDisconnected(long id)

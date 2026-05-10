@@ -14,7 +14,7 @@ using 途畔归所.Dll.NetWork;
 
 public partial class Player : Humanoid
 {
-	[Export] public Camera3D m_Camera;
+	[Export] public PlayerCamera m_PlayerCamera;
 	[Export] public Node3D m_PlayerModel;
 	[Export] public CanvasLayer m_CanvasLayer;
 
@@ -50,33 +50,19 @@ public partial class Player : Humanoid
 	{
 		if (!ValidateComponents()) return;
 
-		// 原有初始化全部保留（所有 Player 都需要动画、UI 等避免空引用）
-		PlayerManager.Instance.m_LocalPlayer = this;
 		InitPlayerAnimKeys();
 		InitPlayerUIHandler();
 		InitPlayerController();
-
-		// ✅ 利用已导出的 m_SyncBase 判断所有权
-		if (m_SyncBase != null && m_SyncBase.IsOwner)
-		{
-			m_Camera?.MakeCurrent();          // 本地玩家激活相机
-		}
-		else
-		{
-			if (m_Camera != null) m_Camera.Current = false; // 远端玩家关闭相机
-		}
 	}
 
 	public override void _Process(double delta)
 	{
-		if (m_SyncBase == null || !m_SyncBase.IsOwner) return;
 		m_Controller.Update(delta);
 		m_PlayerUIHandler.Updata();
 	}
 
 	public override void _PhysicsProcess(double delta)
 	{
-		if (m_SyncBase == null || !m_SyncBase.IsOwner) return;
 		if (!IsInsideTree()) return;
 		m_Controller.PhysicsUpdate(delta);
 		CheckRaycastInteract();
@@ -187,11 +173,6 @@ public partial class Player : Humanoid
 		if (m_eye == null)
 		{
 			GD.PrintErr("[Player.ValidateComponents]：m_eye 字段为空");
-			return false;
-		}
-		if (m_Camera == null)
-		{
-			GD.PrintErr("[Player.ValidateComponents]：m_Camera 字段为空");
 			return false;
 		}
 		if (m_PlayerModel == null)
