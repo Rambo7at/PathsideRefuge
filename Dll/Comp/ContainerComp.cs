@@ -23,12 +23,12 @@ namespace 途畔归所.Dll.Comp
 
 
 			if (SaveManager.Instance.GetPlacedRuntimeData() == null) return;
-			GD.Print("不是空的");
+			//GD.Print("不是空的");
 
-			GD.Print($"长度是{SaveManager.Instance.GetPlacedRuntimeData().Count}");
+			//GD.Print($"长度是{SaveManager.Instance.GetPlacedRuntimeData().Count}");
 			foreach (var item in SaveManager.Instance.GetPlacedRuntimeData())
 			{
-				GD.Print("找到了数据："+ item.Key);
+				//GD.Print("找到了数据："+ item.Key);
 			}
 
 

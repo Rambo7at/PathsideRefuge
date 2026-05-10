@@ -57,9 +57,10 @@ public partial class MainMenu : Node3D
 			GetTree().ChangeSceneToFile("res://Scenes/角色创建.tscn");
 			return;
 		}
+
  		NetCore.Instance.StartLANHost();
 		NetCore.Instance.StartBroadcast("我的房间", 1, NetCore.Max_Player);
-
+	
 		GetTree().ChangeSceneToFile("res://Scenes/测试场景.tscn");
 	}
 
@@ -101,9 +102,16 @@ public partial class MainMenu : Node3D
 		}
 
 		NetCore.Instance.StopListening();
-		NetCore.Instance.JoinLAN(foundIP, foundPort);
-		GetTree().ChangeSceneToFile("res://Scenes/测试场景.tscn");
+		var OK = NetCore.Instance.JoinLAN(foundIP, foundPort);
+
 		m_RoomInfo.Text = $"正在连接 {foundIP}...";
+
+		if (OK == Error.Ok)
+		{
+			GetTree().ChangeSceneToFile("res://Scenes/测试场景.tscn");
+		}
+
+
 
 	}
 

@@ -187,7 +187,7 @@ public partial class Player : Humanoid
 		}
 		if (m_PlayerData == null)
 		{
-			GD.PrintErr("[Player.ValidateComponents]：m_PlayerData 字段为空");
+			//GD.PrintErr("[Player.ValidateComponents]：m_PlayerData 字段为空");
 			m_PlayerData = new PlayerData();
 
 		}

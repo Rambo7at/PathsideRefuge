@@ -11,18 +11,20 @@ public partial class MainWorld : Node3D
     public override void _Ready()
     {
         GameCore.Instance.SetCurrentScene(_sceneType);
+
         if (NetCore.Instance.IsHost)
         {
-            // 主机生成逻辑保持不变
             PlayerManager.Instance.SpawnLocalPlayer(SpawnPian.GlobalPosition);
-            foreach (int peerId in NetCore.Instance.Multiplayer.GetPeers())
-                if (peerId != NetCore.Instance.LocalPeerID)
-                    PlayerManager.Instance.SpawnPlayerForClient(peerId, SpawnPian.GlobalPosition);
         }
         else
         {
-            // 客户端：场景就绪，请求主机发来所有网络对象
-            NetCore.Instance.SendRpcToPeer(1, "RequestFullSync", new byte[0]);
+
+            // 这里写一个请求，我们做一个简单的设计，客户端 在控制台中打一段GD日志，我向服务器发送了一个生成请求
+            // 服务器如果接收到 这个RPC 包裹，那么控制台输出一个 GD 日志，我收到了 客户端的请求
+
+
         }
     }
+
+
 }

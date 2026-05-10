@@ -55,7 +55,7 @@ public partial class Npc : Humanoid
 			m_NavigationAgent3D.AvoidanceEnabled = false;
 		}
 
-		GD.Print($"[Npc] 初始化完成, 速度={m_NpcData.m_speed}");
+		//GD.Print($"[Npc] 初始化完成, 速度={m_NpcData.m_speed}");
 		return true;
 	}
 
@@ -63,7 +63,7 @@ public partial class Npc : Humanoid
 	{
 		if (m_NavigationAgent3D == null) return;
 		var map = m_NavigationAgent3D.GetNavigationMap();
-		GD.Print(map.IsValid ? "[Npc] 导航地图有效" : "[Npc] 无导航地图");
+		//GD.Print(map.IsValid ? "[Npc] 导航地图有效" : "[Npc] 无导航地图");
 	}
 
 

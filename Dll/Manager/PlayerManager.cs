@@ -28,35 +28,32 @@ namespace 途畔归所.Dll.Manager
 
         private PlayerManager() => playerPrefab ??= NetObjectManager.Instance.GetPrefab("Player");
 
-
-         
-
         public void SpawnLocalPlayer(Vector3 spawnPos)
         {
             if (!NetCore.Instance.IsHost) return;  // 只有主机有权 Spawn，客户端会通过 ObjCreate 自动生成
 
             int hash = CatUtils.GetStableHashCode("Player");
-            NetObjectRegistry.Instance.Spawn(hash, spawnPos, Quaternion.Identity, NetCore.Instance.LocalPeerID);
+            NetObjectRegistry.Instance.Spawn(hash, spawnPos, Quaternion.Identity);
         }
+
+
+
 
 
         /// <summary>
-        /// 主机为新加入的客户端生成玩家角色（所有权归该客户端）。
-        /// 如果连接的是自己（本地玩家），不应该走这里，因为本地玩家已在 MainWorld 中调用 SpawnLocalPlayer。
+        /// 主机为指定 Peer 生成玩家对象（所有权归该 Peer）。
+        /// 若 peerId 是主机自己，则忽略（本地玩家已由 SpawnLocalPlayer 处理）。
         /// </summary>
-        public void SpawnPlayerForPeer(long peerId)
+        public void SpawnPlayerForPeer(long peerId, Vector3? spawnPos = null)
         {
-            // 避免为主机自己重复生成（本地玩家已由 SpawnLocalPlayer 处理）
             if (peerId == NetCore.Instance.LocalPeerID) return;
 
-
-            // 出生点可以随机，也可以使用配置的出生点
-            Vector3 spawnPos = GetRandomSpawnPoint(); // 或从 SpawnPian 读取
+            Vector3 pos = spawnPos ?? GetRandomSpawnPoint();
             int hash = CatUtils.GetStableHashCode("Player");
-            NetObjectRegistry.Instance.Spawn(hash, spawnPos, Quaternion.Identity, peerId);
+            NetObjectRegistry.Instance.Spawn(hash, pos, Quaternion.Identity, peerId);
         }
 
-        // 临时随机出生点（后续可改用场景中的标记）
+        // 临时随机出生点（后续可改用场景中的标记点）
         private Vector3 GetRandomSpawnPoint()
         {
             return new Vector3(
@@ -66,37 +63,6 @@ namespace 途畔归所.Dll.Manager
             );
         }
 
-
-
         public int GetActivePlayersIndex() => ActivePlayers.Count;
-
-        public void SpawnRemotePlayer(long peerId)
-        {
-            Player pl = playerPrefab.Instantiate() as Player;
-            pl.Name = $"Player_{peerId}";
-            pl.SetMultiplayerAuthority((int)peerId);  // 设置网络所有权
-
-            
-            // 添加到场景
-            GameCore.Instance.GetTree().CurrentScene.AddChild(pl);
-            ActivePlayers[(int)peerId] = pl;
-            pl.GlobalPosition = new Vector3(0, 2, 0);  // 临时出生点
-        }
-
-        /// <summary>
-        /// 为指定客户端生成玩家（由主机调用）
-        /// </summary>
-        public void SpawnPlayerForClient(long clientId, Vector3 spawnPos)
-        {
-            if (!NetCore.Instance.IsHost)
-            {
-                GD.PrintErr("[PlayerManager] 只有主机有权为客户端生成玩家");
-                return;
-            }
-
-            int hash = CatUtils.GetStableHashCode("Player");
-            NetObjectRegistry.Instance.Spawn(hash, spawnPos, Quaternion.Identity, clientId);
-        }
-
     }
 }

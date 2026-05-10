@@ -68,14 +68,14 @@ namespace 途畔归所.Dll.NetWork
 			NetObjectRegistry.Instance.RegisterNetSyncBase(this);
 
 			// ✅ 监听 NetObjectRegistry 的数据变化事件
-			NetObjectRegistry.Instance.OnDataChanged += OnNetObjDataChanged;
+			//NetObjectRegistry.Instance.OnDataChanged += OnNetObjDataChanged;
 		}
 
 		public override void _ExitTree()
 		{
 			if (NetObjectRegistry.Instance != null)
 			{
-				NetObjectRegistry.Instance.OnDataChanged -= OnNetObjDataChanged;
+				//NetObjectRegistry.Instance.OnDataChanged -= OnNetObjDataChanged;
 				NetObjectRegistry.Instance.UnregisterNetSyncBase(this);
 			}
 		}
@@ -90,16 +90,20 @@ namespace 途畔归所.Dll.NetWork
 		/// <summary> 向所有者发送 RPC </summary>
 		public void InvokeRpc(string methodName, byte[] args)
 		{
-			byte[] payload = BuildObjectRpcPayload(methodName, args);
-			NetCore.Instance.SendRpcToPeer(NetObj.OwnerPeerID, "ObjRpc", payload);
-		}
+            // 暂时禁用
+            // byte[] payload = BuildObjectRpcPayload(methodName, args);
+            // NetCore.Instance.SendRpcToPeer(NetObj.OwnerPeerID, "ObjRpc", payload);
+            GD.PrintErr("[NetSyncBase] InvokeRpc 暂时不可用");
+        }
 
 		/// <summary> 向所有客户端广播 RPC </summary>
 		public void InvokeRpcToAll(string methodName, byte[] args)
 		{
-			byte[] payload = BuildObjectRpcPayload(methodName, args);
-			NetCore.Instance.BroadcastRpc("ObjRpc", payload);
-		}
+            // 暂时禁用
+            // byte[] payload = BuildObjectRpcPayload(methodName, args);
+            // NetCore.Instance.BroadcastRpc("ObjRpc", payload);
+            GD.PrintErr("[NetSyncBase] InvokeRpcToAll 暂时不可用");
+        }
 
 		/// <summary> 由 NetCore 调用，分发到达的对象 RPC </summary>
 		public void ReceiveObjectRpc(long senderId, string methodName, byte[] args)

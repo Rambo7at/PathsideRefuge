@@ -27,6 +27,7 @@ namespace 途畔归所.Dll.Manager
             NetObjectRegistry.Instance.OnSpawned += HandleSpawned;
             NetObjectRegistry.Instance.OnDestroyed += HandleDestroyed;
 
+
             GD.Print($"[NetObjectManager]：已完成初始化");
         }
 
