@@ -106,13 +106,18 @@ public partial class MainMenu : Node3D
 
 		m_RoomInfo.Text = $"正在连接 {foundIP}...";
 
-		if (OK == Error.Ok)
-		{
-			GetTree().ChangeSceneToFile("res://Scenes/测试场景.tscn");
-		}
+		if (OK == Error.Ok) WaitForConnectionAndRequest();
 
 
-
-	}
-
+    }
+    private async void WaitForConnectionAndRequest()
+    {
+        // 等待直到 peer 状态真正变为 Connected
+        while (Multiplayer.MultiplayerPeer == null || Multiplayer.MultiplayerPeer.GetConnectionStatus() != MultiplayerPeer.ConnectionStatus.Connected)
+        {
+            await ToSignal(GetTree(), "process_frame");
+        }
+        GetTree().ChangeSceneToFile("res://Scenes/测试场景.tscn");
+        GD.Print("[MainWorld] 连接已就绪，发送玩家请求");
+    }
 }

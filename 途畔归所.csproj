@@ -10,4 +10,7 @@
     <None Include="开发计划.md" />
     <None Include="日志信息.md" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Prefab\Player\" />
+  </ItemGroup>
 </Project>

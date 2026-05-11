@@ -33,9 +33,16 @@ namespace 途畔归所.Dll.Creature
 		{
 			if (m_player == null)
 			{
-				GD.PrintErr("[StateMachine]：m_player 字段为空");
+                GD.PrintErr("[StateMachine]：m_player 字段为空");
 				return;
 			}
+
+			if (m_player.m_PlayerData == null)
+			{
+                SetProcess(false);
+                SetPhysicsProcess(false);
+                return;
+            }
 		}
 
 		public override void _PhysicsProcess(double delta)

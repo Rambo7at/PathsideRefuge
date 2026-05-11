@@ -12,19 +12,13 @@ public partial class MainWorld : Node3D
     {
         GameCore.Instance.SetCurrentScene(_sceneType);
 
-        if (NetCore.Instance.IsHost)
-        {
-            PlayerManager.Instance.SpawnLocalPlayer(SpawnPian.GlobalPosition);
-        }
-        else
-        {
-
-            // 这里写一个请求，我们做一个简单的设计，客户端 在控制台中打一段GD日志，我向服务器发送了一个生成请求
-            // 服务器如果接收到 这个RPC 包裹，那么控制台输出一个 GD 日志，我收到了 客户端的请求
+        PlayerManager.Instance.SpawnLocalPlayer(SpawnPian.GlobalPosition);
 
 
-        }
+
+
+
+
+
     }
-
-
 }

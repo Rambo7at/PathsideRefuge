@@ -5,115 +5,192 @@ using 途畔归所.Dll.Utils;
 
 namespace 途畔归所.Dll.Manager
 {
-    public partial class NetObjectManager : Node
-    {
 
-
-        private static NetObjectManager _instance;
-        public static NetObjectManager Instance { get => _instance ??= new(); set => _instance ??= value; }
-
-
-
-        public Dictionary<int, PackedScene> m_PrefabDict = [];
-        private Dictionary<NetID, Node> _instances = [];
-
-        public override void _Ready()
-        {
-            Instance = this;
-
-            foreach (var item in m_PrefabDict) GD.Print($"[NetObjectManager.m_PrefabDict]：这里有：{item.Value.ResourceName}");
-
-            // ✅ 改用 NetObjectRegistry 的事件
-            NetObjectRegistry.Instance.OnSpawned += HandleSpawned;
-            NetObjectRegistry.Instance.OnDestroyed += HandleDestroyed;
-
-
-            GD.Print($"[NetObjectManager]：已完成初始化");
-        }
+	/// <summary>
+	/// 网络对象管理器：所有网络对象生成的唯一入口。
+	/// 负责维护预制体字典、在主机端发起对象创建并广播，客户端接收广播后执行本地实例化，
+	/// 同时统一管理所有网络节点的销毁。
+	/// 仅主机可调用生成方法，客户端通过 RPC 被动同步。
+	/// </summary>
+	public partial class NetObjectManager : Node
+	{
+		private static NetObjectManager _instance;
+		public static NetObjectManager Instance { get => _instance ??= new(); set => _instance ??= value; }
 
 
 
-        public PackedScene GetPrefab(int hash)
-        {
-            if (!m_PrefabDict.TryGetValue(hash, out var result))
-            {
-                GD.PrintErr($"[NetObjectManager.GetPrefab]：未有找到 hash 对应的预制件-哈希值:{hash}");
-                return null;
+		public Dictionary<int, PackedScene> m_PrefabDict = [];
+
+		private Dictionary<NetID, Node> _instances = [];
+
+		public override void _Ready()
+		{
+			Instance = this;
+
+			
+
+
+			if (NetObjectRegistry.Instance != null)
+			{
+				NetObjectRegistry.Instance.OnSpawned += HandleSpawned;
+			}
+			else
+			{
+				GD.PrintErr("[NetObjectManager] NetObjectRegistry 实例尚未就绪");
+			}
+			GD.Print($"[NetObjectManager]：{m_PrefabDict.Count}");
+			GD.Print($"[NetObjectManager]：已完成初始化");
+		}
+
+
+		public PackedScene GetPrefab(int hash)
+		{
+			if (!m_PrefabDict.TryGetValue(hash, out var result))
+			{
+				GD.PrintErr($"[NetObjectManager.GetPrefab]：未有找到 hash 对应的预制件-哈希值:{hash}");
+				return null;
+			}
+			return result;
+		}
+
+		public PackedScene GetPrefab(string prefabName)
+		{
+			int hash = IsContainsPrefab(prefabName);
+			if (hash == default) return null;
+
+			return m_PrefabDict[hash];
+		}
+
+		public bool IsContainsPrefab(int hash)
+		{
+			if (m_PrefabDict.TryGetValue(hash, out var result)) return true;
+            else return false;
+		}
+
+        public int IsContainsPrefab(string prefabName)
+		{
+			int hash = CatUtils.GetStableHashCode(prefabName);
+			if (IsContainsPrefab(hash) == false)
+			{
+				GD.PrintErr($"[NetObjectManager.GetPrefab]：未有对应的预制件-名称:{prefabName}");
+				return default;
+			}
+			return hash;
+		}
+
+
+
+		public void SpawnObject(Vector3 pos, Quaternion rot, int hash = default, Node node = null )
+		{
+			if (node != null)
+			{
+                if (IsContainsPrefab(hash) == false) return;
+                var ID = NetObjectRegistry.Instance.RegistryObject(hash, pos, rot);
+                HandleSpawned(ID);
             }
-            return result;
-        }
-
-
-        public PackedScene GetPrefab(string prefabName)
-        {
-            int hash = CatUtils.GetStableHashCode(prefabName);
-            if (!m_PrefabDict.TryGetValue(hash, out var result))
-            {
-                GD.PrintErr($"[NetObjectManager.GetPrefab]：未有对应的预制件-名称:{prefabName}");
-                return null;
+			if (hash != default)
+			{
+                if (node == null || !IsInstanceValid(node)) return;
+                int nodehash = IsContainsPrefab(node.Name);
+                var ID = NetObjectRegistry.Instance.RegistryObject(hash, pos, rot);
+                HandleSpawned(node, ID, pos, rot);
             }
-            return result;
-        }
+			else
+			{
+				GD.Print();
+		
+			}
+		
+		}
 
-        public bool IsContainsPrefab(string prefabName)
-        {
-            int hash = CatUtils.GetStableHashCode(prefabName);
-            if (!m_PrefabDict.TryGetValue(hash, out var result))
+
+
+
+        public void SpawnObject(int hash, Vector3 pos, Quaternion rot)
+		{
+			if (!m_PrefabDict.ContainsKey(hash)) return;
+			var ID = NetObjectRegistry.Instance.RegistryObject(hash, pos, rot);
+			HandleSpawned(ID);
+		}
+
+		public void SpawnObject(Node node, Vector3 pos, Quaternion rot)
+		{
+			if (node == null || !IsInstanceValid(node)) return;
+			int hash = IsContainsPrefab(node.Name);
+			if (hash == default) return;
+
+			var ID = NetObjectRegistry.Instance.RegistryObject(hash, pos, rot);
+			HandleSpawned(node, ID, pos, rot);
+		}
+
+		private void HandleSpawned(NetID id)
+		{
+			if (_instances.ContainsKey(id))
+			{
+				GD.Print($"[NetObjectManager] NetID {id} 的实例已存在，跳过创建");
+				return;
+			}
+
+			NetObject netobj = NetObjectRegistry.Instance.GetNetObj(id);
+			if (netobj == null) return;
+
+			if (!m_PrefabDict.TryGetValue(netobj.PrefabHash, out PackedScene scene)) return;
+			Node instance = scene.Instantiate();
+			if (instance is not Node3D node3D) return;
+
+
+            var sync = node3D.GetNodeOrNull<NetSyncBase>("NetSyncBase");
+            if (sync != null)
             {
-                GD.PrintErr($"[NetObjectManager.GetPrefab]：未有对应的预制件-名称:{prefabName}");
-                return false;
+                sync.m_NetID = id;
+                sync.m_OwnerPeerID = netobj.OwnerPeerID;
+                sync.EmitNetworkReady();
             }
-            return true;
-        }
 
+            node3D.Position = netobj.Position;
+			node3D.Quaternion = netobj.Rotation;
 
+			_instances[id] = instance;
+			GetTree().Root.AddChild(instance);
+		}
 
-
-
-        private void HandleSpawned(NetID id)
-        {
-            NetObject netobj = NetObjectRegistry.Instance.GetNetObj(id);
-            if (netobj == null) return;
-
-            if (!m_PrefabDict.TryGetValue(netobj.PrefabHash, out PackedScene scene)) return;
-
-            Node instance = scene.Instantiate();
-            if (instance is Node3D node3D)
+		private void HandleSpawned(Node node, NetID id, Vector3 pos, Quaternion rot)
+		{
+            if (_instances.ContainsKey(id))
             {
-                node3D.Position = netobj.Position;
-                node3D.Quaternion = netobj.Rotation;
+                GD.Print($"[NetObjectManager] NetID {id} 的实例已存在，跳过创建");
+                return;
             }
 
-            // 先绑定 NetSyncBase（此时节点未入树，_Ready 不会执行）
-            NetSyncBase syncBase = instance.GetNode<NetSyncBase>("NetSyncBase") ?? FindNetSyncBase(instance);
-            syncBase?.Setup(netobj);
+            if (node == null) return;
+			if (!IsInstanceValid(node)) return;
+			if (node is not Node3D node3D) return;
 
-            // 先加入字典，再入树（保证入树后 _Ready 中如果需要查找某些依赖这个实例的管理器，不会为空）
-            _instances[id] = instance;
+            node3D.Position = pos;
+			node3D.Quaternion = rot;
 
-            // 最后才入树，触发 _Ready
-            GetTree().Root.AddChild(instance);
-        }
+			NetObject netobj = NetObjectRegistry.Instance.GetNetObj(id);
+			_instances[id] = node;
 
-        private void HandleDestroyed(NetID id)
-        {
-            if (_instances.TryGetValue(id, out Node node))
-            {
-                node.QueueFree();
-                _instances.Remove(id);
-            }
-        }
+			GetTree().Root.AddChild(node3D);
+		}
 
-        // 备用查找（如果节点名不是 NetSyncBase）
-        private NetSyncBase FindNetSyncBase(Node root)
-        {
-            foreach (Node child in root.GetChildren())
-            {
-                if (child is NetSyncBase sb) return sb;
-                var found = FindNetSyncBase(child);
-                if (found != null) return found;
-            }
-            return null;
-        }
-    }
+
+
+
+
+		private void TEst(NetID id)
+		{
+
+			int count = _instances.Count;
+
+			GD.PrintErr($"[NetObjectManager]：[目标对象是：{NetCore.Instance.LocalPeerID}]-[数量：{count}]");
+
+			foreach (var item in _instances)
+			{
+				GD.PrintErr($"[NetObjectManager]：[目标对象是：{NetCore.Instance.LocalPeerID}]-[对象：{item.Value.GetType().Name}]");
+
+			}
+		}
+	}
 }

@@ -3,16 +3,10 @@ using System;
 namespace 途畔归所.Dll.NetWork
 {
     /// <summary>注：网络对象的唯一标识符，由创建者 PeerID + 自增序号组成。 </summary>
-    public struct NetID : IEquatable<NetID>
+    public struct NetID(long userID, uint id) : IEquatable<NetID>
     {
-        public long UserID;
-        public uint ID;
-
-        public NetID(long userID, uint id)
-        {
-            UserID = userID;
-            ID = id;
-        }
+        public long UserID = userID;
+        public uint ID = id;
 
         public override string ToString() => $"{UserID}:{ID}";
 

@@ -19,6 +19,7 @@ environment_file_directory="res://AmbientCG/Environments"
 config/name="途畔归所"
 run/main_scene="uid://brf4o0xvfmd8h"
 config/features=PackedStringArray("4.6", "C#", "Forward Plus")
+run/max_fps=90
 config/icon="uid://dwfqgfvwjgure"
 
 [autoload]
