@@ -3,11 +3,13 @@ using 途畔归所.Dll.Manager;
 
 namespace 途畔归所.Dll.NetWork
 {
+	[GlobalClass]
 	public partial class NetTransformSync : Node
 	{
 		[Export] private float _syncInterval = 0.05f;      // 改为 20Hz，更流畅
 		[Export] private float _smoothLerpSpeed = 15.0f;    // 插值速度
 		[Export] private Node3D _node3D;
+		[Export] private Node3D _rotMesh;
 
 		private float _timer;
 		private NetSyncBase _sync;
@@ -60,12 +62,23 @@ namespace 途畔归所.Dll.NetWork
 			if (_sync == null) return;
 
 			// 远程对象：平滑插值到目标位置
+			// 非 Owner 部分
 			if (!_sync.IsOwner)
 			{
 				if (!_hasTarget) return;
 
 				_node3D.GlobalPosition = _node3D.GlobalPosition.Lerp(_targetPosition, _smoothLerpSpeed * (float)delta);
-				_node3D.GlobalRotation = _node3D.GlobalRotation.Lerp(_targetRotation, _smoothLerpSpeed * (float)delta);
+
+				if (_rotMesh != null)
+				{
+					// 只旋转模型子节点，不动根节点
+					_rotMesh.GlobalRotation = _rotMesh.GlobalRotation.Lerp(_targetRotation, _smoothLerpSpeed * (float)delta);
+				}
+				else
+				{
+					// 无 _rotMesh 时回退到原行为（旋转根节点）
+					_node3D.GlobalRotation = _node3D.GlobalRotation.Lerp(_targetRotation, _smoothLerpSpeed * (float)delta);
+				}
 				return;
 			}
 
@@ -76,11 +89,13 @@ namespace 途畔归所.Dll.NetWork
 
 			if (NetCore.Instance.IsHost)
 			{
+				Vector3 pos = _node3D.GlobalPosition;
+				Vector3 rot = _rotMesh != null ? _rotMesh.GlobalRotation : _node3D.GlobalRotation;
+
 				Rpc(nameof(Rpc_NetTransformSync),
 					_sync.m_NetObj.Id.UserID,
 					_sync.m_NetObj.Id.ID,
-					_node3D.GlobalPosition,
-					_node3D.GlobalRotation);
+					pos, rot);
 			}
 			// 客户端暂时不发送（单向同步）
 		}
