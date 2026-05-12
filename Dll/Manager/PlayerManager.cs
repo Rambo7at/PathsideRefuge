@@ -11,42 +11,42 @@ using 途畔归所.Dll.Utils;
 
 namespace 途畔归所.Dll.Manager
 {
-    public class PlayerManager
-    {
-        private static PlayerManager _instance;
-        public static PlayerManager Instance => _instance ??= new PlayerManager();
+	public class PlayerManager
+	{
+		private static PlayerManager _instance;
+		public static PlayerManager Instance => _instance ??= new PlayerManager();
 
-        public Dictionary<int, Player> ActivePlayers = [];
+		public Dictionary<int, Player> ActivePlayers = [];
 
-        private int m_playerHash;
-        public Player m_LocalPlayer;
-        public PlayerData m_LocalPlayerData { get; set; }
-
-
-        private PlayerManager()
-        {
-            m_playerHash = CatUtils.GetStableHashCode("Player");
-
-            var node = NetObjectManager.Instance.GetPrefab(m_playerHash);
-            if (node == null) return;
-
-            Player pl = node.Instantiate<Player>();
-            if (pl == null) return;
-
-            m_LocalPlayer = pl;
-        }
-
-        public void SpawnLocalPlayer(Vector3 spawnPos)
-        {
-            m_LocalPlayer.m_PlayerData = m_LocalPlayerData;
-            NetObjectManager.Instance.SpawnObject(m_LocalPlayer, spawnPos, Quaternion.Identity);
-        }
+		private int m_playerHash;
+		public Player m_LocalPlayer;
+		public PlayerData m_LocalPlayerData { get; set; }
 
 
+		private PlayerManager()
+		{
+			m_playerHash = CatUtils.GetStableHashCode("Player");
+
+			var node = NetObjectManager.Instance.GetPrefab(m_playerHash);
+			if (node == null) return;
+
+			Player pl = node.Instantiate<Player>();
+			if (pl == null) return;
+
+			m_LocalPlayer = pl;
+		}
+
+		public void SpawnLocalPlayer(Vector3 Pos, Vector3 rot)
+		{
+			m_LocalPlayer.m_PlayerData = m_LocalPlayerData;
+			NetObjectManager.Instance.SpawnObject(Pos, rot, default,m_LocalPlayer);
+		}
 
 
-        
 
-        public int GetActivePlayersIndex() => ActivePlayers.Count;
-    }
+
+		
+
+		public int GetActivePlayersIndex() => ActivePlayers.Count;
+	}
 }

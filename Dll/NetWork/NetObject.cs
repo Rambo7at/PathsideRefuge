@@ -9,9 +9,9 @@ namespace 途畔归所.Dll.NetWork
         public int PrefabHash { get; set; }
         public long OwnerPeerID { get; set; }
         public Vector3 Position { get; set; }
-        public Quaternion Rotation { get; set; }
+        public Vector3 Rotation { get; set; }
 
-        public NetObject(NetID id, Vector3 position, Quaternion rotation, int prefabHash, long ownerPeerID)
+        public NetObject(NetID id, Vector3 position, Vector3 rotation, int prefabHash, long ownerPeerID)
         {
             Id = id;
             Position = position;

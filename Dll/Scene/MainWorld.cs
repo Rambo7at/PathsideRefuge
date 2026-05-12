@@ -12,7 +12,7 @@ public partial class MainWorld : Node3D
     {
         GameCore.Instance.SetCurrentScene(_sceneType);
 
-        PlayerManager.Instance.SpawnLocalPlayer(SpawnPian.GlobalPosition);
+        PlayerManager.Instance.SpawnLocalPlayer(SpawnPian.GlobalPosition, SpawnPian.Rotation);
 
 
 

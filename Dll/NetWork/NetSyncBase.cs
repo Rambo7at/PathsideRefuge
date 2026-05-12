@@ -1,48 +1,58 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using 途畔归所.Dll.Manager;
 using 途畔归所.Dll.Utils;
 
 namespace 途畔归所.Dll.NetWork
 {
-    public partial class NetSyncBase : Node3D
-    {
 
-        private NetSyncBase _sync;
+	[GlobalClass]
+	public partial class NetSyncBase : Node
+	{
 
-        public NetID m_NetID { get; set; }
+	   [Export] private Node3D _node3D;
 
-        public long m_OwnerPeerID { get; set; }
+		public NetObject m_NetObj { get; set; }
 
-
-        public bool IsOwner => m_OwnerPeerID == NetCore.Instance?.LocalPeerID;
-
-        [Signal]
-        public delegate void NetworkReadyEventHandler();
-
-        public override void _Ready()
-        {
-            _sync = GetParent().GetNodeOrNull<NetSyncBase>("NetSyncBase");
-
-            if (_sync == null)
-            {
-                SetProcess(false);
-                return;
-            }
-        }
-
-        public override void _Process(double delta)
-        {
-
-        }
-
-        public void EmitNetworkReady()
-        {
-            GD.Print($"[NetSyncBase] NetworkReady emitted for NetID {m_NetID}");
-            EmitSignal(SignalName.NetworkReady);
-        }
+		public bool IsOwner => m_NetObj.OwnerPeerID == NetCore.Instance?.LocalPeerID;
 
 
-    }
+		public override void _Ready()
+		{
+			var node = GetParent();
+			if (_node3D == null)
+			{
+				if (node == null || node is not Node3D node3)
+				{
+					GD.PrintErr("[NetSyncBase._Ready]：未获取到 Node3D");
+					return;
+				}
+
+				_node3D = node3;
+			}
+
+
+
+		
+
+			if (m_NetObj == null)
+			{
+				// 这里以后会提交 补充注册，就是我手动放置场景内的物品。
+				GD.PrintErr("[NetSyncBase._Ready]：发现未注册组件，已提交注册");
+			}
+
+
+
+
+		}
+
+		public override void _Process(double delta)
+		{
+
+		}
+
+
+	}
 }

@@ -1,5 +1,6 @@
 using Godot;
 using System.Collections.Generic;
+using System.Xml.Linq;
 using 途畔归所.Dll.NetWork;
 using 途畔归所.Dll.Utils;
 
@@ -21,14 +22,13 @@ namespace 途畔归所.Dll.Manager
 
 		public Dictionary<int, PackedScene> m_PrefabDict = [];
 
-		private Dictionary<NetID, Node> _instances = [];
+		private Dictionary<NetID, Node> _netObjectInstances = [];
 
 		public override void _Ready()
 		{
 			Instance = this;
 
-			
-
+		
 
 			if (NetObjectRegistry.Instance != null)
 			{
@@ -42,7 +42,6 @@ namespace 途畔归所.Dll.Manager
 			GD.Print($"[NetObjectManager]：已完成初始化");
 		}
 
-
 		public PackedScene GetPrefab(int hash)
 		{
 			if (!m_PrefabDict.TryGetValue(hash, out var result))
@@ -55,22 +54,46 @@ namespace 途畔归所.Dll.Manager
 
 		public PackedScene GetPrefab(string prefabName)
 		{
-			int hash = IsContainsPrefab(prefabName);
+			int hash = GetPrefabHash(prefabName);
 			if (hash == default) return null;
 
 			return m_PrefabDict[hash];
 		}
 
-		public bool IsContainsPrefab(int hash)
+		public bool ContainsNetObject(NetID netID)
 		{
-			if (m_PrefabDict.TryGetValue(hash, out var result)) return true;
-            else return false;
+			if (_netObjectInstances.TryGetValue(netID,out Node node))
+			{
+				return true;
+			}
+		
+		     return false;
 		}
 
-        public int IsContainsPrefab(string prefabName)
+
+		public Node GetNetObject(NetID netID)
+		{
+            if (_netObjectInstances.TryGetValue(netID, out Node node))
+            {
+                return node;
+            }
+
+            return null;
+        }
+
+
+
+
+        public bool ContainsPrefab(int hash)
+		{
+			if (m_PrefabDict.TryGetValue(hash, out var result)) return true;
+			else return false;
+		}
+
+		public int GetPrefabHash(string prefabName)
 		{
 			int hash = CatUtils.GetStableHashCode(prefabName);
-			if (IsContainsPrefab(hash) == false)
+			if (ContainsPrefab(hash) == false)
 			{
 				GD.PrintErr($"[NetObjectManager.GetPrefab]：未有对应的预制件-名称:{prefabName}");
 				return default;
@@ -78,115 +101,88 @@ namespace 途畔归所.Dll.Manager
 			return hash;
 		}
 
-
-
-		public void SpawnObject(Vector3 pos, Quaternion rot, int hash = default, Node node = null )
+		public void SpawnObject(Vector3 pos, Vector3 rot, int hash = default, Node node = null )
 		{
-			if (node != null)
+			if (hash != default && node == null) 
 			{
-                if (IsContainsPrefab(hash) == false) return;
-                var ID = NetObjectRegistry.Instance.RegistryObject(hash, pos, rot);
-                HandleSpawned(ID);
-            }
-			if (hash != default)
+				if (ContainsPrefab(hash) == false) return;
+
+				var ID = NetObjectRegistry.Instance.RegisterObject(hash, pos, rot);
+				HandleSpawned(ID);
+			}
+			else if (node != null && hash == default)
 			{
-                if (node == null || !IsInstanceValid(node)) return;
-                int nodehash = IsContainsPrefab(node.Name);
-                var ID = NetObjectRegistry.Instance.RegistryObject(hash, pos, rot);
-                HandleSpawned(node, ID, pos, rot);
-            }
+				if (!IsInstanceValid(node)) return;
+				int nodehash = GetPrefabHash(node.Name);
+				if (nodehash == default) return;
+
+				var ID = NetObjectRegistry.Instance.RegisterObject(nodehash, pos, rot);
+				HandleSpawned(ID, node);
+			}
 			else
 			{
-				GD.Print();
-		
+				GD.PrintErr("[NetObjectManager.SpawnObject]：无效参数");
+
 			}
-		
 		}
 
-
-
-
-        public void SpawnObject(int hash, Vector3 pos, Quaternion rot)
+		private void HandleSpawned(NetID m_id, Node node = null)
 		{
-			if (!m_PrefabDict.ContainsKey(hash)) return;
-			var ID = NetObjectRegistry.Instance.RegistryObject(hash, pos, rot);
-			HandleSpawned(ID);
-		}
-
-		public void SpawnObject(Node node, Vector3 pos, Quaternion rot)
-		{
-			if (node == null || !IsInstanceValid(node)) return;
-			int hash = IsContainsPrefab(node.Name);
-			if (hash == default) return;
-
-			var ID = NetObjectRegistry.Instance.RegistryObject(hash, pos, rot);
-			HandleSpawned(node, ID, pos, rot);
-		}
-
-		private void HandleSpawned(NetID id)
-		{
-			if (_instances.ContainsKey(id))
+			if (_netObjectInstances.ContainsKey(m_id))
 			{
-				GD.Print($"[NetObjectManager] NetID {id} 的实例已存在，跳过创建");
+				GD.Print($"[NetObjectManager.HandleSpawned] NetID {m_id} 的实例已存在，跳过创建");
 				return;
 			}
 
-			NetObject netobj = NetObjectRegistry.Instance.GetNetObj(id);
+			NetObject netobj = NetObjectRegistry.Instance.GetNetObject(m_id);
 			if (netobj == null) return;
 
-			if (!m_PrefabDict.TryGetValue(netobj.PrefabHash, out PackedScene scene)) return;
-			Node instance = scene.Instantiate();
-			if (instance is not Node3D node3D) return;
+			if (node == null)
+			{
+
+				if (!m_PrefabDict.TryGetValue(netobj.PrefabHash, out PackedScene scene)) return;
+				Node instance = scene.Instantiate();
+				if (instance is not Node3D node3D) return;
 
 
-            var sync = node3D.GetNodeOrNull<NetSyncBase>("NetSyncBase");
-            if (sync != null)
-            {
-                sync.m_NetID = id;
-                sync.m_OwnerPeerID = netobj.OwnerPeerID;
-                sync.EmitNetworkReady();
+				var sync = node3D.GetNodeOrNull<NetSyncBase>("NetSyncBase");
+				if (sync == null) return;
+				sync.m_NetObj = netobj;
+
+                _netObjectInstances[m_id] = instance;
+                GetTree().Root.AddChild(instance);
+
+                node3D.GlobalPosition = netobj.Position;
+                node3D.GlobalRotation = netobj.Rotation;
+            }
+			else
+			{
+
+				if (!IsInstanceValid(node)) return;
+				if (node is not Node3D node3D) return;
+
+				var sync = node3D.GetNodeOrNull<NetSyncBase>("NetSyncBase");
+				if (sync == null) return;
+				sync.m_NetObj = netobj;
+
+                _netObjectInstances[m_id] = node;
+                GetTree().Root.AddChild(node3D);
+
+                node3D.GlobalPosition = netobj.Position;
+                node3D.GlobalRotation = netobj.Rotation;
+
             }
 
-            node3D.Position = netobj.Position;
-			node3D.Quaternion = netobj.Rotation;
-
-			_instances[id] = instance;
-			GetTree().Root.AddChild(instance);
 		}
 
-		private void HandleSpawned(Node node, NetID id, Vector3 pos, Quaternion rot)
-		{
-            if (_instances.ContainsKey(id))
-            {
-                GD.Print($"[NetObjectManager] NetID {id} 的实例已存在，跳过创建");
-                return;
-            }
-
-            if (node == null) return;
-			if (!IsInstanceValid(node)) return;
-			if (node is not Node3D node3D) return;
-
-            node3D.Position = pos;
-			node3D.Quaternion = rot;
-
-			NetObject netobj = NetObjectRegistry.Instance.GetNetObj(id);
-			_instances[id] = node;
-
-			GetTree().Root.AddChild(node3D);
-		}
-
-
-
-
-
-		private void TEst(NetID id)
+		private void DebugPrintNetInstances(NetID id)
 		{
 
-			int count = _instances.Count;
+			int count = _netObjectInstances.Count;
 
 			GD.PrintErr($"[NetObjectManager]：[目标对象是：{NetCore.Instance.LocalPeerID}]-[数量：{count}]");
 
-			foreach (var item in _instances)
+			foreach (var item in _netObjectInstances)
 			{
 				GD.PrintErr($"[NetObjectManager]：[目标对象是：{NetCore.Instance.LocalPeerID}]-[对象：{item.Value.GetType().Name}]");
 

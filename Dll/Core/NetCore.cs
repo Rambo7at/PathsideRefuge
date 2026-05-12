@@ -12,8 +12,12 @@ public partial class NetCore : Node
 	private const int u_Port = 3044;
 	public const int Max_Player = 4;
 
-	// 判断角色
-	public bool IsHost => Multiplayer.IsServer();
+
+    public const long ServerID = 1; // Godot 服务器 Peer ID 固定为 1
+
+
+    // 判断角色
+    public bool IsHost => Multiplayer.IsServer();
 	public bool IsClient => !IsHost;
 
 	//─────────────── LAN 发现（保留原有 UDP 广播）───────────────

@@ -1,16 +1,10 @@
 using Godot;
-using Godot.Collections;
-using System;
-using System.Collections.Generic;
-using System.Net.NetworkInformation;
 using 维修公司.Dll.data;
 using 途畔归所.Dll.Base;
 using 途畔归所.Dll.Comp;
 using 途畔归所.Dll.Creature;
 using 途畔归所.Dll.Data;
 using 途畔归所.Dll.Interface;
-using 途畔归所.Dll.Manager;
-using 途畔归所.Dll.NetWork;
 
 public partial class Player : Humanoid
 {
@@ -19,20 +13,20 @@ public partial class Player : Humanoid
 	[Export] public CanvasLayer m_CanvasLayer;
 	[Export] public StateMachine m_StateMachine;
 
-    [Export] public BoneAttachment3D m_HandL;
+	[Export] public BoneAttachment3D m_HandL;
 	[Export] public BoneAttachment3D m_HandR;
 
-    public PlayerUIHandler m_PlayerUIHandler;
-    public PlayerController m_Controller;
+	public PlayerUIHandler m_PlayerUIHandler;
+	public PlayerController m_Controller;
 	public bool m_OnUI = false;
 
 	public PlayerData m_PlayerData;
-    public float m_BaseAttackDamage = 20f;
+	public float m_BaseAttackDamage = 20f;
 
-    public void Equip(ItemData itemData)
+	public void Equip(ItemData itemData)
 	{
 		var drop = itemData.DataToDrop();
-		if (drop == null ) return;
+		if (drop == null) return;
 
 		var item = drop as ItemComp;
 		m_HandR.AddChild(item);
@@ -41,27 +35,27 @@ public partial class Player : Humanoid
 
 	public override void _Ready()
 	{
-        if (m_PlayerData == null)
-        {
-            SetProcess(false);
-            SetPhysicsProcess(false);
-            return;
-        }
-        if (!ValidateComponents()) return;
+		if (m_PlayerData == null)
+		{
+			SetProcess(false);
+			SetPhysicsProcess(false);
+			return;
+		}
+		if (!ValidateComponents()) return;
 
-        InitPlayerUIHandler();
+		InitPlayerUIHandler();
 		InitPlayerController();
 	}
 
 	public override void _Process(double delta)
 	{
-        m_Controller.Update(delta);
+		m_Controller.Update(delta);
 		m_PlayerUIHandler.Updata();
 	}
 
 	public override void _PhysicsProcess(double delta)
 	{
-        if (!IsInsideTree()) return;
+		if (!IsInsideTree()) return;
 		m_Controller.PhysicsUpdate(delta);
 		CheckRaycastInteract();
 	}
