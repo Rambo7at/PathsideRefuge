@@ -47,8 +47,9 @@ namespace 途畔归所.Dll.Creature
 
 		public override void _PhysicsProcess(double delta)
 		{
-			// 只有在非锁定状态下才自动检测物理状态切换
-			if (m_CurrentState != PlayerState.Interact && m_CurrentState != PlayerState.Build)
+            if (m_player.m_PlayerData == null) return;
+            // 只有在非锁定状态下才自动检测物理状态切换
+            if (m_CurrentState != PlayerState.Interact && m_CurrentState != PlayerState.Build)
 			{
 				UpdatePhysicsBasedState();
 			}

@@ -1,85 +1,97 @@
 using Godot;
-using System.Linq;
+using 途畔归所.Dll.Creature;
 using 途畔归所.Dll.Manager;
 
 namespace 途畔归所.Dll.NetWork
 {
-    using global::途畔归所.Dll.Creature;
-    using Godot;
-
-    namespace 途畔归所.Dll.NetWork
+    [GlobalClass]
+    public partial class NetAnimationSync : Node
     {
-        [GlobalClass]
-        public partial class NetAnimationSync : Node
+        [Export] private float _syncInterval = 0.1f;
+
+        private float _timer;
+        private NetSyncBase _sync;
+        private StateMachine _stateMachine;
+
+        public override void _Ready()
         {
-            [Export] private float _syncInterval = 0.1f;
+            var parent = GetParent();
+            if (parent is not Node3D) return;
 
-            private float _timer;
-            private NetSyncBase _sync;
-            private AnimationTree _animTree;
-            private StateMachine _stateMachine;
+            _sync = parent.GetNodeOrNull<NetSyncBase>("NetSyncBase");
+            _stateMachine = parent.GetNodeOrNull<StateMachine>("StateMachine");
 
-            public override void _Ready()
+            if (_sync == null || !NetObjectManager.Instance.ContainsNetObject(_sync.m_NetObj.Id))
             {
-                var parent = GetParent();
-                if (parent == null || parent is not Node3D)
-                {
-                    GD.PrintErr("[NetAnimationSync] 父节点不是 Node3D");
-                    SetProcess(false);
-                    return;
-                }
-
-                _animTree = parent.GetNodeOrNull<AnimationTree>("AnimationTree");
-                _sync = parent.GetNodeOrNull<NetSyncBase>("NetSyncBase");
-                _stateMachine = parent.GetNodeOrNull<StateMachine>("StateMachine");
-
-                if (_animTree == null)
-                {
-                    GD.PrintErr("[NetAnimationSync] 未找到 AnimationTree");
-                    SetProcess(false);
-                    return;
-                }
-                if (_sync == null)
-                {
-                    GD.PrintErr("[NetAnimationSync] 未找到 NetSyncBase");
-                    SetProcess(false);
-                    return;
-                }
-                // 注意：StateMachine 只在本地玩家存在，远程玩家可能没有，所以不加判死
+                SetProcess(false);
+                return;
             }
+        }
 
-            public override void _Process(double delta)
+        public override void _Process(double delta)
+        {
+            if (_sync == null || !_sync.IsOwner) return;
+
+            _timer += (float)delta;
+            if (_timer < _syncInterval) return;
+            _timer = 0f;
+
+            if (_stateMachine == null) return;
+            int state = (int)_stateMachine.s_PlayerState;
+
+            if (NetCore.Instance.IsHost)
             {
-                if (_sync == null || !_sync.IsOwner) return;
-
-                _timer += (float)delta;
-                if (_timer < _syncInterval) return;
-                _timer = 0f;
-
-                if (!NetCore.Instance.IsHost) return;
-
-                // 获取当前状态机的整数值（如果本地没有 StateMachine 则发 0）
-                int state = _stateMachine != null ? (int)_stateMachine.s_PlayerState : 0;
-
+                // 主机广播给所有客户端
                 Rpc(nameof(Rpc_SyncAnimationState),
                     _sync.m_NetObj.Id.UserID,
                     _sync.m_NetObj.Id.ID,
                     state);
             }
-
-            [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.Unreliable)]
-            private void Rpc_SyncAnimationState(long userId, uint objId, int state)
+            else
             {
-                NetID netID = new(userId, objId);
-                var target = NetObjectManager.Instance.GetNetObject(netID);
-                if (target == null) return;
-
-                var animTree = target.GetNodeOrNull<AnimationTree>("AnimationTree");
-                if (animTree == null) return;
-
-                // 设置动画树的状态参数（需要你的动画树里有一个名为 "State" 的整数参数）
-                animTree.Set("parameters/State/current", state);
+                // 客户端上报给主机
+                RpcId(NetCore.ServerID, nameof(Rpc_ClientAnimReport),
+                    _sync.m_NetObj.Id.UserID,
+                    _sync.m_NetObj.Id.ID,
+                    state);
             }
+        }
+
+        // 客户端上报动画状态给主机
+        [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.Unreliable)]
+        private void Rpc_ClientAnimReport(long userId, uint objId, int state)
+        {
+            if (!NetCore.Instance.IsHost) return;
+
+            NetID netID = new(userId, objId);
+            var target = NetObjectManager.Instance.GetNetObject(netID);
+            if (target == null) return;
+
+            // ★ 1. 更新主机本地的远程玩家状态机（让主机也能看到动画）
+            var remoteStateMachine = target.GetNodeOrNull<StateMachine>("StateMachine");
+            remoteStateMachine?.SwitchState((StateMachine.PlayerState)state);
+
+            // ★ 2. 转发给其他客户端（排除发送者）
+            long senderId = Multiplayer.GetRemoteSenderId();
+            foreach (long peerId in Multiplayer.GetPeers())
+            {
+                if (peerId != senderId && peerId != NetCore.ServerID)
+                {
+                    RpcId(peerId, nameof(Rpc_SyncAnimationState), userId, objId, state);
+                }
+            }
+        }
+
+        // 所有客户端接收动画状态
+        [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.Unreliable)]
+        private void Rpc_SyncAnimationState(long userId, uint objId, int state)
+        {
+            NetID netID = new(userId, objId);
+            var target = NetObjectManager.Instance.GetNetObject(netID);
+            if (target == null) return;
+
+            var remoteStateMachine = target.GetNodeOrNull<StateMachine>("StateMachine");
+            remoteStateMachine?.SwitchState((StateMachine.PlayerState)state);
         }
     }
 }

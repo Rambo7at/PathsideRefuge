@@ -6,100 +6,113 @@ namespace 途畔归所.Dll.NetWork
 	[GlobalClass]
 	public partial class NetTransformSync : Node
 	{
-		[Export] private float _syncInterval = 0.05f;      // 改为 20Hz，更流畅
-		[Export] private float _smoothLerpSpeed = 15.0f;    // 插值速度
+		[Export] private float _syncInterval = 0.05f;
+		[Export] private float _smoothLerpSpeed = 15.0f;
 		[Export] private Node3D _node3D;
 		[Export] private Node3D _rotMesh;
 
 		private float _timer;
 		private NetSyncBase _sync;
 
-		// 目标位置/旋转（仅非 Owner 使用）
 		private Vector3 _targetPosition;
 		private Vector3 _targetRotation;
 		private bool _hasTarget;
 
 		public override void _Ready()
 		{
-			var node = GetParent();
+			var parent = GetParent();
 			if (_node3D == null)
 			{
-				if (node == null || node is not Node3D node3)
-				{
-					GD.PrintErr("[NetTransformSync._Ready]：未获取到 Node3D");
-					return;
-				}
+				if (parent is not Node3D node3) return;
 				_node3D = node3;
 			}
 
-			var nodearr = node.GetChildren();
-			foreach (var comp in nodearr)
+			_sync = parent.GetNodeOrNull<NetSyncBase>("NetSyncBase");
+			if (_sync == null || !NetObjectManager.Instance.ContainsNetObject(_sync.m_NetObj.Id))
 			{
-				if (comp is NetSyncBase sync)
-				{
-					_sync = sync;
-					break;
-				}
-			}
-
-			if (_sync == null)
-			{
-				GD.PrintErr("[NetTransformSync._Ready] 未找到 NetSyncBase");
 				SetProcess(false);
 				return;
 			}
 
-			if (!NetObjectManager.Instance.ContainsNetObject(_sync.m_NetObj.Id))
-			{
-				GD.PrintErr("[NetTransformSync._Ready] NetSyncBase 未在网络实例中注册");
-				SetProcess(false);
-				return;
-			}
+			// 自动查找 rotMesh
+			if (_rotMesh == null)
+				_rotMesh = _node3D.GetNodeOrNull<Node3D>("m_PlayerModel");
 		}
 
 		public override void _Process(double delta)
 		{
 			if (_sync == null) return;
 
-			// 远程对象：平滑插值到目标位置
-			// 非 Owner 部分
 			if (!_sync.IsOwner)
 			{
+				// 远程对象插值
 				if (!_hasTarget) return;
 
 				_node3D.GlobalPosition = _node3D.GlobalPosition.Lerp(_targetPosition, _smoothLerpSpeed * (float)delta);
-
 				if (_rotMesh != null)
-				{
-					// 只旋转模型子节点，不动根节点
 					_rotMesh.GlobalRotation = _rotMesh.GlobalRotation.Lerp(_targetRotation, _smoothLerpSpeed * (float)delta);
-				}
 				else
-				{
-					// 无 _rotMesh 时回退到原行为（旋转根节点）
 					_node3D.GlobalRotation = _node3D.GlobalRotation.Lerp(_targetRotation, _smoothLerpSpeed * (float)delta);
-				}
 				return;
 			}
 
-			// ---- 以下为 Owner 逻辑 ----
+			// 以下为 Owner 逻辑
 			_timer += (float)delta;
 			if (_timer < _syncInterval) return;
 			_timer = 0f;
 
+			Vector3 pos = _node3D.GlobalPosition;
+			Vector3 rot = _rotMesh != null ? _rotMesh.GlobalRotation : _node3D.GlobalRotation;
+
 			if (NetCore.Instance.IsHost)
 			{
-				Vector3 pos = _node3D.GlobalPosition;
-				Vector3 rot = _rotMesh != null ? _rotMesh.GlobalRotation : _node3D.GlobalRotation;
-
+				// 主机直接广播给所有客户端（排除自己）
 				Rpc(nameof(Rpc_NetTransformSync),
 					_sync.m_NetObj.Id.UserID,
 					_sync.m_NetObj.Id.ID,
 					pos, rot);
 			}
-			// 客户端暂时不发送（单向同步）
+			else
+			{
+				// 客户端上报给主机
+				RpcId(NetCore.ServerID, nameof(Rpc_ClientTransformReport),
+					_sync.m_NetObj.Id.UserID,
+					_sync.m_NetObj.Id.ID,
+					pos, rot);
+			}
 		}
 
+		// 客户端上报给主机
+		[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.Unreliable)]
+		private void Rpc_ClientTransformReport(long userId, uint objId, Vector3 pos, Vector3 rot)
+		{
+			if (!NetCore.Instance.IsHost) return;
+
+			NetID netID = new(userId, objId);
+			var node = NetObjectManager.Instance.GetNetObject(netID) as Node3D;
+			if (node == null) return;
+
+			// ★ 平滑更新：交给节点自己的 NetTransformSync 插值处理
+			var sync = node.GetNodeOrNull<NetTransformSync>("NetTransformSync");
+			if (sync != null)
+			{
+				sync._targetPosition = pos;
+				sync._targetRotation = rot;
+				sync._hasTarget = true;
+			}
+
+			// ★ 转发给除发送者外的其他所有客户端（包括其他客户端，不包括发送者自己）
+			long senderId = Multiplayer.GetRemoteSenderId();
+			foreach (long peerId in Multiplayer.GetPeers())
+			{
+				if (peerId != senderId && peerId != NetCore.ServerID)
+				{
+					RpcId(peerId, nameof(Rpc_NetTransformSync), userId, objId, pos, rot);
+				}
+			}
+		}
+
+		// 所有客户端接收变换（原 RPC 保持不变）
 		[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.Unreliable)]
 		private void Rpc_NetTransformSync(long userId, uint objId, Vector3 pos, Vector3 rot)
 		{
@@ -107,9 +120,6 @@ namespace 途畔归所.Dll.NetWork
 			var node3d = NetObjectManager.Instance.GetNetObject(netID) as Node3D;
 			if (node3d == null) return;
 
-			// 不直接设置，改为存储目标，由 _Process 插值
-			// 通过同一个节点上的 NetTransformSync 来接收
-			// 注意：这里必须找到远程对象自己的 NetTransformSync
 			var sync = node3d.GetNodeOrNull<NetTransformSync>("NetTransformSync");
 			if (sync == null) return;
 

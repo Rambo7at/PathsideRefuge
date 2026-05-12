@@ -5,12 +5,87 @@
     <EnableDynamicLoading>true</EnableDynamicLoading>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="网络架构.md" />
+    <Content Include="Prefab\UI\HUD\1.png" />
+    <Content Include="Prefab\UI\HUD\2.png" />
+    <Content Include="Prefab\UI\HUD\3.png" />
+    <Content Include="Prefab\UI\HUD\4.png" />
+    <Content Include="Prefab\UI\HUD\5.png" />
+    <Content Include="Prefab\UI\HUD\6.png" />
+    <Content Include="Prefab\UI\HUD\红条.png" />
+    <Content Include="Prefab\UI\HUD\绿条.png" />
+    <Content Include="Prefab\UI\HUD\血框.png" />
+    <Content Include="Prefab\UI\容器\宝箱.png" />
+    <Content Include="Prefab\UI\手机\电话.png" />
+    <Content Include="Prefab\UI\手机\相机.png" />
+    <Content Include="Prefab\UI\手机\背景.png" />
+    <Content Include="Prefab\UI\手机\设置.png" />
+    <Content Include="Prefab\UI\手机\购物app.png" />
+    <Content Include="Prefab\UI\手机\资源 14.png" />
+    <Content Include="Prefab\UI\手机商店\Icon\取消订单.png" />
+    <Content Include="Prefab\UI\手机商店\Icon\商品展示框.png" />
+    <Content Include="Prefab\UI\手机商店\Icon\商城背景.png" />
+    <Content Include="Prefab\UI\手机商店\Icon\确认订单.png" />
+    <Content Include="Prefab\UI\手机商店\Icon\购物车.png" />
+    <Content Include="Prefab\UI\手机商店\Icon\购物车总价格.png" />
+    <Content Include="Prefab\UI\手机商店\Icon\购物车按钮.png" />
+    <Content Include="Prefab\UI\手机商店\Icon\购物车框.png" />
+    <Content Include="Prefab\UI\手机商店\Icon\资源 12.png" />
+    <Content Include="Prefab\UI\手机商店\Icon\资源 9.png" />
+    <Content Include="Prefab\UI\背包\背包.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Prefab\Item\7at_匕首.tscn" />
+    <None Include="Prefab\Item\et_牛奶罐.tscn" />
+    <None Include="Prefab\Npc\Npc.tscn" />
+    <None Include="Prefab\Piece\et_板条箱.tscn" />
+    <None Include="Prefab\Player\player.tscn" />
+    <None Include="Prefab\UI\ConsoleUI.tscn" />
+    <None Include="Prefab\UI\ESC\esc_ui.tscn" />
+    <None Include="Prefab\UI\HUD\1.png.import" />
+    <None Include="Prefab\UI\HUD\2.png.import" />
+    <None Include="Prefab\UI\HUD\3.png.import" />
+    <None Include="Prefab\UI\HUD\4.png.import" />
+    <None Include="Prefab\UI\HUD\5.png.import" />
+    <None Include="Prefab\UI\HUD\6.png.import" />
+    <None Include="Prefab\UI\HUD\hud_ui.tscn" />
+    <None Include="Prefab\UI\HUD\TestHud.cs.uid" />
+    <None Include="Prefab\UI\HUD\红条.png.import" />
+    <None Include="Prefab\UI\HUD\绿条.png.import" />
+    <None Include="Prefab\UI\HUD\血框.png.import" />
+    <None Include="Prefab\UI\Theme\ConsoleTheme.tres" />
+    <None Include="Prefab\UI\主菜单\存档界面\存档信息.tscn" />
+    <None Include="Prefab\UI\容器\ContainerUI.tscn" />
+    <None Include="Prefab\UI\容器\JC_宝箱.tscn" />
+    <None Include="Prefab\UI\容器\宝箱.png.import" />
+    <None Include="Prefab\UI\手机\PhoneUI.tscn" />
+    <None Include="Prefab\UI\手机\Theme\PhoneTheme.tres" />
+    <None Include="Prefab\UI\手机\电话.png.import" />
+    <None Include="Prefab\UI\手机\相机.png.import" />
+    <None Include="Prefab\UI\手机\背景.png.import" />
+    <None Include="Prefab\UI\手机\设置.png.import" />
+    <None Include="Prefab\UI\手机\购物app.png.import" />
+    <None Include="Prefab\UI\手机\资源 14.png.import" />
+    <None Include="Prefab\UI\手机商店\GoodUI.tscn" />
+    <None Include="Prefab\UI\手机商店\Icon\取消订单.png.import" />
+    <None Include="Prefab\UI\手机商店\Icon\商品展示框.png.import" />
+    <None Include="Prefab\UI\手机商店\Icon\商城背景.png.import" />
+    <None Include="Prefab\UI\手机商店\Icon\确认订单.png.import" />
+    <None Include="Prefab\UI\手机商店\Icon\购物车.png.import" />
+    <None Include="Prefab\UI\手机商店\Icon\购物车总价格.png.import" />
+    <None Include="Prefab\UI\手机商店\Icon\购物车按钮.png.import" />
+    <None Include="Prefab\UI\手机商店\Icon\购物车框.png.import" />
+    <None Include="Prefab\UI\手机商店\Icon\资源 12.png.import" />
+    <None Include="Prefab\UI\手机商店\Icon\资源 9.png.import" />
+    <None Include="Prefab\UI\手机商店\OnlineShopTheme.theme" />
+    <None Include="Prefab\UI\手机商店\OnlineShopUI.tscn" />
+    <None Include="Prefab\UI\格子\slot_ui.tscn" />
+    <None Include="Prefab\UI\格子\格子主题.tres" />
+    <None Include="Prefab\UI\背包\InventoryUI.tscn" />
+    <None Include="Prefab\UI\背包\jc_背包.tscn" />
+    <None Include="Prefab\UI\背包\背包.png.import" />
+    <None Include="Prefab\Vegetation\ET-树.tscn" />
     <None Include="优先级.md" />
     <None Include="开发计划.md" />
     <None Include="日志信息.md" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Prefab\Player\" />
   </ItemGroup>
 </Project>
