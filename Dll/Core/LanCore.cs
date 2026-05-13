@@ -1,112 +1,130 @@
-using System;
 using Godot;
 using Godot.Collections;
+using System;
+using System.Text;
 
 
 namespace 途畔归所.Dll.Core
 {
-    internal class LanCore
+    public class LanCore
     {
-        public event Action<string, string, int, int, int> OnRoomFound;
 
-        private const int BroadcastPort = 3044;
-        private PacketPeerUdp broadcastSender;
-        private PacketPeerUdp broadcastListener;
-        private float broadcastTimer;
-        private bool isBroadcasting;
-        private bool isListening;
 
-        private string roomName = "我的房间";
-        private int roomPlayerCount = 1;
-        private int roomMaxPlayers = 4;
+        private string _roomName;
+        private const int _gamePort = 3043;
+        private const int _port = 3044;
 
-        public void StartBroadcast(string name, int currentPlayers, int maxPlayers)
+        private int _maxPlayer;
+        private PacketPeerUdp m_packetPeerUdp;
+
+        private bool IsHost = false;
+
+        private float _Time;
+
+        public string LatestRoomIP { get; private set; }
+
+        public LanCore(string roomName,int maxPlayer)
         {
-            if (isBroadcasting) return;
-            roomName = name;
-            roomPlayerCount = currentPlayers;
-            roomMaxPlayers = maxPlayers;
-
-            broadcastSender = new PacketPeerUdp();
-            broadcastSender.SetBroadcastEnabled(true);
-            broadcastSender.SetDestAddress("255.255.255.255", BroadcastPort);
-            isBroadcasting = true;
-            broadcastTimer = 0f;
+            _roomName = roomName;
+            _maxPlayer = maxPlayer;
+            SendBroadcastPacket();
+            IsHost = true;
         }
+
+        public LanCore() => StartListening();
+
+
+
+        public void Start(double delta)
+        {
+            if (IsHost)
+            {
+                _Time += (float)delta;
+                if (_Time >= 2.0f)
+                {
+                    _Time = 0f;
+                    StartBroadcast();         
+                    SendBroadcastPacket();    
+                }
+            }
+            else
+            {
+
+                while (m_packetPeerUdp.GetAvailablePacketCount() > 0)
+                {
+                    byte[] bytes = m_packetPeerUdp.GetPacket();
+                    string ip = m_packetPeerUdp.GetPacketIP();
+                    ProcessBroadcastData(bytes, ip);
+                }
+
+
+            }
+
+        }
+
+
+
+
+        public void StartBroadcast()
+        {
+            m_packetPeerUdp = new PacketPeerUdp();
+            m_packetPeerUdp.SetBroadcastEnabled(true);
+            m_packetPeerUdp.SetDestAddress("255.255.255.255", _port);
+        }
+
+
 
         public void StopBroadcast()
         {
-            if (!isBroadcasting) return;
-            isBroadcasting = false;
-            broadcastSender?.Close();
-            broadcastSender = null;
+            m_packetPeerUdp.Close();
         }
+
+
+        private void SendBroadcastPacket()
+        {
+            if (m_packetPeerUdp == null) return;
+            Dictionary<string,Variant> data = [];
+
+            data.Add("room_Name",_roomName);
+            data.Add("max_Player", _maxPlayer);
+            data.Add("game_Port", _gamePort);
+
+            m_packetPeerUdp.PutPacket(GD.VarToBytes(data));
+        }
+
+
 
         public void StartListening()
         {
-            if (isListening) return;
-            broadcastListener = new PacketPeerUdp();
-            broadcastListener.Bind(BroadcastPort);
-            isListening = true;
+            m_packetPeerUdp = new PacketPeerUdp();
+            m_packetPeerUdp.Bind(_port);
         }
 
         public void StopListening()
         {
-            if (!isListening) return;
-            isListening = false;
-            broadcastListener?.Close();
-            broadcastListener = null;
+            m_packetPeerUdp?.Close();
+            m_packetPeerUdp = null;
         }
 
-        public void Process(double delta)
-        {
-            if (isBroadcasting && broadcastSender != null)
-            {
-                broadcastTimer += (float)delta;
-                if (broadcastTimer >= 2.0f)
-                {
-                    broadcastTimer = 0f;
-                    SendBroadcastPacket();
-                }
-            }
 
-            if (isListening && broadcastListener != null)
-            {
-                while (broadcastListener.GetAvailablePacketCount() > 0)
-                {
-                    byte[] bytes = broadcastListener.GetPacket();
-                    string ip = broadcastListener.GetPacketIP();
-                    ProcessBroadcastData(bytes, ip);
-                }
-            }
+        private string ProcessBroadcastData(byte[] bytes, string senderIP)
+        {
+            Variant data = GD.BytesToVar(bytes);
+            if (data.Obj == null) return string.Empty;
+
+            var dict = data.AsGodotDictionary();
+            if (dict == null) return string.Empty;
+            if (!dict.ContainsKey("room_Name")) return string.Empty;
+
+            LatestRoomIP = senderIP;
+            return senderIP;
         }
 
-        private void SendBroadcastPacket()
-        {
-            var data = new Dictionary
-        {
-            { "type", "room_info" },
-            { "name", roomName },
-            { "playerCount", roomPlayerCount },
-            { "maxPlayers", roomMaxPlayers },
-            { "gamePort", NetCore.m_Port } // 需要访问 NetCore 的端口常量
-        };
-            string json = Json.Stringify(data);
-            broadcastSender.PutPacket(System.Text.Encoding.UTF8.GetBytes(json));
-        }
 
-        private void ProcessBroadcastData(byte[] bytes, string senderIP)
-        {
-            string json = System.Text.Encoding.UTF8.GetString(bytes);
-            var data = Json.ParseString(json).AsGodotDictionary();
-            if (data == null || (string)data["type"] != "room_info") return;
 
-            string name = (string)data["name"];
-            int playerCount = (int)(float)data["playerCount"];
-            int maxPlayers = (int)(float)data["maxPlayers"];
-            int port = (int)(float)data["gamePort"];
 
-            OnRoomFound?.Invoke(name, senderIP, port, playerCount, maxPlayers);
-        }
+
+
+
     }
 }

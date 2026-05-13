@@ -1,6 +1,7 @@
 using Godot;
 using 途畔归所.Dll.Core;
 using 途畔归所.Dll.Manager;
+using 途畔归所.Dll.Utils;
 using static 途畔归所.Dll.Core.GameCore;
 
 public partial class MainMenu : Node3D
@@ -9,6 +10,8 @@ public partial class MainMenu : Node3D
 	[Export] private Control m_Start;
 	[Export] private Control m_Lobby;
 	[Export] private Label m_RoomInfo;
+
+	private string m_ip { get => NetCore.Instance.m_RoomIP; }
 
 	private readonly SceneType _sceneType = SceneType.MainMenu;
 	public override void _Ready()
@@ -19,7 +22,12 @@ public partial class MainMenu : Node3D
 	}
 
 
-	public override void _Process(double delta) { }
+	public override void _Process(double delta)
+	{
+		if (string.IsNullOrEmpty(m_ip)) return;
+
+        m_RoomInfo.Text = m_ip;
+    }
 
 	/// <summary>回调函数：进入大厅菜单</summary>
 	private void StartGame()
@@ -59,16 +67,11 @@ public partial class MainMenu : Node3D
 		}
 
  		NetCore.Instance.StartLANHost();
-		NetCore.Instance.StartBroadcast("我的房间", 1, NetCore.Max_Player);
-	
 		GetTree().ChangeSceneToFile("res://Scenes/测试场景.tscn");
 	}
 
-
-	private string foundIP = "";
-	private int foundPort = 0;
-	/// <summary>回调函数：搜索大厅 </summary>
-	public void FindLobby()
+    /// <summary>回调函数：搜索大厅 </summary>
+    public void FindLobby()
 	{
 		if (SaveManager.Instance.IsValidPlayerSaveData() == false)
 		{
@@ -76,37 +79,24 @@ public partial class MainMenu : Node3D
 			return;
 		}
 
-		// 信号只连接一次
-		if (!NetCore.Instance.IsConnected("RoomFound", new Callable(this, nameof(OnRoomFound))))
-		{
-			NetCore.Instance.Connect("RoomFound", new Callable(this, nameof(OnRoomFound)));
-		}
-
-		NetCore.Instance.StartListening();
-		// m_RoomInfo 保持为空，直到找到房间
+		NetCore.Instance.FindLANRoom();
 	}
 
-	private void OnRoomFound(string roomName, string ip, int port, int playerCount, int maxPlayers)
-	{
-		foundIP = ip;
-		foundPort = port;
-		m_RoomInfo.Text = roomName;   // 只显示房间名
-	}
 
 	public void JoinRoom()
 	{
-		if (string.IsNullOrEmpty(foundIP))
-		{
-			m_RoomInfo.Text = "没有可加入的房间";
-			return;
-		}
+		//NetCore.Instance.StopListening();
+		var OK = NetCore.Instance.JoinLAN(m_ip);
+		NetCore.Instance.StopLANDiscovery();
 
-		NetCore.Instance.StopListening();
-		var OK = NetCore.Instance.JoinLAN(foundIP, foundPort);
-
-		m_RoomInfo.Text = $"正在连接 {foundIP}...";
+        m_RoomInfo.Text = $"正在连接 {m_ip}...";
 
 		if (OK == Error.Ok) WaitForConnectionAndRequest();
+		else
+		{
+            CatLog.Warn($"连接 {m_ip}...失败");
+            m_RoomInfo.Text = string.Empty;
+        }
 
 
     }
