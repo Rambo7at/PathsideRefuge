@@ -1,4 +1,5 @@
 using Godot;
+using 途畔归所.Dll.Core;
 using 途畔归所.Dll.Creature;
 using 途畔归所.Dll.Manager;
 
@@ -11,7 +12,7 @@ namespace 途畔归所.Dll.NetWork
 
         private float _timer;
         private NetSyncBase _sync;
-        private StateMachine _stateMachine;
+        private PlayerStateMachine _stateMachine;
 
         public override void _Ready()
         {
@@ -19,7 +20,7 @@ namespace 途畔归所.Dll.NetWork
             if (parent is not Node3D) return;
 
             _sync = parent.GetNodeOrNull<NetSyncBase>("NetSyncBase");
-            _stateMachine = parent.GetNodeOrNull<StateMachine>("StateMachine");
+            _stateMachine = parent.GetNodeOrNull<PlayerStateMachine>("StateMachine");
 
             if (_sync == null || !NetObjectManager.Instance.ContainsNetObject(_sync.m_NetObj.Id))
             {
@@ -68,8 +69,8 @@ namespace 途畔归所.Dll.NetWork
             if (target == null) return;
 
             // ★ 1. 更新主机本地的远程玩家状态机（让主机也能看到动画）
-            var remoteStateMachine = target.GetNodeOrNull<StateMachine>("StateMachine");
-            remoteStateMachine?.SwitchState((StateMachine.PlayerState)state);
+            var remoteStateMachine = target.GetNodeOrNull<PlayerStateMachine>("StateMachine");
+            remoteStateMachine?.SwitchState((PlayerStateMachine.PlayerState)state);
 
             // ★ 2. 转发给其他客户端（排除发送者）
             long senderId = Multiplayer.GetRemoteSenderId();
@@ -90,8 +91,8 @@ namespace 途畔归所.Dll.NetWork
             var target = NetObjectManager.Instance.GetNetObject(netID);
             if (target == null) return;
 
-            var remoteStateMachine = target.GetNodeOrNull<StateMachine>("StateMachine");
-            remoteStateMachine?.SwitchState((StateMachine.PlayerState)state);
+            var remoteStateMachine = target.GetNodeOrNull<PlayerStateMachine>("StateMachine");
+            remoteStateMachine?.SwitchState((PlayerStateMachine.PlayerState)state);
         }
     }
 }

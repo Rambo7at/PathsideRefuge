@@ -2,6 +2,7 @@ using Godot;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using 途畔归所.Dll.Core;
 using 途畔归所.Dll.Manager;
 using 途畔归所.Dll.Utils;
 

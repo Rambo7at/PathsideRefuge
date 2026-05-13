@@ -1,6 +1,7 @@
 using Godot;
 using 途畔归所.Dll.Manager;
 using 途畔归所.Dll.NetWork;
+using 途畔归所.Dll.Utils;
 
 namespace 途畔归所.Dll.Core
 {
@@ -20,6 +21,8 @@ namespace 途畔归所.Dll.Core
 
         public SceneType m_CurrentSceneType { get; private set; } = SceneType.Unknown;
 
+        private Node3D _currentScene;
+
         // 相机引用
         private Camera3D m_GameCamera;
 
@@ -28,11 +31,13 @@ namespace 途畔归所.Dll.Core
             Instance = this;
             InitManagers();
 
-            m_GameCamera = new Camera3D();
-            m_GameCamera.Name = "GameCamera";
-            m_GameCamera.Current = false;
+            m_GameCamera = new Camera3D
+            {
+                Name = "GameCamera",
+                Current = false
+            };
 
-            GD.Print("[GameCore]：初始化完成");
+            CatLog.Ok("[GameCore]：初始化完成");
         }
 
         public override void _Process(double delta)
@@ -42,15 +47,15 @@ namespace 途畔归所.Dll.Core
 
 
         /// <summary>注：由场景根节点（如主菜单、游戏世界）在 _Ready 时调用，汇报当前场景类型。</summary>
-        public void SetCurrentScene(SceneType sceneType)
+        public void SetCurrentScene(SceneType sceneType,Node3D node3D)
         {
             if (m_CurrentSceneType == sceneType) return;
-            GD.Print($"[GameCore] 场景切换： {m_CurrentSceneType} -> {sceneType}");
 
-            // 离开 MainWorld 时的清理
+            CatLog.Info($"[GameCore] 场景切换： {m_CurrentSceneType} -> {sceneType}");
+
+
             if (m_CurrentSceneType == SceneType.MainWorld)
             {
-                // 如果相机正被 PlayerCamera 持有，先摘下来
                 Node parent = m_GameCamera.GetParent();
                 if (parent != null)
                 {
@@ -61,17 +66,16 @@ namespace 途畔归所.Dll.Core
             }
 
             m_CurrentSceneType = sceneType;
-
-            // 进入 MainWorld 时的准备
+            _currentScene = node3D;
             if (sceneType == SceneType.MainWorld)
             {
-                // 相机加入场景树（暂时作为 GameCore 子节点），稍后 PlayerCamera 会取走
                 if (!m_GameCamera.IsInsideTree())
                 {
                     AddChild(m_GameCamera);
                 }
                 Input.MouseMode = Input.MouseModeEnum.Captured;
             }
+
         }
 
         public Camera3D GetCamera() => m_GameCamera;
@@ -84,7 +88,6 @@ namespace 途畔归所.Dll.Core
             AddChild(NetObjectRegistry.Instance);
 
             ResourceManager.Instance.Init();
-
             AddChild(NetObjectManager.Instance);
 
 

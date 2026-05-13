@@ -10,11 +10,11 @@ public partial class MainMenu : Node3D
 	[Export] private Control m_Lobby;
 	[Export] private Label m_RoomInfo;
 
-	private readonly GameCore.SceneType _sceneType = SceneType.MainMenu;
+	private readonly SceneType _sceneType = SceneType.MainMenu;
 	public override void _Ready()
 	{
 
-		GameCore.Instance.SetCurrentScene(_sceneType);
+		GameCore.Instance.SetCurrentScene(_sceneType,this);
 		ReturnToStart();
 	}
 

@@ -42,11 +42,6 @@ namespace 途畔归所.Dll.Manager
 			NetObjectManager.Instance.SpawnObject(Pos, rot, default,m_LocalPlayer);
 		}
 
-
-
-
-		
-
 		public int GetActivePlayersIndex() => ActivePlayers.Count;
 	}
 }

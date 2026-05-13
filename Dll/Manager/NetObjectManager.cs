@@ -1,6 +1,7 @@
 using Godot;
 using System.Collections.Generic;
 using System.Xml.Linq;
+using 途畔归所.Dll.Core;
 using 途畔归所.Dll.NetWork;
 using 途畔归所.Dll.Utils;
 
@@ -38,8 +39,7 @@ namespace 途畔归所.Dll.Manager
 			{
 				GD.PrintErr("[NetObjectManager] NetObjectRegistry 实例尚未就绪");
 			}
-			GD.Print($"[NetObjectManager]：{m_PrefabDict.Count}");
-			GD.Print($"[NetObjectManager]：已完成初始化");
+			CatLog.Ok($"[NetObjectManager]：已完成初始化，载入资源数量[{m_PrefabDict.Count}]");
 		}
 
 		public PackedScene GetPrefab(int hash)
