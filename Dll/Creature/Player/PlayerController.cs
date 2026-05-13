@@ -1,12 +1,13 @@
 using Godot;
 using 途畔归所.Dll.Core;
+using 途畔归所.Dll.Utils;
 
 namespace 途畔归所.Dll.Creature
 {
-	public class PlayerController
+	[GlobalClass]
+	public partial class PlayerController : Node
 	{
-		private Player player;
-
+		private Player m_player;
 		private Node3D m_PlayerMesh;
 		private Camera3D m_Camera3D;
 
@@ -15,19 +16,52 @@ namespace 途畔归所.Dll.Creature
 		private  float JumpVelocity;
 		private float targetAngle = Mathf.Pi;
 
-		private Vector3 airMomentum;          // 起跳时保存的水平速度
-		private float airControlFactor = 0.2f; // 空中可控系数（0～1），越小惯性越强
-		private float airDrag = 0.98f;        // 每物理帧水平速度保留比例
+		private Vector3 airMomentum;                  // 起跳时保存的水平速度
+		private float airControlFactor = 0.2f;        // 空中可控系数（0～1），越小惯性越强
+		private float airDrag = 0.98f;                // 每物理帧水平速度保留比例
 
-		public PlayerController(Player pl)
+
+		public override void _Ready()
 		{
-			player = pl;
-			m_PlayerMesh = player.m_PlayerModel;
-			m_Camera3D = GameCore.Instance.GetCamera();
+			var node = GetParent();
+			if (node == null)
+			{
+				CatLog.Err($"[PlayerController._Ready]：检测挂载对象是空，已返回");
+				QueueFree();
+				return;
+			}
 
-			Speed = player.m_PlayerData.m_Speed;
-			JumpVelocity = player.m_PlayerData.m_Jump;
+			if (node is not Player pl)
+			{
+				CatLog.Err($"[PlayerController._Ready]：检测挂载对象并非 player ，已返回");
+				QueueFree();
+				return;
+			}
+
+			m_player = pl;
+			m_PlayerMesh = pl.m_PlayerModel;
+			m_Camera3D = GameCore.Instance.GetCamera();
+			Speed = pl.m_PlayerData.m_Speed;
+			JumpVelocity = pl.m_PlayerData.m_Jump;
+
 		}
+
+
+
+		public override void _Process(double delta)
+		{
+			Update(delta);
+		}
+
+
+		public override void _PhysicsProcess(double delta)
+		{
+			PhysicsUpdate(delta);
+		}
+
+
+
+
 
 		/// <summary>
 		/// 每帧逻辑更新（输入、旋转）
@@ -43,7 +77,7 @@ namespace 途畔归所.Dll.Creature
 		/// </summary>
 		public void PhysicsUpdate(double delta)
 		{
-			player.ApplyGravity(delta);
+			m_player.ApplyGravity(delta);
 			HandlePlayerMovement(delta);
 
 		}
@@ -51,11 +85,11 @@ namespace 途畔归所.Dll.Creature
 		private void HandlePlayerMovement(double delta)
 		{
 
-			if (player.m_StateMachine.s_PlayerState == PlayerStateMachine.PlayerState.Attack) return;
-			Vector3 velocity = player.Velocity;
+			if (m_player.m_StateMachine.s_PlayerState == PlayerStateMachine.PlayerState.Attack) return;
+			Vector3 velocity = m_player.Velocity;
 
 			// 跳跃
-			if (Input.IsActionJustPressed("ui_accept") && player.IsOnFloor())
+			if (Input.IsActionJustPressed("ui_accept") && m_player.IsOnFloor())
 			{
 				velocity.Y = JumpVelocity;
 				// 记录起跳瞬间的水平速度（包括因移动带来的速度）
@@ -76,7 +110,7 @@ namespace 途畔归所.Dll.Creature
 			Vector3 direction = cameraForward * (-inputDir.Y) + cameraRight * inputDir.X;
 			direction = direction.Normalized();
 
-			if (player.IsOnFloor())
+			if (m_player.IsOnFloor())
 			{
 				// 地面移动逻辑（保持原样）
 				if (direction != Vector3.Zero)
@@ -111,8 +145,8 @@ namespace 途畔归所.Dll.Creature
 				// 无输入时，速度自然衰减（airDrag 已处理）
 			}
 
-			player.Velocity = velocity;
-			player.MoveAndSlide();
+			m_player.Velocity = velocity;
+			m_player.MoveAndSlide();
 		}
 
 		private void PlayerMoveAnimationDirection(double delta)
@@ -138,10 +172,6 @@ namespace 途畔归所.Dll.Creature
 				m_PlayerMesh.GlobalRotation.Z
 			);
 		}
-
-
-
-
 
 	}
 }

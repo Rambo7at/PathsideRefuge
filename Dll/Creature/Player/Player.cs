@@ -44,19 +44,16 @@ public partial class Player : Humanoid
 		if (!ValidateComponents()) return;
 
 		InitPlayerUIHandler();
-		InitPlayerController();
 	}
 
 	public override void _Process(double delta)
 	{
-		m_Controller.Update(delta);
 		m_PlayerUIHandler.Updata();
 	}
 
 	public override void _PhysicsProcess(double delta)
 	{
 		if (!IsInsideTree()) return;
-		m_Controller.PhysicsUpdate(delta);
 		CheckRaycastInteract();
 	}
 
@@ -95,9 +92,6 @@ public partial class Player : Humanoid
 			containerComp.PlayerInteract(Input.IsActionJustPressed("cat_E"), Input.IsActionJustPressed("cat_F"), this);
 		}
 	}
-
-	/// <summary> 注：初始化玩家控制器 </summary>
-	private void InitPlayerController() => m_Controller ??= new PlayerController(this);
 
 	/// <summary> 注：初始化玩家UI处理器 </summary>
 	private void InitPlayerUIHandler() => m_PlayerUIHandler ??= new PlayerUIHandler(this);

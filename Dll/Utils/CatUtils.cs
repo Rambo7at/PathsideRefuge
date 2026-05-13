@@ -33,8 +33,6 @@ namespace 途畔归所.Dll.Utils
         }
 
 
-
-
         /// <summary>从资源路径提取名称</summary>
         /// <param name="resourcePath">资源路径</param>
         /// <returns>返回资源名，失败时为空</returns>
