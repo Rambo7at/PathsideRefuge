@@ -13,7 +13,7 @@ public partial class SlotComp : UIPanelBase
 	[Export] public CheckBox m_checkBox;
 
 
-    public InventoryComp m_OwnerInventory { get; set; }
+	public InventoryComp m_OwnerInventory { get; set; }
 	public bool IsSlotEmpty { get => m_ItemData == null; }
 
 	public int m_SlotID;
@@ -30,17 +30,17 @@ public partial class SlotComp : UIPanelBase
 		if (m_checkBox.ButtonPressed)
 		{
 			GD.Print("启用了装备");
-            m_OwnerInventory.Equip(m_ItemData);
+			m_OwnerInventory.Equip(m_ItemData);
 
-        }
+		}
 	}
 
 
-    public override void _Ready() 
+	public override void _Ready() 
 	{
-       
+	   
 
-    }
+	}
 
 	/// <summary>回调函数：处理格子上的 GUI 输入事件（鼠标按下/移动）。</summary>
 	/// <param name="mInput">输入事件对象。</param>
@@ -110,10 +110,10 @@ public partial class SlotComp : UIPanelBase
 			return;
 		}
 		if (m_OwnerInventory == null || targetSlot.m_OwnerInventory == null) return;
-        m_OwnerInventory.SwapSlots(this, targetSlot);
-        targetSlot.m_OwnerInventory.RefSlot();
+		m_OwnerInventory.SwapSlots(this, targetSlot);
+		targetSlot.m_OwnerInventory.RefSlot();
 
-    }
+	}
 
 	/// <summary>注：在当前鼠标没有指向任何格子时丢弃物品到世界。</summary>
 	private void DropItem()

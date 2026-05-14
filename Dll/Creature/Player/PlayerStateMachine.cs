@@ -33,25 +33,26 @@ namespace 途畔归所.Dll.Creature
 
 		public override void _Ready()
 		{
+            var node = GetParent();
 
-			if (m_player == null)
-			{
+            if (node == null)
+            {
+                CatLog.Err($"[PlayerStateMachine._Ready]：检测挂载对象是空，已返回");
+                QueueFree();
+                return;
+            }
 
-                var node = GetParent();
 
-                var pl = node as Player;
+            if (node is not Player pl)
+            {
+                CatLog.Err($"[PlayerController._Ready]：检测挂载对象并非 player ，已返回");
+                QueueFree();
+                return;
+            }
 
-				if (pl == null)
-                {
-                    CatLog.Err("[PlayerStateMachine._Ready]：获取父类并不是player");
-                    SetPhysicsProcess(false);
-                    return;
-				}
+            m_player = pl;
 
-				m_player = pl;
-			}
-
-			if (m_player.m_PlayerData == null)
+            if (m_player.m_PlayerData == null)
 			{
                 SetProcess(false);
                 SetPhysicsProcess(false);

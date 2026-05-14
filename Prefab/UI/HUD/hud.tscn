@@ -1,0 +1,85 @@
+[gd_scene format=3 uid="uid://dqnvs5qiu0y42"]
+
+[ext_resource type="Script" uid="uid://ct0ye4s4l3p1g" path="res://Dll/Comp/TestHud.cs" id="1_qdctv"]
+[ext_resource type="Texture2D" uid="uid://c3ydq76rt57j6" path="res://Prefab/UI/HUD/红条.png" id="1_vvi7k"]
+[ext_resource type="Texture2D" uid="uid://b8srh5f7g2y8j" path="res://Prefab/UI/HUD/绿条.png" id="2_o2ye0"]
+[ext_resource type="Texture2D" uid="uid://bgfs47j4osaw4" path="res://Prefab/UI/HUD/血框.png" id="3_w34op"]
+
+[node name="HUD" type="Control" unique_id=1872644542 node_paths=PackedStringArray("_HPG", "_HPR")]
+self_modulate = Color(1, 1, 1, 0)
+layout_mode = 3
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -32.0
+offset_top = -32.0
+offset_right = 32.0
+offset_bottom = 32.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_qdctv")
+_HPG = NodePath("血条/HP绿条")
+_HPR = NodePath("血条/HP红条")
+speed = 100.0
+
+[node name="血条" type="Control" parent="." unique_id=726493251]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="HP红条" type="TextureProgressBar" parent="血条" unique_id=1532055148]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -302.0
+offset_top = 415.0
+offset_right = 308.0
+offset_bottom = 480.0
+grow_horizontal = 2
+grow_vertical = 0
+step = -1.0
+value = 100.0
+texture_progress = ExtResource("1_vvi7k")
+
+[node name="HP绿条" type="TextureProgressBar" parent="血条" unique_id=1292644136]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -302.0
+offset_top = 414.0
+offset_right = 308.0
+offset_bottom = 482.0
+grow_horizontal = 2
+grow_vertical = 2
+step = -1.0
+value = 100.0
+texture_progress = ExtResource("2_o2ye0")
+
+[node name="TextureRect（血框）" type="TextureRect" parent="血条" unique_id=744278000]
+self_modulate = Color(0.9228207, 0.7657399, 0.70993996, 1)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -305.0
+offset_top = 409.0
+offset_right = 318.0
+offset_bottom = 487.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("3_w34op")

@@ -2,6 +2,7 @@ using Godot;
 using Godot.Collections;
 using System;
 using System.Text;
+using 途畔归所.Dll.Utils;
 
 
 namespace 途畔归所.Dll.Core
@@ -109,15 +110,26 @@ namespace 途畔归所.Dll.Core
 
         private string ProcessBroadcastData(byte[] bytes, string senderIP)
         {
+            if (bytes == null || bytes.Length < 4) return null;
+
             Variant data = GD.BytesToVar(bytes);
             if (data.Obj == null) return string.Empty;
 
-            var dict = data.AsGodotDictionary();
-            if (dict == null) return string.Empty;
-            if (!dict.ContainsKey("room_Name")) return string.Empty;
+            try
+            {
+                var dict = data.AsGodotDictionary();
+                if (dict == null) return string.Empty;
+                if (!dict.ContainsKey("room_Name")) return string.Empty;
 
-            LatestRoomIP = senderIP;
-            return senderIP;
+                LatestRoomIP = senderIP;
+                return senderIP;
+            }
+            catch (Exception e)
+            {
+                CatLog.Warn($"[LanCore] 无效广播包: {e.Message}");
+                return string.Empty;
+            }
+
         }
 
 

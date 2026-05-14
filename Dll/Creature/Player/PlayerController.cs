@@ -1,5 +1,6 @@
 using Godot;
 using 途畔归所.Dll.Core;
+using 途畔归所.Dll.NetWork;
 using 途畔归所.Dll.Utils;
 
 namespace 途畔归所.Dll.Creature
@@ -11,6 +12,9 @@ namespace 途畔归所.Dll.Creature
 		private Node3D m_PlayerMesh;
 		private Camera3D m_Camera3D;
 
+		private PlayerStateMachine m_StateMachine;
+
+
 		// 从 Player 中获取的固定数值
 		private  float Speed;
 		private  float JumpVelocity;
@@ -20,6 +24,7 @@ namespace 途畔归所.Dll.Creature
 		private float airControlFactor = 0.2f;        // 空中可控系数（0～1），越小惯性越强
 		private float airDrag = 0.98f;                // 每物理帧水平速度保留比例
 
+		private bool _IsOwner = false;
 
 		public override void _Ready()
 		{
@@ -38,11 +43,30 @@ namespace 途畔归所.Dll.Creature
 				return;
 			}
 
+			var nodeaar = pl.GetChildren();
+
+			foreach (var comp in nodeaar)
+			{
+				if (comp == null) continue;
+				if (comp is PlayerStateMachine StateMachine) m_StateMachine = StateMachine;
+				if (comp is NetSyncBase netSyncBase) _IsOwner = netSyncBase.IsOwner;
+			}
+
+			if (m_StateMachine == null || _IsOwner == false)
+			{
+				CatLog.Err($"[PlayerController._Ready]：检测player对象未有状态机组件，已返回");
+				QueueFree();
+				return;
+			}
+
+
+
 			m_player = pl;
 			m_PlayerMesh = pl.m_PlayerModel;
 			m_Camera3D = GameCore.Instance.GetCamera();
 			Speed = pl.m_PlayerData.m_Speed;
 			JumpVelocity = pl.m_PlayerData.m_Jump;
+
 
 		}
 
@@ -50,12 +74,14 @@ namespace 途畔归所.Dll.Creature
 
 		public override void _Process(double delta)
 		{
+			if (_IsOwner == false) return;
 			Update(delta);
 		}
 
 
 		public override void _PhysicsProcess(double delta)
 		{
+			if (_IsOwner == false) return;
 			PhysicsUpdate(delta);
 		}
 
@@ -85,7 +111,7 @@ namespace 途畔归所.Dll.Creature
 		private void HandlePlayerMovement(double delta)
 		{
 
-			if (m_player.m_StateMachine.s_PlayerState == PlayerStateMachine.PlayerState.Attack) return;
+			if (m_StateMachine.s_PlayerState == PlayerStateMachine.PlayerState.Attack) return;
 			Vector3 velocity = m_player.Velocity;
 
 			// 跳跃

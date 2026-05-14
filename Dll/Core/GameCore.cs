@@ -5,11 +5,11 @@ using 途畔归所.Dll.Utils;
 
 namespace 途畔归所.Dll.Core
 {
+    /// <summary>注：游戏核心类，管理游戏场景、相机及初始化各类管理器。</summary>
     public partial class GameCore : Node
     {
         private static GameCore _instance;
         public static GameCore Instance { get => _instance; private set => _instance ??= value; }
-
 
         public enum SceneType
         {
@@ -46,8 +46,8 @@ namespace 途畔归所.Dll.Core
         }
 
 
-        /// <summary>注：由场景根节点（如主菜单、游戏世界）在 _Ready 时调用，汇报当前场景类型。</summary>
-        public void SetCurrentScene(SceneType sceneType,Node3D node3D)
+        /// <summary>注：场景根节点在 _Ready 时调用，汇报当前场景</summary>
+        public void SetCurrentScene(SceneType sceneType, Node3D node3D)
         {
             if (m_CurrentSceneType == sceneType) return;
 
@@ -78,6 +78,7 @@ namespace 途畔归所.Dll.Core
 
         }
 
+        /// <summary>注：获取相机</summary>
         public Camera3D GetCamera() => m_GameCamera;
 
         /// <summary>注：初始化全部管理器 </summary>

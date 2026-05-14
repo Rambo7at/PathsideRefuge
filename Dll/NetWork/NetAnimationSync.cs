@@ -20,7 +20,7 @@ namespace 途畔归所.Dll.NetWork
             if (parent is not Node3D) return;
 
             _sync = parent.GetNodeOrNull<NetSyncBase>("NetSyncBase");
-            _stateMachine = parent.GetNodeOrNull<PlayerStateMachine>("StateMachine");
+            _stateMachine = parent.GetNodeOrNull<PlayerStateMachine>("PlayerStateMachine");
 
             if (_sync == null || !NetObjectManager.Instance.ContainsNetObject(_sync.m_NetObj.Id))
             {
@@ -69,7 +69,7 @@ namespace 途畔归所.Dll.NetWork
             if (target == null) return;
 
             // ★ 1. 更新主机本地的远程玩家状态机（让主机也能看到动画）
-            var remoteStateMachine = target.GetNodeOrNull<PlayerStateMachine>("StateMachine");
+            var remoteStateMachine = target.GetNodeOrNull<PlayerStateMachine>("PlayerStateMachine");
             remoteStateMachine?.SwitchState((PlayerStateMachine.PlayerState)state);
 
             // ★ 2. 转发给其他客户端（排除发送者）
@@ -91,7 +91,7 @@ namespace 途畔归所.Dll.NetWork
             var target = NetObjectManager.Instance.GetNetObject(netID);
             if (target == null) return;
 
-            var remoteStateMachine = target.GetNodeOrNull<PlayerStateMachine>("StateMachine");
+            var remoteStateMachine = target.GetNodeOrNull<PlayerStateMachine>("PlayerStateMachine");
             remoteStateMachine?.SwitchState((PlayerStateMachine.PlayerState)state);
         }
     }

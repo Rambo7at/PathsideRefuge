@@ -8,16 +8,13 @@ using 途畔归所.Dll.Interface;
 
 public partial class Player : Humanoid
 {
-	[Export] public PlayerCamera m_PlayerCamera;
 	[Export] public Node3D m_PlayerModel;
 	[Export] public CanvasLayer m_CanvasLayer;
-	[Export] public PlayerStateMachine m_StateMachine;
+	[Export] public PlayerUIHandler m_PlayerUIHandler;
 
 	[Export] public BoneAttachment3D m_HandL;
 	[Export] public BoneAttachment3D m_HandR;
 
-	public PlayerUIHandler m_PlayerUIHandler;
-	public PlayerController m_Controller;
 	public bool m_OnUI = false;
 
 	public PlayerData m_PlayerData;
@@ -42,13 +39,11 @@ public partial class Player : Humanoid
 			return;
 		}
 		if (!ValidateComponents()) return;
-
-		InitPlayerUIHandler();
 	}
 
 	public override void _Process(double delta)
 	{
-		m_PlayerUIHandler.Updata();
+
 	}
 
 	public override void _PhysicsProcess(double delta)
@@ -92,9 +87,6 @@ public partial class Player : Humanoid
 			containerComp.PlayerInteract(Input.IsActionJustPressed("cat_E"), Input.IsActionJustPressed("cat_F"), this);
 		}
 	}
-
-	/// <summary> 注：初始化玩家UI处理器 </summary>
-	private void InitPlayerUIHandler() => m_PlayerUIHandler ??= new PlayerUIHandler(this);
 
 	/// <summary> 注：验证所有关键组件是否非空 </summary>
 	private bool ValidateComponents()

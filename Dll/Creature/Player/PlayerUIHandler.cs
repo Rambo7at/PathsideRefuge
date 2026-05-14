@@ -1,42 +1,77 @@
 using Godot;
 using Godot.Collections;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using 维修公司.Dll.data;
 using 途畔归所.Dll.Comp;
-using 途畔归所.Dll.Data;
 using 途畔归所.Dll.Interface;
 using 途畔归所.Dll.Manager;
+using 途畔归所.Dll.NetWork;
+using 途畔归所.Dll.Utils;
 
 namespace 途畔归所.Dll.Creature
 {
-	public class PlayerUIHandler : IInventoryHolder
+	[GlobalClass]
+	public partial class PlayerUIHandler : Node, IInventoryHolder
 	{
-		private Player m_player;
 		public InventoryComp m_InventoryComp;
+
+		private Player m_player;
 		private ConsoleComp m_ConsoleComp;
 		private EscComp m_EscComp;
 		private CanvasLayer m_CanvasLayer;
-
-		public PlayerUIHandler(Player pl)
+		private bool _IsOwner = false;
+		public override void _Ready()
 		{
-			m_player ??= pl;
-			m_CanvasLayer = pl.m_CanvasLayer;
+			var node = GetParent();
+			if (node == null)
+			{
+				CatLog.Err($"[PlayerUIHandler._Ready]：检测挂载对象是空，已返回");
+				QueueFree();
+				return;
+			}
+			if (node is not Player pl)
+			{
+				CatLog.Err($"[PlayerUIHandler._Ready]：检测挂载对象并非 player ，已返回");
+				QueueFree();
+				return;
+			}
+			m_player = pl;
+
+			var nodeaar = node.GetChildren();
+
+			foreach (var comp in nodeaar)
+			{
+
+				if (comp is NetSyncBase netSyncBase)
+				{
+					_IsOwner = netSyncBase.IsOwner;
+
+
+					if (netSyncBase.IsOwner == false)
+					{
+						CatLog.Warn($"[PlayerUIHandler._Ready]：检测player对象并非 本地所有，已销毁");
+						QueueFree();
+						return;
+					}
+
+				}
+
+				if (comp is CanvasLayer canvasLayer) m_CanvasLayer = canvasLayer;
+
+			}
 
 			InitInventory();
 			InitConsole();
 			InitEsc();
+
 		}
 
-		public void Updata()
+
+		public override void _Process(double delta)
 		{
+			if (_IsOwner == false) return;
 			ProcessUIInputs();
 			UpdateMouseMode();
 		}
-
 
 		private void InitInventory()
 		{

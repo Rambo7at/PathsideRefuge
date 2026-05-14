@@ -11,13 +11,11 @@ namespace 途畔归所.Dll.Core
         public static NetCore Instance { get => _instance ??= new(); set => _instance ??= value; }
 
         private const int m_Port = 3043;
-        public const int Max_Player = 4;
+        private const int Max_Player = 4;
 
 
         public const long ServerID = 1; // Godot 服务器 Peer ID 固定为 1
 
-
-        // 判断角色
         public bool IsHost => Multiplayer.IsServer();
         public bool IsClient => !IsHost;
 

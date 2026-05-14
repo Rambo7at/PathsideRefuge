@@ -38,6 +38,11 @@ namespace 途畔归所.Dll.Manager
 
 		public void SpawnLocalPlayer(Vector3 Pos, Vector3 rot)
 		{
+			if (m_LocalPlayerData == null)
+			{
+				CatLog.Err("[PlayerManager.SpawnLocalPlayer]：检测数据信息 m_LocalPlayerData 是空！");
+				return;
+			}
 			m_LocalPlayer.m_PlayerData = m_LocalPlayerData;
 			NetObjectManager.Instance.SpawnObject(Pos, rot, default,m_LocalPlayer);
 		}
