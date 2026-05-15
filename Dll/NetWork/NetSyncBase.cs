@@ -17,14 +17,19 @@ namespace 途畔归所.Dll.NetWork
 
 		public NetObject m_NetObj { get; set; }
 
-		public bool IsOwner => m_NetObj.OwnerPeerID == NetCore.Instance?.LocalPeerID;
+        public bool IsOwner => m_NetObj != null && m_NetObj.OwnerPeerID == NetCore.Instance.LocalPeerID;
 
 
 
         public override void _EnterTree()
         {
+            if (m_NetObj == null)
+            {
 
-            
+                // 这里以后会提交 补充注册，就是我手动放置场景内的物品。
+                CatLog.Warn("[NetSyncBase._Ready]：发现未注册组件，已提交注册");
+            }
+
 
 
         }
@@ -57,12 +62,7 @@ namespace 途畔归所.Dll.NetWork
 
 
 
-            if (m_NetObj == null)
-			{
 
-				// 这里以后会提交 补充注册，就是我手动放置场景内的物品。
-				CatLog.Warn("[NetSyncBase._Ready]：发现未注册组件，已提交注册");
-			}
 
 		}
 
