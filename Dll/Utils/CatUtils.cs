@@ -65,5 +65,19 @@ namespace 途畔归所.Dll.Utils
             return resourceName;
         }
 
+
+
+        public static void StopAndExit(Node node)
+        {
+            node.SetProcess(false);
+            node.SetPhysicsProcess(false);
+
+            node.QueueFree();
+        }
+
+
+
+
+
     }
 }

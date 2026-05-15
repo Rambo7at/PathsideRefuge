@@ -11,8 +11,11 @@ namespace 途畔归所.Dll.Creature
 		private Player m_player;
 		private Node3D m_PlayerMesh;
 		private Camera3D m_Camera3D;
+		private SpringArm3D m_springArm3D;
 
-		private PlayerStateMachine m_StateMachine;
+
+
+        private PlayerStateMachine m_StateMachine;
 
 
 		// 从 Player 中获取的固定数值
@@ -50,25 +53,26 @@ namespace 途畔归所.Dll.Creature
 				if (comp == null) continue;
 				if (comp is PlayerStateMachine StateMachine) m_StateMachine = StateMachine;
 				if (comp is NetSyncBase netSyncBase) _IsOwner = netSyncBase.IsOwner;
-			}
+				if (comp is SpringArm3D springArm3D) m_springArm3D = springArm3D;
 
-			if (m_StateMachine == null || _IsOwner == false)
+
+            }
+
+			if (m_StateMachine == null || _IsOwner == false || m_StateMachine == null)
 			{
 				CatLog.Err($"[PlayerController._Ready]：检测player对象未有状态机组件，已返回");
 				QueueFree();
 				return;
 			}
 
+            
 
-
-			m_player = pl;
+            m_player = pl;
 			m_PlayerMesh = pl.m_PlayerModel;
 			m_Camera3D = GameCore.Instance.GetCamera();
 			Speed = pl.m_PlayerData.m_Speed;
 			JumpVelocity = pl.m_PlayerData.m_Jump;
-
-
-		}
+        }
 
 
 
@@ -175,29 +179,31 @@ namespace 途畔归所.Dll.Creature
 			m_player.MoveAndSlide();
 		}
 
-		private void PlayerMoveAnimationDirection(double delta)
-		{
-			
-			float cameraAngle = m_Camera3D.GlobalRotation.Y;
+        private void PlayerMoveAnimationDirection(double delta)
+        {
+            float cameraAngle = m_Camera3D.GlobalRotation.Y;
+            Vector2 inputDir = Input.GetVector("cat_Left", "cat_Right", "cat_Forward", "cat_Backward");
+            float inputAngle = Mathf.Atan2(inputDir.X, inputDir.Y);
 
-			Vector2 inputDir = Input.GetVector("cat_Left", "cat_Right", "cat_Forward", "cat_Backward");
+            if (inputDir != Vector2.Zero)
+            {
+                targetAngle = cameraAngle + inputAngle;
+            }
 
-			float inputAngle = Mathf.Atan2(inputDir.X, inputDir.Y);
+            float rotationSpeed = 15f;
 
-			if (inputDir != Vector2.Zero)
-			{
-				targetAngle = cameraAngle + inputAngle;
-			}
+            // 因为 PlayerModel 的局部 Y 旋转是 180° (Pi)
+            // 如果要让模型面朝 targetAngle，Player 的 Y 旋转需要设为 targetAngle - Pi
+            float playerTargetY = targetAngle - Mathf.Pi;
+            float currentY = m_player.GlobalRotation.Y;
+            float smoothedY = Mathf.LerpAngle(currentY, playerTargetY, (float)delta * rotationSpeed);
 
-			float rotationSpeed = 15f;
-			float smoothedY = Mathf.LerpAngle(m_PlayerMesh.GlobalRotation.Y, targetAngle, (float)delta * rotationSpeed);
+            m_player.GlobalRotation = new Vector3(
+                m_player.GlobalRotation.X,
+                smoothedY,
+                m_player.GlobalRotation.Z
+            );
+        }
 
-			m_PlayerMesh.GlobalRotation = new Vector3(
-				m_PlayerMesh.GlobalRotation.X,
-				smoothedY,
-				m_PlayerMesh.GlobalRotation.Z
-			);
-		}
-
-	}
+    }
 }

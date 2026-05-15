@@ -54,6 +54,7 @@ public partial class PlayerCamera : SpringArm3D
             }
         }
 
+		TopLevel = true;
 
         var cam = GameCore.Instance.GetCamera();
 		if (cam != null && cam.GetParent() != this)
@@ -70,7 +71,11 @@ public partial class PlayerCamera : SpringArm3D
 	{
 		if (_IsOwner == false) return;
 		m_RayCast3D.GlobalRotation = this.GlobalRotation;
-	}
+
+        GlobalPosition = m_Plyaer.GlobalPosition + new Vector3(0, 1.439f, 0);
+
+        m_RayCast3D.GlobalRotation = this.GlobalRotation;
+    }
 
 
 	public override void _Input(InputEvent @event)

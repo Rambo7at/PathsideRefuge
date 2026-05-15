@@ -27,6 +27,11 @@ namespace 途畔归所.Dll.Manager
             LoadAsset("res://Prefab/Item/et_牛奶罐.tscn");
             LoadAsset("res://Prefab/Item/7at_匕首.tscn");
 
+            LoadAsset("res://Prefab/Piece/et_板条箱.tscn");
+
+
+
+            LoadAsset("res://Prefab/UI/HUD/hud.tscn");
             LoadAsset("res://Prefab/UI/ESC/esc_ui.tscn");
             LoadAsset("res://Prefab/UI/ConsoleUI.tscn");
             LoadAsset("res://Prefab/UI/背包/InventoryUI.tscn");

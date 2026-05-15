@@ -130,7 +130,13 @@ namespace 途畔归所.Dll.Manager
 
             if (node == null)
             {
-                if (!m_PrefabDict.TryGetValue(netobj.PrefabHash, out PackedScene scene)) return;
+                if (!m_PrefabDict.TryGetValue(netobj.PrefabHash, out PackedScene scene))
+                {
+                    CatLog.Err($"[NetObjectManager.HandleSpawned]：使用对象 hash 未获得-PackedScene,哈希：{netobj.PrefabHash}");
+                    return;
+                }
+
+
                 Node instance = scene.Instantiate();
                 if (instance is not Node3D node3D) return;
 

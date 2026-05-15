@@ -1,6 +1,7 @@
 using Godot;
 using 途畔归所.Dll.Core;
 using 途畔归所.Dll.Manager;
+using 途畔归所.Dll.Utils;
 
 namespace 途畔归所.Dll.NetWork
 {
@@ -9,11 +10,12 @@ namespace 途畔归所.Dll.NetWork
 	{
 		[Export] private float _syncInterval = 0.05f;
 		[Export] private float _smoothLerpSpeed = 15.0f;
-		[Export] private Node3D _node3D;
-		[Export] private Node3D _rotMesh;
+
 
 		private float _timer;
-		private NetSyncBase _sync;
+
+        private Node3D _node3D;
+        private NetSyncBase _sync;
 
 		private Vector3 _targetPosition;
 		private Vector3 _targetRotation;
@@ -21,51 +23,65 @@ namespace 途畔归所.Dll.NetWork
 
 		public override void _Ready()
 		{
-			var parent = GetParent();
-			if (_node3D == null)
-			{
-				if (parent is not Node3D node3) return;
-				_node3D = node3;
-			}
+			var ndoe = GetParent();
 
-			_sync = parent.GetNodeOrNull<NetSyncBase>("NetSyncBase");
-			if (_sync == null || !NetObjectManager.Instance.ContainsNetObject(_sync.m_NetObj.Id))
+			if (ndoe is not Node3D node3)
 			{
-				SetProcess(false);
+				CatLog.Err("[NetTransformSync._Ready]：挂载的组件对象，不是Node3D类型，已销毁");
+				CatUtils.StopAndExit(this);
 				return;
 			}
 
-			// 自动查找 rotMesh
-			if (_rotMesh == null)
-				_rotMesh = _node3D.GetNodeOrNull<Node3D>("m_PlayerModel");
+			_node3D = node3;
+
+			foreach (var comp in _node3D.GetChildren())
+			{
+				if (comp is NetSyncBase netSyncBase)
+				{
+					_sync = netSyncBase;
+					break;
+				}
+			}
+
+			if (_sync == null)
+			{
+                CatLog.Err("[NetTransformSync._Ready]：未有在挂载对象中找到 NetSyncBase 组件，已销毁");
+                CatUtils.StopAndExit(this);
+                return;
+            }
+
 		}
 
 		public override void _Process(double delta)
 		{
-			if (_sync == null) return;
+            if (_sync == null) return;
 
-			if (!_sync.IsOwner)
-			{
-				// 远程对象插值
-				if (!_hasTarget) return;
+            if (!_sync.IsOwner)
+            {
+                if (!_hasTarget) return;
 
-				_node3D.GlobalPosition = _node3D.GlobalPosition.Lerp(_targetPosition, _smoothLerpSpeed * (float)delta);
-				if (_rotMesh != null)
-					_rotMesh.GlobalRotation = _rotMesh.GlobalRotation.Lerp(_targetRotation, _smoothLerpSpeed * (float)delta);
-				else
-					_node3D.GlobalRotation = _node3D.GlobalRotation.Lerp(_targetRotation, _smoothLerpSpeed * (float)delta);
-				return;
-			}
+                // 位置平滑
+                _node3D.GlobalPosition = _node3D.GlobalPosition.Lerp(_targetPosition, _smoothLerpSpeed * (float)delta);
 
-			// 以下为 Owner 逻辑
-			_timer += (float)delta;
+                // 旋转平滑（欧拉角直接 Lerp，角度会自动走最短路径）
+                _node3D.GlobalRotation = new Vector3(
+                    Mathf.Lerp(_node3D.GlobalRotation.X, _targetRotation.X, _smoothLerpSpeed * (float)delta),
+                    Mathf.Lerp(_node3D.GlobalRotation.Y, _targetRotation.Y, _smoothLerpSpeed * (float)delta),
+                    Mathf.Lerp(_node3D.GlobalRotation.Z, _targetRotation.Z, _smoothLerpSpeed * (float)delta)
+                );
+
+                return;
+            }
+
+            // 以下为 Owner 逻辑
+            _timer += (float)delta;
 			if (_timer < _syncInterval) return;
 			_timer = 0f;
 
 			Vector3 pos = _node3D.GlobalPosition;
-			Vector3 rot = _rotMesh != null ? _rotMesh.GlobalRotation : _node3D.GlobalRotation;
+			Vector3 rot = _node3D.GlobalRotation;
 
-			if (NetCore.Instance.IsHost)
+            if (NetCore.Instance.IsHost)
 			{
 				// 主机直接广播给所有客户端（排除自己）
 				Rpc(nameof(Rpc_NetTransformSync),
