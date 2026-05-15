@@ -55,8 +55,10 @@ _surfaces = [{
 blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_xebuv")
 
-[node name="ET-树" type="StaticBody3D" unique_id=798133478]
+[node name="ET-树" type="StaticBody3D" unique_id=798133478 node_paths=PackedStringArray("spawn")]
 script = ExtResource("1_qgaes")
+m_dropList = Array[String](["et_木材"])
+spawn = NodePath("Node3D")
 m_VegetationData = SubResource("Resource_u1rlb")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=122819653]
@@ -64,3 +66,6 @@ shape = SubResource("ConcavePolygonShape3D_5gdv6")
 
 [node name="ET-树" type="MeshInstance3D" parent="." unique_id=1994178221]
 mesh = SubResource("ArrayMesh_i61w8")
+
+[node name="Node3D" type="Node3D" parent="." unique_id=1670584274]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5.311166, 0)

@@ -16,7 +16,8 @@ namespace 途畔归所.Dll.Creature
 			Interact = 5, // 开箱子/UI 锁定
 			Build = 6,     // 建造预览模式
 			Attack = 7,
-		}
+            AttackFinished = 8
+        }
 
 		private Player m_player;
 
@@ -29,7 +30,11 @@ namespace 途畔归所.Dll.Creature
 		public bool Idle => m_CurrentState == PlayerState.Idle;
 
 		public bool Attack => m_CurrentState == PlayerState.Attack;
-		public PlayerState s_PlayerState => m_CurrentState;
+
+        public bool AttackFinished => m_CurrentState == PlayerState.AttackFinished;
+
+
+        public PlayerState s_PlayerState => m_CurrentState;
 
 		public override void _Ready()
 		{
@@ -63,6 +68,8 @@ namespace 途畔归所.Dll.Creature
 		public override void _PhysicsProcess(double delta)
 		{
             if (m_player.m_PlayerData == null) return;
+
+
             // 只有在非锁定状态下才自动检测物理状态切换
             if (m_CurrentState != PlayerState.Interact && m_CurrentState != PlayerState.Build)
 			{
@@ -75,26 +82,27 @@ namespace 途畔归所.Dll.Creature
 		{
 			if (m_CurrentState == newState) return;
 
-			// 这里以后可以加：OnExitState(m_CurrentState);
 			m_CurrentState = newState;
-			// 这里以后可以加：OnEnterState(newState);
-
-			//GD.Print($"[State] Changed to: {newState}");
+			//CatLog.Ok($"[State] Changed to: {newState}");
 		}
+
+
 
 		/// <summary> 注：根据玩家速度和是否在地面自动切换物理状态 </summary>
 		private void UpdatePhysicsBasedState()
 		{
 			if (m_CurrentState == PlayerState.Attack) return;
-			// 地面状态：优先检测攻击输入
-			if (m_player.IsOnFloor())
-			{
-				if (Input.IsActionJustPressed("cat_Attack"))
-				{
-					SwitchState(PlayerState.Attack);
-					return; // 攻击触发后不再判断 Walk/Idle
-				}
 
+            if (Input.IsActionJustPressed("cat_Attack"))
+            {
+                SwitchState(PlayerState.Attack);
+                return; // 攻击触发后不再判断 Walk/Idle
+            }
+
+
+            // 地面状态：优先检测攻击输入
+            if (m_player.IsOnFloor())
+			{
 
 				Vector3 horizontalVel = new(m_player.Velocity.X, 0, m_player.Velocity.Z);
 				float speed = horizontalVel.Length();
@@ -116,10 +124,20 @@ namespace 途畔归所.Dll.Creature
 		}
 
 
-		public void EndAttack()
-		{
-			if (m_CurrentState == PlayerState.Attack) SwitchState(PlayerState.Idle);
 
-		}
-	}
+        /// <summary> 注：给动画调用的函数 </summary>
+        public void EndAttack()
+        {
+            if (m_CurrentState != PlayerState.Attack) return;
+
+            // 根据当前水平速度决定下一个状态
+            Vector3 horizontalVel = new(m_player.Velocity.X, 0, m_player.Velocity.Z);
+            PlayerState nextState = horizontalVel.Length() > 0.1f ? PlayerState.Walk : PlayerState.Idle;
+
+            SwitchState(nextState);
+            //CatLog.Ok("执行了EndAttack函数 -> 切换到 " + nextState);
+        }
+
+
+    }
 }

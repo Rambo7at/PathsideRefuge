@@ -26,6 +26,7 @@ namespace 途畔归所.Dll.Base
         }
 
 
+
         public void InitEntityBase()
         {
             if (!string.IsNullOrEmpty(m_EntityGUID)) return;
