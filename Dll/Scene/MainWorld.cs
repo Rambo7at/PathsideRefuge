@@ -9,7 +9,9 @@ public partial class MainWorld : Node3D
     private readonly GameCore.SceneType _sceneType = GameCore.SceneType.MainWorld;
     public override void _Ready()
     {
-        GameCore.Instance.SetCurrentScene(_sceneType,this);
+        GameCore.Instance.SetCurrentSceneType(_sceneType,this);
+
+        GameCore.Instance.SetCurrentScene(this);
 
         PlayerManager.Instance.SpawnLocalPlayer(SpawnPian.GlobalPosition, SpawnPian.Rotation);
     }

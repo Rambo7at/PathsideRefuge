@@ -32,11 +32,10 @@ namespace 途畔归所.Dll.Manager
         /// <summary>注：注册网络对象，主机同步或报告给服务器，并返回对象 ID。</summary>
         public NetID RegisterObject(int hash, Vector3 pos, Vector3 rot)
         {
-            int peer = NetCore.Instance.LocalPeerID;
             NetID id = GetNetID();
-            NetObject netobj = new(id, pos, rot, hash, peer);
-            _netObjects[id] = netobj;
+            NetObject netobj = new(id, pos, rot, hash, id.UserID);
 
+            _netObjects[id] = netobj;
             if (NetCore.Instance.IsHost)
             {
                 Rpc(nameof(Rpc_HostSyncRegister), id.UserID, id.ID, hash, pos, rot);
@@ -84,11 +83,18 @@ namespace 途畔归所.Dll.Manager
             }
 
             // 服务器权威登记
-            var netobj = new NetObject(id, pos, rot, hash, userId); // owner 为上报者
+            var netobj = new NetObject(id, pos, rot, hash, userId);
             _netObjects[id] = netobj;
 
-            // 广播给所有其他客户端（包括上报者也会收到，但 NetObjectManager 可以幂等处理）
-            Rpc(nameof(Rpc_HostSyncRegister), id.UserID, id.ID, hash, pos, rot);
+
+            long senderId = Multiplayer.GetRemoteSenderId();
+            foreach (long peerId in Multiplayer.GetPeers())
+            {
+                if (peerId != senderId && peerId != NetCore.ServerID)
+                {
+                    RpcId(peerId, nameof(Rpc_HostSyncRegister), id.UserID, id.ID, hash, pos, rot);
+                }
+            }
 
             OnSpawned?.Invoke(id, null);
         }
@@ -98,42 +104,34 @@ namespace 途畔归所.Dll.Manager
         {
             if (!NetCore.Instance.IsHost) return;
 
-            GD.Print($"[NetObjectRegistry] 新客户端加入 (ID:{id})，开始向其同步已有对象...");
             foreach (var kvp in _netObjects)
             {
-                NetObject netObj = kvp.Value;
-                // 定向发给新客户端
-                RpcId(id, nameof(Rpc_SyncToPeer), netObj.OwnerPeerID, kvp.Key.ID, netObj.PrefabHash, netObj.Position, netObj.Rotation);
+                if (kvp.Key.UserID == id) continue;
+
+                var prefab = NetObjectManager.Instance.GetPrefab(kvp.Value.PrefabHash);
+
+                RpcId(id, nameof(Rpc_SyncToPeer), kvp.Key.UserID, kvp.Key.ID, kvp.Value.PrefabHash, kvp.Value.Position, kvp.Value.Rotation);
             }
-            GD.Print($"[NetObjectRegistry] 已向客户端 {id} 补发 {_netObjects.Count} 个对象");
+
+            CatLog.Net($"[{NetCore.Instance.LocalPeerID}][NetObjectRegistry] 已向客户端 {id} 补发 {_netObjects.Count} 个对象");
         }
+
 
         /// <summary>注：向新客户端同步网络对象信息，触发对象生成事件。</summary>
         [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
         private void Rpc_SyncToPeer(long userId, uint objId, int hash, Vector3 pos, Vector3 rot)
         {
             NetID id = new(userId, objId);
-            if (_netObjects.ContainsKey(id)) return;   // 可能已经由客户自己上报过了
+            if (_netObjects.ContainsKey(id)) return;
 
             var netobj = new NetObject(id, pos, rot, hash, userId);
+
             _netObjects[id] = netobj;
-            OnSpawned?.Invoke(id, null);   // 触发实例化
+
+            OnSpawned?.Invoke(id, null);   
         }
 
         /// <summary>注：根据网络对象 ID 获取网络对象。</summary>
         public NetObject GetNetObject(NetID id) => _netObjects.TryGetValue(id, out var netobj) ? netobj : null;
-
-        /// <summary>注：打印网络对象的调试信息，包括数量及对象哈希值。</summary>
-        private void DebugPrintNetObjects()
-        {
-
-            GD.PrintErr($"[NetObjectRegistry]：[目标对象是：{NetCore.Instance.LocalPeerID}]-[数量：{_netObjects.Count}]");
-
-            foreach (var item in _netObjects)
-            {
-                GD.PrintErr($"[NetObjectRegistry]：[目标对象是：{NetCore.Instance.LocalPeerID}]-[对象：{item.Value.PrefabHash}]");
-
-            }
-        }
     }
 }

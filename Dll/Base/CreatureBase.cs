@@ -78,15 +78,21 @@ namespace 途畔归所.Dll.Base
             Vector3 target;
 
             if (horizontalVel.LengthSquared() > 0.01f)
-                target = GlobalPosition + horizontalVel;   // 移动中：朝速度方向
+            {
+                target = GlobalPosition + horizontalVel;
+                // 移动中：朝速度方向
+            }
             else
-                target = lookTarget;                       // 静止：朝最终目标
+            {
+                target = lookTarget; // 静止：朝最终目标
+            }
+                               
 
             Vector3 dir = target - GlobalPosition;
             dir.Y = 0;
             if (dir.LengthSquared() < 0.001f) return;
 
-            float targetAngle = Mathf.Atan2(dir.X, dir.Z);
+            float targetAngle = Mathf.Atan2(dir.X, dir.Z) - Mathf.Pi;
             float newY = Mathf.LerpAngle(GlobalRotation.Y, targetAngle, rotationSpeed * delta);
             GlobalRotation = new Vector3(GlobalRotation.X, newY, GlobalRotation.Z);
         }

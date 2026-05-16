@@ -47,7 +47,7 @@ namespace 途畔归所.Dll.Core
 
 
         /// <summary>注：场景根节点在 _Ready 时调用，汇报当前场景</summary>
-        public void SetCurrentScene(SceneType sceneType, Node3D node3D)
+        public void SetCurrentSceneType(SceneType sceneType, Node3D node3D)
         {
             if (m_CurrentSceneType == sceneType) return;
 
@@ -106,5 +106,8 @@ namespace 途畔归所.Dll.Core
             AddChild(consoleMgr);
         }
 
+        public void SetCurrentScene(Node3D node3D) => _currentScene = node3D;
+
+        public Node3D GetCurrentScene() => _currentScene;
     }
 }

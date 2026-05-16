@@ -48,6 +48,8 @@ namespace 途畔归所.Dll.Comp.Vegetation
             if (m_Health <= 0)
             {
 
+
+                CatUtils.StopAndExit(node);
                 foreach (var item in m_dropList)
                 {
                     var DROP = ItemManager.Instance.GetItemDrop(item);
@@ -55,7 +57,6 @@ namespace 途畔归所.Dll.Comp.Vegetation
                     DROP.GlobalPosition = spawn.GlobalPosition;
 
                 }
-                CatUtils.StopAndExit(node);
             }
         }
 

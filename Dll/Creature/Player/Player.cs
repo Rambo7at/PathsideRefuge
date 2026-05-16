@@ -42,6 +42,8 @@ public partial class Player : Humanoid
         {
             SetProcess(false);
             SetPhysicsProcess(false);
+
+
             return;
         }
         if (!ValidateComponents()) return;

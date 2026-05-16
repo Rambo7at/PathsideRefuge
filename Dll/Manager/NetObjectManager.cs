@@ -121,7 +121,8 @@ namespace 途畔归所.Dll.Manager
         {
             if (_netObjectInstances.ContainsKey(m_id))
             {
-                CatLog.Warn($"[NetObjectManager.HandleSpawned] NetID {m_id} 的实例已存在，跳过创建");
+                CatLog.Warn($"[{NetCore.Instance.LocalPeerID}][NetObjectManager.HandleSpawned] NetID {m_id} 的实例已存在，跳过创建");
+                CatLog.Warn($"[{NetCore.Instance.LocalPeerID}][NetObjectManager.HandleSpawned] 重复对象 {GetNetObject(m_id).Name}");
                 return;
             }
 
@@ -136,25 +137,20 @@ namespace 途畔归所.Dll.Manager
                     return;
                 }
 
-
                 Node instance = scene.Instantiate();
                 if (instance is not Node3D node3D) return;
-
 
                 var sync = node3D.GetNodeOrNull<NetSyncBase>("NetSyncBase");
                 if (sync == null) return;
                 sync.m_NetObj = netobj;
 
                 _netObjectInstances[m_id] = instance;
-                GetTree().Root.AddChild(instance);
-
-                node3D.GlobalPosition = netobj.Position;
-                node3D.GlobalRotation = netobj.Rotation;
+                node3D.Position = netobj.Position;
+                node3D.Rotation = netobj.Rotation;
+                GameCore.Instance.GetCurrentScene().AddChild(node3D);
             }
             else
             {
-
-                if (!IsInstanceValid(node)) return;
                 if (node is not Node3D node3D) return;
 
                 var sync = node3D.GetNodeOrNull<NetSyncBase>("NetSyncBase");
@@ -162,12 +158,11 @@ namespace 途畔归所.Dll.Manager
                 sync.m_NetObj = netobj;
 
                 _netObjectInstances[m_id] = node;
-                GetTree().Root.AddChild(node3D);
-
-                node3D.GlobalPosition = netobj.Position;
-                node3D.GlobalRotation = netobj.Rotation;
-
+                node3D.Position = netobj.Position;
+                node3D.Rotation = netobj.Rotation;
+                GameCore.Instance.GetCurrentScene().AddChild(node3D);
             }
+
         }
 
         /// <summary>注：打印网络实例的调试信息，包括数量及对象类型。</summary>

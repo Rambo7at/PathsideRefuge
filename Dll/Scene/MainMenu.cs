@@ -17,7 +17,7 @@ public partial class MainMenu : Node3D
 	public override void _Ready()
 	{
 
-		GameCore.Instance.SetCurrentScene(_sceneType,this);
+		GameCore.Instance.SetCurrentSceneType(_sceneType,this);
 		ReturnToStart();
 	}
 

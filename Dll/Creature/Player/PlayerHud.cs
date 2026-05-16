@@ -1,5 +1,6 @@
 using Godot;
 using 途畔归所.Dll.Manager;
+using 途畔归所.Dll.NetWork;
 using 途畔归所.Dll.Utils;
 
 [GlobalClass]
@@ -8,6 +9,8 @@ public partial class PlayerHud : Node
     private Player m_player;
 
     private CanvasLayer m_CanvasLayer;
+
+    private bool _IsOwner;
 
     public override void _Ready()
     {
@@ -24,11 +27,17 @@ public partial class PlayerHud : Node
 
         foreach (var comp in pl.GetChildren())
         {
-            if (comp is not CanvasLayer canvasLayer) continue;
-            m_CanvasLayer = canvasLayer;
-            break;
+            if (comp is CanvasLayer canvasLayer) m_CanvasLayer = canvasLayer;
+            if (comp is NetSyncBase netSync) _IsOwner = netSync.IsOwner;
         }
 
+        if (_IsOwner == false)
+        {
+            CatLog.Err($"[PlayerUIHandler._Ready]：非所有组件，已销毁");
+            CatUtils.StopAndExit(this);
+            return;
+
+        }
 
         if (m_CanvasLayer == null)
         {

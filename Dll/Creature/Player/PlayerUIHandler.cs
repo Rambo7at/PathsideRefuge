@@ -25,14 +25,14 @@ namespace 途畔归所.Dll.Creature
 			if (node == null)
 			{
 				CatLog.Err($"[PlayerUIHandler._Ready]：检测挂载对象是空，已返回");
-				QueueFree();
+                CatUtils.StopAndExit(this);
 				return;
 			}
 			if (node is not Player pl)
 			{
 				CatLog.Err($"[PlayerUIHandler._Ready]：检测挂载对象并非 player ，已返回");
-				QueueFree();
-				return;
+                CatUtils.StopAndExit(this);
+                return;
 			}
 			m_player = pl;
 
@@ -49,7 +49,7 @@ namespace 途畔归所.Dll.Creature
 					if (netSyncBase.IsOwner == false)
 					{
 						CatLog.Warn($"[PlayerUIHandler._Ready]：检测player对象并非 本地所有，已销毁");
-						QueueFree();
+						CatUtils.StopAndExit(this);
 						return;
 					}
 
