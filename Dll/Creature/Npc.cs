@@ -2,13 +2,20 @@ using Godot;
 using System;
 using System.Linq;
 using 途畔归所.Dll.Base;
+using 途畔归所.Dll.Core;
 using 途畔归所.Dll.Data;
 using 途畔归所.Dll.Manager;
+using 途畔归所.Dll.Utils;
 
 /// <summary> 注：NPC 实体类。当前仅用于测试导航巡逻 </summary>
 public partial class Npc : Humanoid
 {
-	private enum NpcState { Patrol, Chase }
+	private enum NpcState
+	{
+		Patrol = 0,
+		Chase = 1,
+	}
+
 	private NpcState m_currentState = NpcState.Patrol;
 
 	[Export] public NpcData m_NpcData;
@@ -21,7 +28,29 @@ public partial class Npc : Humanoid
 
 	public override void _Ready()
 	{
-		if (!Init()) return;
+
+        if (m_NpcData == null)
+        {
+            GD.PrintErr("[Npc] m_NpcData 为空");
+            return;
+        }
+
+        if (NetCore.Instance.IsClient)
+        {
+            SetProcess(false);
+            SetPhysicsProcess(false);
+            return;
+        }
+
+        if (m_NavigationAgent3D != null)
+        {
+            m_NavigationAgent3D.TargetDesiredDistance = m_NpcData.m_targetDistance;
+            m_NavigationAgent3D.Radius = 0.5f;
+            m_NavigationAgent3D.Height = 1.8f;
+            m_NavigationAgent3D.AvoidanceEnabled = false;
+        }
+
+
 		TestNavigationAvailability();
 	}
 
@@ -39,25 +68,7 @@ public partial class Npc : Humanoid
 		FaceMovementOrTarget(m_NavPatrolTarget, m_NpcData.m_rotationSpeed, dt);
 	}
 
-	private bool Init()
-	{
-		if (m_NpcData == null)
-		{
-			GD.PrintErr("[Npc] m_NpcData 为空");
-			return false;
-		}
 
-		if (m_NavigationAgent3D != null)
-		{
-			m_NavigationAgent3D.TargetDesiredDistance = m_NpcData.m_targetDistance;
-			m_NavigationAgent3D.Radius = 0.5f;
-			m_NavigationAgent3D.Height = 1.8f;
-			m_NavigationAgent3D.AvoidanceEnabled = false;
-		}
-
-		//GD.Print($"[Npc] 初始化完成, 速度={m_NpcData.m_speed}");
-		return true;
-	}
 
 	private void TestNavigationAvailability()
 	{

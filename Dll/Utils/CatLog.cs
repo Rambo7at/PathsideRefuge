@@ -9,11 +9,11 @@ namespace 途畔归所.Dll.Utils
 {
     public static class CatLog
     {
-        public static bool onInfo = false;
-        public static bool onOk = false;
-        public static bool onWarn = false;
-        public static bool onErr = false;
-        public static bool onDebug = false;
+        public static bool onInfo = true;
+        public static bool onOk = true;
+        public static bool onWarn = true;
+        public static bool onErr = true;
+        public static bool onDebug = true;
         public static bool onNet = true;
         public static void Info(string msg) { if (onInfo) GD.Print(msg); }
         public static void Ok(string msg) { if (onOk) GD.PrintRich($"[color=green]{msg}[/color]"); }
