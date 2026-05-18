@@ -19,6 +19,6 @@ namespace 途畔归所.Dll.Interface
         /// <summary>从存档恢复此持有者的库存数据</summary>
         Godot.Collections.Dictionary<int, ItemData> LoadInventory();
         /// <summary>保存此持有者的库存数据</summary>
-        void SaveInventory(Array<SlotComp> slotComps);
+        //void SaveInventory(Array<SlotComp> slotComps);
     }
 }

@@ -1,0 +1,31 @@
+[gd_scene format=3 uid="uid://b6x2o6akmsf8x"]
+
+[ext_resource type="Texture2D" uid="uid://cf4ocen5u2250" path="res://Prefab/UI/容器/宝箱.png" id="1_s7l47"]
+
+[node name="Control" type="Control" unique_id=646939714]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TextureRect" type="TextureRect" parent="." unique_id=126022869]
+layout_mode = 0
+offset_left = 897.0
+offset_top = 195.0
+offset_right = 1704.0
+offset_bottom = 765.0
+texture = ExtResource("1_s7l47")
+
+[node name="GridContainer" type="GridContainer" parent="TextureRect" unique_id=521348]
+z_index = 6
+y_sort_enabled = true
+layout_mode = 0
+offset_left = 134.0
+offset_top = 66.0
+offset_right = 614.0
+offset_bottom = 306.0
+theme_override_constants/h_separation = 80
+theme_override_constants/v_separation = 80
+columns = 7

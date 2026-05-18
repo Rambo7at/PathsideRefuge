@@ -1,0 +1,19 @@
+[gd_scene format=3 uid="uid://cbgrmw8n0a0tr"]
+
+[ext_resource type="Script" uid="uid://chnm6yod7xk6k" path="res://Dll/Comp/UI/PlayerSaveSlotComp.cs" id="1_4cmsk"]
+
+[node name="Control" type="Control" unique_id=614596382 node_paths=PackedStringArray("button")]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("1_4cmsk")
+button = NodePath("Button")
+
+[node name="Button" type="Button" parent="." unique_id=1634355155]
+layout_mode = 0
+theme_override_font_sizes/font_size = 30
+text = "ID：111111111231"
+alignment = 0
+
+[connection signal="pressed" from="Button" to="." method="Pick"]

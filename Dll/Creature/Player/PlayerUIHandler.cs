@@ -6,13 +6,14 @@ using 途畔归所.Dll.Interface;
 using 途畔归所.Dll.Manager;
 using 途畔归所.Dll.NetWork;
 using 途畔归所.Dll.Utils;
+using 途畔归所.Dll.View;
 
 namespace 途畔归所.Dll.Creature
 {
 	[GlobalClass]
 	public partial class PlayerUIHandler : Node, IInventoryHolder
 	{
-		public InventoryComp m_InventoryComp;
+		[Export] public InventoryComp m_InventoryComp;
 
 		private Player m_player;
 		private ConsoleComp m_ConsoleComp;
@@ -25,14 +26,14 @@ namespace 途畔归所.Dll.Creature
 			if (node == null)
 			{
 				CatLog.Err($"[PlayerUIHandler._Ready]：检测挂载对象是空，已返回");
-                CatUtils.StopAndExit(this);
+				CatUtils.StopAndExit(this);
 				return;
 			}
 			if (node is not Player pl)
 			{
 				CatLog.Err($"[PlayerUIHandler._Ready]：检测挂载对象并非 player ，已返回");
-                CatUtils.StopAndExit(this);
-                return;
+				CatUtils.StopAndExit(this);
+				return;
 			}
 			m_player = pl;
 
@@ -75,17 +76,20 @@ namespace 途畔归所.Dll.Creature
 
 		private void InitInventory()
 		{
-			if (m_InventoryComp != null) return;
+			m_InventoryComp ??= new InventoryComp();
+			m_InventoryComp.m_maxCol = 1;
+			m_InventoryComp.m_maxCol = 10;
+			m_InventoryComp.m_dropPos = m_player;
+
+			AddChild(m_InventoryComp);
 
 			var UI = UIManager.Instance.GetUI("InventoryUI");
-			if (UI == null) return;
-			if (UI is not InventoryComp script) return;
-
-			script.Holder = this;
-			m_InventoryComp = script;
-			UI.Visible = false;
-			m_CanvasLayer.AddChild(UI);
+			if (UI is not InventoryView view) return;
+			view.BindData(m_InventoryComp);
+			view.Visible = false;
+			m_CanvasLayer.AddChild(view);
 		}
+
 		private void InitConsole()
 		{
 			if (m_ConsoleComp != null) return;
@@ -99,6 +103,7 @@ namespace 途畔归所.Dll.Creature
 			UI.Visible = false;
 			m_CanvasLayer.AddChild(UI);
 		}
+
 		private void InitEsc()
 		{
 			if (m_EscComp != null) return;
@@ -120,8 +125,8 @@ namespace 途畔归所.Dll.Creature
 			if (Input.IsActionJustPressed("cat_Console")) m_ConsoleComp.ToggleUI();
 			if (Input.IsActionJustPressed("cat_Tab"))
 			{
-				m_InventoryComp.RefSlot();
-				m_InventoryComp.ToggleUI();
+				m_InventoryComp.OnChanged.Invoke();
+				m_InventoryComp.OnToggle.Invoke();
 			}
 			if (Input.IsActionJustPressed("cat_Esc")) m_EscComp.ToggleUI();
 		}
@@ -130,7 +135,7 @@ namespace 途畔归所.Dll.Creature
 		/// <summary>注：根据当前打开的 UI 面板自动切换鼠标模式与 UI 状态标志。</summary>
 		private void UpdateMouseMode()
 		{
-			if (m_ConsoleComp.Visible || m_InventoryComp.Visible || m_EscComp.Visible)
+			if (m_ConsoleComp.Visible  || m_EscComp.Visible || m_InventoryComp.Ui_Visible.Invoke())
 			{
 				Input.MouseMode = Input.MouseModeEnum.Visible;
 
@@ -150,6 +155,6 @@ namespace 途畔归所.Dll.Creature
 
 		public Godot.Collections.Dictionary<int, ItemData> LoadInventory() => m_player.m_PlayerData.m_InventoryData ?? [];
 
-		public void SaveInventory(Array<SlotComp> slotComps) => m_player.m_PlayerData.UpdateInventoryData(slotComps);
+		//public void SaveInventory(Array<SlotComp> slotComps) => m_player.m_PlayerData.UpdateInventoryData(slotComps);
 	}
 }

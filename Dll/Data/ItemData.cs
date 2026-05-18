@@ -54,8 +54,6 @@ namespace 维修公司.Dll.data
 		public bool m_IsStackable => m_Stack < m_MaxStack;
 
 
-
-
 		public ItemData DeepCopy() => this.DuplicateDeep() as ItemData;
 
 		public RigidBody3D DataToDrop()

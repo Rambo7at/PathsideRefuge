@@ -3,193 +3,110 @@ using Godot.Collections;
 using System;
 using System.Collections.Generic;
 using 维修公司.Dll.data;
-using 途畔归所.Dll.Base;
-using 途畔归所.Dll.Interface;
-using 途畔归所.Dll.Manager;
+using 途畔归所.Dll.Utils;
+using 途畔归所.Dll.View;
 
-/// <summary>注：负责管理背包相关功能，包括初始化背包格子、处理物品操作与存档交互等。</summary>
-public partial class InventoryComp : UIPanelBase
+/// <summary>注：负责管理库存相关功能，包括初始化库存格子、处理物品操作与存档交互等。</summary>
+public partial class InventoryComp : Node
 {
-    [Export] private GridContainer m_GridContainer;
+    public enum InventoryType
+    {
+        Backpack = 0,
+        Chest = 1,
+    }
+    [Export] public int m_maxCol = 1;
 
-    public Array<SlotComp> m_InventorySlots = [];
-    public int Capacity { get; set; } = 10;
-    public IInventoryHolder Holder { get; set; }
+    [Export] public int m_maxRow = 1;
 
-    public event Action OnInventoryChanged;
+    [Export] public InventoryType m_inventoryType;
 
-    /// <summary>注：初始化背包格子UI并加载存档数据，完成后刷新显示。</summary>
+    [Export] public Node3D m_dropPos;
+
+    public int m_capacity => m_maxCol * m_maxRow;
+
+
+    public Array<ItemData> m_SlotDatas = [];
+
+
+    public Action OnChanged;
+
+    public Action OnToggle;
+
+    public Func<bool> Ui_Visible;
+
+
+    /// <summary>注：初始化库存格子UI并加载存档数据，完成后刷新显示。</summary>
     public override void _Ready()
     {
-
-        for (int i = 0; i < Capacity; i++)
-        {
-            SlotComp slotUi = UIManager.Instance.GetUI("slot_ui") as SlotComp;
-            m_GridContainer.AddChild(slotUi);
-            m_InventorySlots.Add(slotUi);
-            slotUi.m_SlotID = i;
-            slotUi.BindHolder(this);
-        }
-
-        var data = LoadData(Holder.LoadInventory());
-        if (data.Count == 0) RefSlot();
-        else RefSlot();
+        for (int i = 0; i < m_capacity; i++) m_SlotDatas.Add(null);
     }
 
-    /// <summary>注：每帧执行的逻辑，当前为空实现。</summary>
-    public override void _Process(double delta)
-    {
-    }
 
-    /// <summary>注：尝试添加物品到背包，若成功则刷新显示，物品为空时打印错误。</summary>
+    /// <summary>注：尝试添加物品到库存，若成功则刷新显示，物品为空时打印错误。</summary>
     public bool TryAddItem(ItemData itemData)
     {
         if (itemData == null)
         {
-            GD.PrintErr("[InventoryComp.TryAddItem] 传入的ItemData为空");
+            CatLog.Warn("[InventoryComp.TryAddItem] 传入的ItemData为空，添加库存失败");
             return false;
         }
 
+        if (TryStackItemInInventory(itemData))
+        {
+            OnChanged?.Invoke();
+            return true;
+        }
 
+        var indx = FindEmptySlot();
+        if (indx == -1) return false;
 
-        foreach (var cmop in FindStackableSlot(itemData)) cmop.TryStack(itemData);
-        RefSlot();
-
-        if (itemData.m_Stack <= 0) return true;
-
-        var slot = FindEmptySlot();
-        if (slot == null) return false;
-
-        slot.ApplyData(itemData);
-        RefSlot();
-
+        m_SlotDatas[indx] = itemData.DeepCopy();
+        OnChanged?.Invoke();
         return true;
     }
-    /// <summary>注：交换两个背包格子物品，根据格子状态处理堆叠或交换，并刷新显示。</summary>
-    public void SwapSlots(SlotComp SlotThis, SlotComp SlotTarget)
+
+    public void SwapSlots(SlotView srcSlot, SlotView destSlot)
     {
-        if (SlotThis == null || SlotTarget == null) return;
+        if (srcSlot.isNull) return;
 
-        if (SlotTarget.IsSlotEmpty)
+        if (destSlot.isNull)
         {
-            SlotTarget.m_ItemData = SlotThis.m_ItemData.DeepCopy();
+            destSlot.m_slotData = srcSlot.m_slotData.DeepCopy();
+            srcSlot.m_slotData = null;
+        }
+        else
+        {
+            var srcData = srcSlot.m_slotData.DeepCopy();
+            var destData = destSlot.m_slotData.DeepCopy();
 
-            SlotThis.m_ItemData = null;
+            destSlot.m_slotData = srcData;
+            srcSlot.m_slotData = destData;
 
-            RefSlot();
         }
-        else if (SlotTarget.m_ItemData == SlotThis.m_ItemData)
-        {
-            SlotTarget.m_ItemData.TryStack(SlotThis.m_ItemData);
-            RefSlot();
-        }
-        else if (SlotTarget.m_ItemData != SlotThis.m_ItemData)
-        {
-            ItemData dataA = SlotThis.m_ItemData.DeepCopy();
-            ItemData dataB = SlotTarget.m_ItemData.DeepCopy();
-            SlotThis.m_ItemData = dataB;
-            SlotTarget.m_ItemData = dataA;
-            RefSlot();
-        }
+
+        destSlot.Refresh();
+        srcSlot.Refresh();
     }
 
-    /// <summary>注：刷新背包格子显示，并同步存档数据。</summary>
-    public void RefSlot()
-    {
-        foreach (var comp in m_InventorySlots) comp.Refresh();
-        Holder.SaveInventory(m_InventorySlots);
-    }
-
-    /// <summary>注：尝试让玩家装备物品，玩家对象为空时打印错误。</summary>
-    public void Equip(ItemData itemData)
-    {
-        if (itemData == null) return;
-
-        var pl = PlayerManager.Instance.m_LocalPlayer;
-
-        if (pl == null)
-        {
-            GD.PrintErr("【[InventoryComp.Equip]：获取的玩家对象是空的");
-            return;
-        }
-
-        pl.Equip(itemData);
-    }
-
-    /// <summary>注：查询背包中的空格子。</summary>
+    /// <summary>注：查询库存中的空格子。</summary>
     /// <returns>空的格子组件。</returns>
-    private SlotComp FindEmptySlot()
+    private int FindEmptySlot()
     {
-        foreach (var comp in m_InventorySlots) if (comp.IsSlotEmpty) return comp;
-        return null;
-    }
-
-    /// <summary>注：查找背包中可堆叠指定物品的格子。</summary>
-    private Array<SlotComp> FindStackableSlot(ItemData itemData)
-    {
-        Array<SlotComp> slotArr = [];
-
-        foreach (var slot in m_InventorySlots)
+        for (int i = 0; i < m_SlotDatas.Count; i++)
         {
-            if (slot.m_ItemData != null && slot.m_ItemData.m_ID == itemData.m_ID && slot.m_ItemData.m_IsStackable)
-            {
-                slotArr.Add(slot);
-            }
+            if (m_SlotDatas[i] == null) return i;
         }
-        return slotArr;
+        return -1;
     }
 
-    /// <summary>注：通过格子ID查找对应的背包格子。</summary>
-    private SlotComp FindSlotBySlotId(int slotId)
+    /// <summary>注：查找库存中可堆叠指定物品的格子，并尝试堆叠物品，返回是否成功堆叠完物品。</summary>
+    private bool TryStackItemInInventory(ItemData itemData)
     {
-        foreach (var slot in m_InventorySlots)
+        foreach (var slotdata in m_SlotDatas)
         {
-            if (slot.m_SlotID == slotId)
-            {
-                return slot;
-            }
+            if (itemData.m_Stack <= 0) return true;
+            if (slotdata != null && slotdata.m_ID == itemData.m_ID && slotdata.m_IsStackable) slotdata.TryStack(itemData);
         }
-        return null;
-    }
-
-    /// <summary>注：从存档数据加载物品到背包格子，并返回超出容量的格子索引。</summary>
-    private List<int> LoadData(Godot.Collections.Dictionary<int, ItemData> data)
-    {
-        if (data.Count == 0) return [];
-        List<int> index = [];
-        int slotCount = Capacity - 1;
-
-        foreach (var slot in data)
-        {
-            if (slot.Key > slotCount)
-            {
-                index.Add(slot.Key);
-                continue;
-            }
-
-            var ss = FindSlotBySlotId(slot.Key);
-            if (ss == null) continue;
-
-            ss.m_ItemData = slot.Value.DeepCopy();
-        }
-        return index;
-    }
-
-    /// <summary>注：切换背包UI的显示状态。</summary>
-    public void ToggleUI() => this.Visible = !this.Visible;
-
-    [Obsolete("暂时没用")]
-    /// <summary>注：从指定索引的背包格子移除物品，触发库存变化并刷新格子显示。</summary>
-    private ItemData RemoveItem(int slotIndex)
-    {
-        if (slotIndex < 0 || slotIndex >= m_InventorySlots.Count) return null;
-        SlotComp slot = m_InventorySlots[slotIndex];
-        if (slot.IsSlotEmpty) return null;
-
-        ItemData removed = slot.m_ItemData; // 直接交出引用（注意：不再拷贝）
-        slot.m_ItemData = null;
-        slot.Refresh();
-        OnInventoryChanged?.Invoke();
-        return removed;
+        return itemData.m_Stack < 1;
     }
 }

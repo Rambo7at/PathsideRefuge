@@ -1,162 +1,79 @@
 using Godot;
-using Godot.Collections;
-using 维修公司.Dll.data;
 using 维修公司.Dll.Interface;
-using 途畔归所.Dll.Interface;
 using 途畔归所.Dll.Manager;
+using 途畔归所.Dll.View;
 
-namespace 途畔归所.Dll.Comp
+public partial class ContainerComp : PlacedComp, IInteractable
 {
-	public partial class ContainerComp : PlacedComp, IInventoryHolder, IInteractable
+	public InventoryComp m_InventoryComp;
+	public InventoryView m_inventoryView;
+
+	public bool m_IsOpen { get; private set; }   // 改用独立字段
+
+	private CanvasLayer m_CanvasLayer;
+
+	public override void _Ready()
 	{
+		InitEntityBase();
+		InitInventory();
+	}
 
-		public InventoryComp m_ContainerComp;
-
-		public bool m_IsOpen { get=> m_ContainerComp.IsInsideTree(); }
-
-		private CanvasLayer m_CanvasLayer;
-
-
-		public override void _Ready()
+	public override void _Process(double delta)
+	{
+		if (m_IsOpen && m_CanvasLayer != null)
 		{
-			InitEntityBase();
-
-
-			if (SaveManager.Instance.GetPlacedRuntimeData() == null) return;
-			//GD.Print("不是空的");
-
-			//GD.Print($"长度是{SaveManager.Instance.GetPlacedRuntimeData().Count}");
-			foreach (var item in SaveManager.Instance.GetPlacedRuntimeData())
+			Node owner = m_CanvasLayer.GetOwner();
+			if (owner is Node3D node)
 			{
-				//GD.Print("找到了数据："+ item.Key);
-			}
-
-
-
-			if (SaveManager.Instance.GetPlacedRuntimeData().TryGetValue(m_EntityGUID, out var saved))
-			{
-				CustomData = saved.AsGodotDictionary<string, Variant>();
-				GD.Print("有对应目标存档");
-			}
-
-			InitInventory();
-
-		}
-
-		public override void _Process(double delta)
-		{
-			if (m_IsOpen)
-			{
-				if (m_CanvasLayer.GetOwner() is not Node3D node) return;
-		   
-
 				float distance = GlobalPosition.DistanceTo(node.GlobalPosition);
-
-				if (distance < 3) return;
-
-
-				m_ContainerComp.GetParent().RemoveChild(m_ContainerComp);
-				SaveManager.Instance.SavePlacedRuntimeData(m_EntityGUID, CustomData);
-
-				GD.Print("成功写入了数据");
-				if (SaveManager.Instance.GetPlacedRuntimeData() == null) return;
-				GD.Print("不是空的");
-
-				GD.Print($"长度是{SaveManager.Instance.GetPlacedRuntimeData().Count}");
-
-			}
-		
-		
-		}
-
-
-		private void InitInventory()
-		{
-			if (m_ContainerComp != null) return;
-
-			var UI = UIManager.Instance.GetUI("ContainerUI");
-			if (UI == null) return;
-
-
-			if (UI is not InventoryComp script) return;
-
-
-			script.Holder = this;
-			m_ContainerComp = script;
-		}
-
-
-		public void OpenContainer(Player player)
-		{
-			if (player == null) return;
-			if (m_IsOpen)
-			{
-
-				m_ContainerComp.GetParent().RemoveChild(m_ContainerComp);
-				SaveManager.Instance.SavePlacedRuntimeData(m_EntityGUID, CustomData);
-
-				GD.Print("成功写入了数据");
-				if (SaveManager.Instance.GetPlacedRuntimeData() == null) return;
-				GD.Print("不是空的");
-
-				GD.Print($"长度是{SaveManager.Instance.GetPlacedRuntimeData().Count}");
-
-			}
-			else
-			{
-				m_CanvasLayer = player.m_CanvasLayer;
-				player.m_CanvasLayer.AddChild(m_ContainerComp);
-
+				if (distance >= 3)
+				{
+					// 自动关闭
+					m_inventoryView?.GetParent()?.RemoveChild(m_inventoryView);
+					m_IsOpen = false;
+				}
 			}
 		}
+	}
 
+	private void InitInventory()
+	{
+		m_InventoryComp ??= new InventoryComp();
+		m_InventoryComp.m_maxCol = 1;
+		m_InventoryComp.m_maxRow = 10;
+		m_InventoryComp.m_dropPos = this;
+		AddChild(m_InventoryComp);
 
-		public CanvasLayer GetCanvasLayer()
+		var UI = UIManager.Instance.GetUI("ContainerUI");
+		if (UI is not InventoryView view) return;
+		m_inventoryView = view;                  
+		view.BindData(m_InventoryComp);
+		view.Visible = false;
+	}
+
+	public void OpenContainer(Player player)
+	{
+		if (player == null || m_inventoryView == null) return;
+
+		if (m_IsOpen)
 		{
-			if (m_CanvasLayer == null) return null;
-
-			return m_CanvasLayer;
+			m_inventoryView.GetParent()?.RemoveChild(m_inventoryView);
+			m_IsOpen = false;
 		}
-
-		public Vector3 GetDropPosition() => new(GlobalPosition.X, GlobalPosition.Y + 2, GlobalPosition.Z);
-
-
-		public Dictionary<int, ItemData> LoadInventory()
+		else
 		{
-			if (CustomData == null) return [];
-			if (!CustomData.ContainsKey("container_items")) return [];
-			var slotdata = (Dictionary<int, ItemData>)CustomData["container_items"];
-			if (slotdata == null) return [];
-
-			return slotdata;
+			player.m_CanvasLayer.AddChild(m_inventoryView);
+			m_CanvasLayer = player.m_CanvasLayer;
+			m_inventoryView.Visible = true;
+			m_IsOpen = true;
 		}
+	}
 
-		public void SaveInventory(Array<SlotComp> slotComps)
+	public void PlayerInteract(bool InputE, bool InputF, Player player)
+	{
+		if (InputE)
 		{
-			Dictionary<string, Variant> itemsDict = [];
-			Dictionary<int, ItemData> slotData = [];
-			foreach (var slot in slotComps)
-			{
-				if (slot.IsSlotEmpty) continue;
-				slotData[slot.m_SlotID] = slot.m_ItemData.DeepCopy();
-			}
-
-			// 存入 PlacedBase 的通用容器
-			CustomData["container_items"] = slotData;
-
-
-
-		}
-
-		public void PlayerInteract(bool InputE, bool InputF, Player player)
-		{
-			if (InputE)
-			{
-				OpenContainer(player);
-
-			}
-
-			
+			OpenContainer(player);
 		}
 	}
 }

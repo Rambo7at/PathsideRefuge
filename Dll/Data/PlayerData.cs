@@ -30,16 +30,16 @@ namespace 途畔归所.Dll.Data
 
 		private int SetPlayerID() => _playerID = (_playerID == default) ? Math.Abs(Guid.NewGuid().GetHashCode()) : _playerID;
 
-		public void UpdateInventoryData(Array<SlotComp> slotComps)
-		{
-			m_InventoryData.Clear();
+		//public void UpdateInventoryData(Array<SlotComp> slotComps)
+		//{
+		//	m_InventoryData.Clear();
 
-			foreach (var Slot in slotComps)
-			{
-				if (Slot == null || Slot.IsSlotEmpty) continue;
-				m_InventoryData.Add(Slot.m_SlotID, Slot.m_ItemData.DeepCopy());
-            }
-		}
+		//	foreach (var Slot in slotComps)
+		//	{
+		//		if (Slot == null || Slot.IsSlotEmpty) continue;
+		//		m_InventoryData.Add(Slot.m_SlotID, Slot.m_ItemData.DeepCopy());
+  //          }
+		//}
 
 		public int GetInventoryItemCount()
 		{
