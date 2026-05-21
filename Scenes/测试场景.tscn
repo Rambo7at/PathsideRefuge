@@ -3,14 +3,19 @@
 [ext_resource type="Script" uid="uid://ifxi4iqpfig5" path="res://Dll/Scene/MainWorld.cs" id="1_04x88"]
 [ext_resource type="Texture2D" uid="uid://c01l0e5fhrj37" path="res://Mat/岩石-1/Rock058_1K-PNG_Color.png" id="1_a2o25"]
 [ext_resource type="Texture2D" uid="uid://c1jss78hg0iuv" path="res://Mat/岩石-1/Rock058_1K-PNG_NormalGL.png" id="2_ak4h6"]
+[ext_resource type="Script" uid="uid://bcrc0qpx746xk" path="res://Dll/Data/SceneData.cs" id="2_e120r"]
 [ext_resource type="Texture2D" uid="uid://bdiidrnx6whrn" path="res://Mat/草地-1/Ground037_1K-PNG_Color.png" id="3_04x88"]
 [ext_resource type="Texture2D" uid="uid://dtdyslx8t74rv" path="res://Mat/草地-1/Ground037_1K-PNG_NormalGL.png" id="4_qutry"]
 [ext_resource type="Texture2D" uid="uid://3qru426iufg1" path="res://Mat/道路-1/Ground067_1K-PNG_Color.png" id="5_qutry"]
 [ext_resource type="Texture2D" uid="uid://c1066cwr4ibtc" path="res://Mat/道路-1/Ground067_1K-PNG_NormalGL.png" id="6_4sfak"]
 [ext_resource type="PackedScene" uid="uid://ccyut3db0phlt" path="res://Prefab/Npc/Npc.tscn" id="8_qutry"]
 [ext_resource type="Script" uid="uid://coweqxoimmlvb" path="res://Dll/Data/NpcData.cs" id="9_4sfak"]
-[ext_resource type="PackedScene" uid="uid://b67gkoovomi8k" path="res://Prefab/Piece/et_板条箱.tscn" id="10_3ycm5"]
 [ext_resource type="PackedScene" uid="uid://dohla8te3p0fh" path="res://Prefab/Vegetation/ET-树.tscn" id="11_e120r"]
+
+[sub_resource type="Resource" id="Resource_luoyv"]
+script = ExtResource("2_e120r")
+m_sceneType = 0
+metadata/_custom_type_script = "uid://bcrc0qpx746xk"
 
 [sub_resource type="Gradient" id="Gradient_vr1m7"]
 offsets = PackedFloat32Array(0.2, 1)
@@ -143,9 +148,10 @@ script = ExtResource("9_4sfak")
 m_speed = 3.0
 metadata/_custom_type_script = "uid://coweqxoimmlvb"
 
-[node name="Node3D" type="Node3D" unique_id=1047784342 node_paths=PackedStringArray("SpawnPian")]
+[node name="测试场景" type="Node3D" unique_id=1047784342 node_paths=PackedStringArray("SpawnPian")]
 script = ExtResource("1_04x88")
 SpawnPian = NodePath("playerSpawn")
+m_sceneData = SubResource("Resource_luoyv")
 
 [node name="Terrain3D" type="Terrain3D" parent="." unique_id=1701916262]
 data_directory = "res://Terrain"
@@ -174,6 +180,3 @@ m_NpcData = SubResource("Resource_3ycm5")
 
 [node name="ET-树" parent="." unique_id=798133478 instance=ExtResource("11_e120r")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.67054, 0, 4.9373307)
-
-[node name="ET-板条箱" parent="." unique_id=868758898 instance=ExtResource("10_3ycm5")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.4898424, 0, -0.38172656)

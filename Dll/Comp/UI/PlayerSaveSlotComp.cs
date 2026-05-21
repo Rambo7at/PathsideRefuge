@@ -19,6 +19,6 @@ public partial class PlayerSaveSlotComp : UIPanelBase
 		button.Text = "ID：" + m_PlayerID.ToString();
 	}
 
-	private void Pick() => SaveManager.Instance.SetPickPlayer(m_PlayerID);
+	private void Pick() => SaveManager.Instance.m_selPlayerIdx = m_PlayerID;
 
 }

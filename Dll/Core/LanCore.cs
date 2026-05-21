@@ -64,16 +64,12 @@ namespace 途畔归所.Dll.Core
         }
 
 
-
-
         public void StartBroadcast()
         {
             m_packetPeerUdp = new PacketPeerUdp();
             m_packetPeerUdp.SetBroadcastEnabled(true);
             m_packetPeerUdp.SetDestAddress("255.255.255.255", _port);
         }
-
-
 
         public void StopBroadcast()
         {
@@ -92,8 +88,6 @@ namespace 途畔归所.Dll.Core
 
             m_packetPeerUdp.PutPacket(GD.VarToBytes(data));
         }
-
-
 
         public void StartListening()
         {

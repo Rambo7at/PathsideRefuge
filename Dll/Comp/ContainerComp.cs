@@ -1,11 +1,12 @@
 using Godot;
+using 维修公司.Dll.data;
 using 维修公司.Dll.Interface;
 using 途畔归所.Dll.Manager;
 using 途畔归所.Dll.View;
 
 public partial class ContainerComp : PlacedComp, IInteractable
 {
-	public InventoryComp m_InventoryComp;
+	[Export] public InventoryComp m_InventoryComp;
 	public InventoryView m_inventoryView;
 
 	public bool m_IsOpen { get; private set; }   // 改用独立字段
@@ -38,11 +39,11 @@ public partial class ContainerComp : PlacedComp, IInteractable
 
 	private void InitInventory()
 	{
-		m_InventoryComp ??= new InventoryComp();
-		m_InventoryComp.m_maxCol = 1;
-		m_InventoryComp.m_maxRow = 10;
-		m_InventoryComp.m_dropPos = this;
-		AddChild(m_InventoryComp);
+		if (m_InventoryComp == null)
+		{
+
+			return;
+		}
 
 		var UI = UIManager.Instance.GetUI("ContainerUI");
 		if (UI is not InventoryView view) return;

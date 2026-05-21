@@ -2,7 +2,13 @@
 
 [ext_resource type="Material" uid="uid://nbbdrx8vma80" path="res://demo/assets/materials/M_rock23_tp.tres" id="1_2wtf7"]
 [ext_resource type="Script" uid="uid://bdnly8o7l5rj0" path="res://Dll/Scene/PlayerCreator.cs" id="1_s3vyj"]
+[ext_resource type="Script" uid="uid://bcrc0qpx746xk" path="res://Dll/Data/SceneData.cs" id="2_x0sqp"]
 [ext_resource type="Theme" uid="uid://cxjqe8iwko2rk" path="res://Theme/角色创建.tres" id="3_s3vyj"]
+
+[sub_resource type="Resource" id="Resource_p5c0j"]
+script = ExtResource("2_x0sqp")
+m_sceneType = 1
+metadata/_custom_type_script = "uid://bcrc0qpx746xk"
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_mguh4"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -24,6 +30,7 @@ data = PackedVector3Array(-0.5, 0.5, 0.5, 0.5, 0.5, 0.5, -0.5, -0.5, 0.5, 0.5, 0
 
 [node name="角色创建" type="Node3D" unique_id=1621654289 node_paths=PackedStringArray("m_Name")]
 script = ExtResource("1_s3vyj")
+m_sceneData = SubResource("Resource_p5c0j")
 m_Name = NodePath("CanvasLayer/Control/LineEdit")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=681971583]

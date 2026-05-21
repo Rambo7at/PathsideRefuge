@@ -33,7 +33,7 @@ namespace 途畔归所.Dll.View
 			m_inventoryComp.OnToggle += ToggleUI;
 			m_inventoryComp.Ui_Visible += () => Visible;
 
-			for (int i = 0; i < m_inventoryComp.m_SlotDatas.Count; i++)
+			for (int i = 0; i < m_inventoryComp.m_capacity; i++)
 			{
 				var ui = UIManager.Instance.GetUI(m_uiName);
 				if (ui is not SlotView view)
@@ -136,11 +136,10 @@ namespace 途畔归所.Dll.View
 
 			// 获取释放时鼠标下的目标格子（全局查找）
 			SlotView t_Slot = GetMouseSlot();
-			InventoryComp t_InventoryComp = t_Slot.m_ownerView.m_inventoryComp;
 
 			if (t_Slot == null)
 			{
-				DropItem(m_DragSourceSlot);
+				m_inventoryComp.DropItem(m_DragSourceSlot);
 			}
 			else 
 			{
@@ -149,33 +148,10 @@ namespace 途畔归所.Dll.View
 			m_DragSourceSlot = null;
 		}
 
-        /// <summary>丢弃物品到世界</summary>
-        private void DropItem(SlotView slot)
-        {
-            if (slot.m_slotData == null) return;
 
-            ItemData dropData = slot.m_slotData.DeepCopy();
-            RigidBody3D drop = dropData.DataToDrop();
-            if (drop == null) return;
 
-            // 通过 GameCore 获取当前场景
-            Node currentScene = GameCore.Instance.GetCurrentScene();
-            if (currentScene == null)
-            {
-                drop.QueueFree();
-                CatLog.Warn("[InventoryView.DropItem] 无法获取当前场景");
-                return;
-            }
-
-            currentScene.AddChild(drop);
-            drop.GlobalPosition = m_inventoryComp.m_dropPos.GlobalPosition;
-
-			slot.m_slotData = null;
-            RefreshAllSlots();
-        }
-
-        /// <summary>获取当前鼠标悬停位置所在的 SlotView</summary>
-        private SlotView GetMouseSlot()
+		/// <summary>获取当前鼠标悬停位置所在的 SlotView</summary>
+		private SlotView GetMouseSlot()
 		{
 			Control hovered = GetViewport().GuiGetHoveredControl();
 			while (hovered != null)

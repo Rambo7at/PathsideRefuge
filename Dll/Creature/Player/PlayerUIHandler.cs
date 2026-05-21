@@ -1,7 +1,6 @@
 using Godot;
-using Godot.Collections;
-using 维修公司.Dll.data;
 using 途畔归所.Dll.Comp;
+using 途畔归所.Dll.Data;
 using 途畔归所.Dll.Interface;
 using 途畔归所.Dll.Manager;
 using 途畔归所.Dll.NetWork;
@@ -20,7 +19,10 @@ namespace 途畔归所.Dll.Creature
 		private EscComp m_EscComp;
 		private CanvasLayer m_CanvasLayer;
 		private bool _IsOwner = false;
-		public override void _Ready()
+
+		InventoryData IInventoryHolder.m_HolderInventoryData { get => m_player.m_PlayerData.m_InventoryData ??= new InventoryData(); set => m_player.m_PlayerData.m_InventoryData = value; }
+
+		public override void _EnterTree()
 		{
 			var node = GetParent();
 			if (node == null)
@@ -36,29 +38,25 @@ namespace 途畔归所.Dll.Creature
 				return;
 			}
 			m_player = pl;
+		}
 
-			var nodeaar = node.GetChildren();
+		public override void _Ready()
+		{
 
-			foreach (var comp in nodeaar)
+			foreach (var comp in m_player.GetChildren())
 			{
-
-				if (comp is NetSyncBase netSyncBase)
-				{
-					_IsOwner = netSyncBase.IsOwner;
-
-
-					if (netSyncBase.IsOwner == false)
-					{
-						CatLog.Warn($"[PlayerUIHandler._Ready]：检测player对象并非 本地所有，已销毁");
-						CatUtils.StopAndExit(this);
-						return;
-					}
-
-				}
+				if (comp is NetSyncBase netSyncBase) _IsOwner = netSyncBase.IsOwner;
 
 				if (comp is CanvasLayer canvasLayer) m_CanvasLayer = canvasLayer;
-
 			}
+
+			if (_IsOwner == false)
+			{
+				CatLog.Warn($"[PlayerUIHandler._Ready]：检测player对象并非 本地所有，已销毁");
+				CatUtils.StopAndExit(this);
+				return;
+			}
+
 
 			InitInventory();
 			InitConsole();
@@ -76,12 +74,12 @@ namespace 途畔归所.Dll.Creature
 
 		private void InitInventory()
 		{
-			m_InventoryComp ??= new InventoryComp();
-			m_InventoryComp.m_maxCol = 1;
-			m_InventoryComp.m_maxCol = 10;
-			m_InventoryComp.m_dropPos = m_player;
-
-			AddChild(m_InventoryComp);
+			if (m_InventoryComp == null)
+			{
+				CatLog.Warn($"[PlayerUIHandler.InitInventory]：未挂载 InventoryComp 组件 ");
+				CatUtils.StopAndExit(this);
+				return;
+			}
 
 			var UI = UIManager.Instance.GetUI("InventoryUI");
 			if (UI is not InventoryView view) return;
@@ -135,7 +133,7 @@ namespace 途畔归所.Dll.Creature
 		/// <summary>注：根据当前打开的 UI 面板自动切换鼠标模式与 UI 状态标志。</summary>
 		private void UpdateMouseMode()
 		{
-			if (m_ConsoleComp.Visible  || m_EscComp.Visible || m_InventoryComp.Ui_Visible.Invoke())
+			if (m_ConsoleComp.Visible || m_EscComp.Visible || m_InventoryComp.Ui_Visible.Invoke())
 			{
 				Input.MouseMode = Input.MouseModeEnum.Visible;
 
@@ -149,12 +147,5 @@ namespace 途畔归所.Dll.Creature
 		}
 
 
-		public CanvasLayer GetCanvasLayer() => m_CanvasLayer;
-
-		public Vector3 GetDropPosition() => m_player.m_eye.GlobalPosition + m_player.m_eye.GlobalBasis.Z * -1.0f;
-
-		public Godot.Collections.Dictionary<int, ItemData> LoadInventory() => m_player.m_PlayerData.m_InventoryData ?? [];
-
-		//public void SaveInventory(Array<SlotComp> slotComps) => m_player.m_PlayerData.UpdateInventoryData(slotComps);
 	}
 }

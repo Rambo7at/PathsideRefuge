@@ -3,6 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://b6h2h0bi0oqgm" path="res://Asset/EmacEArt/EmacEArt-中世纪_EA03_FREE_Slavica.png" id="1_3f002"]
 [ext_resource type="Script" uid="uid://b1ulchy608q03" path="res://Dll/Data/PlacedData.cs" id="2_1h3hl"]
 [ext_resource type="Script" uid="uid://o32rt2yhgrwy" path="res://Dll/Comp/ContainerComp.cs" id="4_1h3hl"]
+[ext_resource type="Script" uid="uid://1abgpj4o3um1" path="res://Dll/Comp/InventoryComp.cs" id="4_4acy4"]
 
 [sub_resource type="Resource" id="Resource_gxco0"]
 script = ExtResource("2_1h3hl")
@@ -56,8 +57,9 @@ _surfaces = [{
 blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_pu8lx")
 
-[node name="ET-板条箱" type="StaticBody3D" unique_id=868758898]
+[node name="ET-板条箱" type="StaticBody3D" unique_id=868758898 node_paths=PackedStringArray("m_InventoryComp")]
 script = ExtResource("4_1h3hl")
+m_InventoryComp = NodePath("InventoryComp")
 m_PlacedData = SubResource("Resource_gxco0")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=838669804]
@@ -67,3 +69,12 @@ shape = SubResource("ConcavePolygonShape3D_lymi8")
 mesh = SubResource("ArrayMesh_gxco0")
 
 [node name="ContainerComp" type="Node3D" parent="." unique_id=1618337796]
+
+[node name="InventoryComp" type="Node" parent="." unique_id=1246055324 node_paths=PackedStringArray("m_dropPos")]
+script = ExtResource("4_4acy4")
+m_dropPos = NodePath("../spawnPos")
+m_maxRow = 10
+metadata/_custom_type_script = "uid://1abgpj4o3um1"
+
+[node name="spawnPos" type="Node3D" parent="." unique_id=277562485]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1648115, 0)

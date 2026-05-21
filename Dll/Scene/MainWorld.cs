@@ -1,8 +1,10 @@
 using Godot;
+using 途畔归所.Dll.Base;
 using 途畔归所.Dll.Core;
+using 途畔归所.Dll.Data;
 using 途畔归所.Dll.Manager;
 
-public partial class MainWorld : Node3D
+public partial class MainWorld : SceneBase
 {
     [Export] public Node3D SpawnPian;
 

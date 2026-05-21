@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using 途畔归所.Dll.Manager;
 
 namespace 途畔归所.Dll.Utils
 {
@@ -63,6 +64,18 @@ namespace 途畔归所.Dll.Utils
             }
 
             return resourceName;
+        }
+
+
+
+        public static bool ChangeScene(Node node,string name)
+        {
+           
+            var scene = SceneManager.Instance.GetPackedScene(GetStableHashCode(name));
+            if (scene == null) return false;
+
+            node.GetTree().ChangeSceneToNode(scene);
+            return true;
         }
 
 

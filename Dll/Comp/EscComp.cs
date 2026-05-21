@@ -21,7 +21,7 @@ namespace 途畔归所.Dll.Comp
 
 
 
-		private void Save() => SaveManager.Instance.SaveData();
+		private void Save() => SaveManager.Instance.SaveGameSaveDataToLocal();
 
 
 

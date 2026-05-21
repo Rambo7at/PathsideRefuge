@@ -3,13 +3,13 @@ using Godot;
 
 namespace 途畔归所.Dll.NetWork
 {
-    public class NetObject
+    public partial class NetObject : Resource
     {
         public NetID Id { get; private set; }
-        public int PrefabHash { get; set; }
-        public long OwnerPeerID { get; set; }
-        public Vector3 Position { get; set; }
-        public Vector3 Rotation { get; set; }
+        [Export] public int PrefabHash { get; set; }
+        [Export] public long OwnerPeerID { get; set; }
+        [Export] public Vector3 Position { get; set; }
+        [Export] public Vector3 Rotation { get; set; }
 
         public NetObject(NetID id, Vector3 position, Vector3 rotation, int prefabHash, long ownerPeerID)
         {

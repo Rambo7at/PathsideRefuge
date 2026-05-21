@@ -78,6 +78,10 @@ public partial class Player : Humanoid
         }
     }
 
+
+
+
+
     /// <summary> 注：验证所有关键组件是否非空 </summary>
     private bool ValidateComponents()
     {

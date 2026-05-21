@@ -18,7 +18,7 @@ namespace 途畔归所.Dll.View
 
 		public InventoryView m_ownerView;
 
-		public ItemData m_slotData { get => m_ownerView.m_inventoryComp.m_SlotDatas[m_slotIndex]; set => m_ownerView.m_inventoryComp.m_SlotDatas[m_slotIndex] = value; }
+		public ItemData m_slotData { get => m_ownerView.m_inventoryComp.m_holder.m_HolderInventoryData.m_SlotDatas[m_slotIndex]; set => m_ownerView.m_inventoryComp.m_holder.m_HolderInventoryData.m_SlotDatas[m_slotIndex] = value; }
 
 		public bool isNull => m_slotData == null; 
 

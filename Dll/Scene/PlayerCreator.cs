@@ -1,12 +1,13 @@
 using Godot;
 using System;
+using 途畔归所.Dll.Base;
 using 途畔归所.Dll.Core;
+using 途畔归所.Dll.Data;
 using 途畔归所.Dll.Manager;
 
-public partial class PlayerCreator : Node3D
+public partial class PlayerCreator : SceneBase
 {
-
-	[Export] private LineEdit m_Name;
+    [Export] private LineEdit m_Name;
 
 
 
@@ -33,8 +34,7 @@ public partial class PlayerCreator : Node3D
 
 		if (!string.IsNullOrEmpty(m_Name.Text))
 		{
-			SaveManager.Instance.CreatPlayer(m_Name.Text);
-			SaveManager.Instance.SaveData();
+			SaveManager.Instance.CreatePlayer(m_Name.Text);
 			Return();
 		}
 	}

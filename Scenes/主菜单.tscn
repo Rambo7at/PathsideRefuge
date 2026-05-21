@@ -1,8 +1,17 @@
 [gd_scene format=3 uid="uid://brf4o0xvfmd8h"]
 
 [ext_resource type="Script" uid="uid://hy5ixgsowtf" path="res://Dll/Scene/MainMenu.cs" id="1_ckshb"]
-[ext_resource type="Script" uid="uid://dqaqw1bmsw1s4" path="res://Dll/Scene/PlayerSaveMenu.cs" id="4_7d8j3"]
+[ext_resource type="Script" uid="uid://bcrc0qpx746xk" path="res://Dll/Data/SceneData.cs" id="2_7d8j3"]
+[ext_resource type="Script" uid="uid://bqarb0fywcm1e" path="res://Dll/View/MainMenuView.cs" id="3_57u2r"]
+[ext_resource type="Script" uid="uid://bcuobq8gejhm5" path="res://Dll/View/PlayerSaveDataView.cs" id="4_7d8j3"]
+[ext_resource type="Script" uid="uid://d3n2uh5lhi655" path="res://Dll/View/WorldSaveDataView.cs" id="5_31f7p"]
+[ext_resource type="Script" uid="uid://bu1cnhtinvlio" path="res://Dll/View/PlayMenuView.cs" id="5_cjyvh"]
 [ext_resource type="Theme" uid="uid://ddcpo5it8afda" path="res://Theme/主菜单UI.tres" id="7_cjyvh"]
+
+[sub_resource type="Resource" id="Resource_31f7p"]
+script = ExtResource("2_7d8j3")
+m_NetObject = null
+metadata/_custom_type_script = "uid://bcrc0qpx746xk"
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ckshb"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -17,17 +26,22 @@ sky = SubResource("Sky_4lmad")
 tonemap_mode = 2
 glow_enabled = true
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7d8j3"]
+bg_color = Color(0.18039216, 0.28627452, 0.26666668, 1)
+corner_radius_top_left = 9
+corner_radius_top_right = 9
+corner_radius_bottom_right = 9
+corner_radius_bottom_left = 9
+
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ckshb"]
 albedo_color = Color(0.08321554, 8.928254e-06, 0.39188647, 1)
 
 [sub_resource type="BoxMesh" id="BoxMesh_4lmad"]
 material = SubResource("StandardMaterial3D_ckshb")
 
-[node name="主菜单" type="Node3D" unique_id=650275170 node_paths=PackedStringArray("m_Start", "m_Lobby", "m_RoomInfo")]
+[node name="主菜单" type="Node3D" unique_id=650275170]
 script = ExtResource("1_ckshb")
-m_Start = NodePath("CanvasLayer/开始界面")
-m_Lobby = NodePath("CanvasLayer/大厅界面")
-m_RoomInfo = NodePath("CanvasLayer/大厅界面/PanelContainer2/VBoxContainer/HBoxContainer/Label")
+m_sceneData = SubResource("Resource_31f7p")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=991670717]
 environment = SubResource("Environment_7d8j3")
@@ -38,8 +52,7 @@ shadow_enabled = true
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=2130164997]
 
-[node name="开始界面" type="Control" parent="CanvasLayer" unique_id=22447098]
-visible = false
+[node name="主菜单" type="Control" parent="CanvasLayer" unique_id=22447098 node_paths=PackedStringArray("m_PlayMenuView")]
 layout_mode = 3
 anchors_preset = 8
 anchor_left = 0.5
@@ -48,8 +61,10 @@ anchor_right = 0.5
 anchor_bottom = 0.5
 grow_horizontal = 2
 grow_vertical = 2
+script = ExtResource("3_57u2r")
+m_PlayMenuView = NodePath("../游玩菜单")
 
-[node name="PanelContainer" type="PanelContainer" parent="CanvasLayer/开始界面" unique_id=1741501806]
+[node name="PanelContainer" type="PanelContainer" parent="CanvasLayer/主菜单" unique_id=1741501806]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -64,14 +79,14 @@ grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("7_cjyvh")
 
-[node name="Label" type="Label" parent="CanvasLayer/开始界面/PanelContainer" unique_id=1807453700]
+[node name="Label" type="Label" parent="CanvasLayer/主菜单/PanelContainer" unique_id=1807453700]
 layout_mode = 2
 theme = ExtResource("7_cjyvh")
 text = "途畔归所"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/开始界面" unique_id=1739493526]
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/主菜单" unique_id=1739493526]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -86,22 +101,22 @@ grow_horizontal = 2
 grow_vertical = 2
 theme = ExtResource("7_cjyvh")
 
-[node name="开始游戏" type="Button" parent="CanvasLayer/开始界面/VBoxContainer" unique_id=529472026]
+[node name="开始游戏" type="Button" parent="CanvasLayer/主菜单/VBoxContainer" unique_id=529472026]
 layout_mode = 2
 theme = ExtResource("7_cjyvh")
 text = "开始游戏"
 
-[node name="设置" type="Button" parent="CanvasLayer/开始界面/VBoxContainer" unique_id=1978045722]
+[node name="设置" type="Button" parent="CanvasLayer/主菜单/VBoxContainer" unique_id=1978045722]
 layout_mode = 2
 theme = ExtResource("7_cjyvh")
 text = "设置"
 
-[node name="退出" type="Button" parent="CanvasLayer/开始界面/VBoxContainer" unique_id=856146456]
+[node name="退出" type="Button" parent="CanvasLayer/主菜单/VBoxContainer" unique_id=856146456]
 layout_mode = 2
 theme = ExtResource("7_cjyvh")
 text = "退出"
 
-[node name="大厅界面" type="Control" parent="CanvasLayer" unique_id=939008195]
+[node name="游玩菜单" type="Control" parent="CanvasLayer" unique_id=939008195 node_paths=PackedStringArray("m_MainMenuView", "m_RoomInfo", "输入框")]
 layout_mode = 3
 anchors_preset = 8
 anchor_left = 0.5
@@ -112,77 +127,89 @@ grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
+script = ExtResource("5_cjyvh")
+m_MainMenuView = NodePath("../主菜单")
+m_RoomInfo = NodePath("PanelContainer2/VBoxContainer/HBoxContainer/Label")
+"输入框" = NodePath("世界存档/输入栏")
 
-[node name="返回" type="Button" parent="CanvasLayer/大厅界面" unique_id=26038958]
+[node name="PanelContainer2" type="PanelContainer" parent="CanvasLayer/游玩菜单" unique_id=184942701]
 layout_mode = 0
-offset_left = -333.0
-offset_top = -298.0
-offset_right = -167.0
-offset_bottom = -237.0
+offset_left = -336.0
+offset_top = -173.0
+offset_right = 364.0
+offset_bottom = 377.0
+scale = Vector2(1.04, 1)
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme = ExtResource("7_cjyvh")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/游玩菜单/PanelContainer2" unique_id=634160728]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/游玩菜单/PanelContainer2/VBoxContainer" unique_id=824334434]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="CanvasLayer/游玩菜单/PanelContainer2/VBoxContainer/HBoxContainer" unique_id=423003426]
+layout_mode = 2
+text = "大厅信息"
+
+[node name="加入游戏" type="Button" parent="CanvasLayer/游玩菜单/PanelContainer2/VBoxContainer/HBoxContainer" unique_id=864876074]
+layout_mode = 2
+text = "加入"
+
+[node name="返回" type="Button" parent="CanvasLayer/游玩菜单" unique_id=26038958]
+layout_mode = 0
+offset_left = -336.0
+offset_top = 406.0
+offset_right = -170.0
+offset_bottom = 467.0
 size_flags_horizontal = 4
 size_flags_vertical = 4
 theme = ExtResource("7_cjyvh")
 text = "返回"
 
-[node name="本地游戏" type="Button" parent="CanvasLayer/大厅界面" unique_id=1855247805]
+[node name="本地游戏" type="Button" parent="CanvasLayer/游玩菜单" unique_id=1855247805]
 layout_mode = 0
-offset_left = -154.0
-offset_top = -298.0
-offset_right = 12.0
-offset_bottom = -237.0
+offset_left = -150.0
+offset_top = 406.0
+offset_right = 16.0
+offset_bottom = 467.0
 size_flags_horizontal = 4
 size_flags_vertical = 4
 theme = ExtResource("7_cjyvh")
 text = "本地游戏"
 
-[node name="多人游戏" type="Button" parent="CanvasLayer/大厅界面" unique_id=167667823]
+[node name="多人游戏" type="Button" parent="CanvasLayer/游玩菜单" unique_id=167667823]
 layout_mode = 0
-offset_left = 29.0
-offset_top = -298.0
-offset_right = 195.0
-offset_bottom = -237.0
+offset_left = 36.0
+offset_top = 406.0
+offset_right = 202.0
+offset_bottom = 467.0
 size_flags_horizontal = 4
 size_flags_vertical = 4
 theme = ExtResource("7_cjyvh")
 text = "多人游戏"
 
-[node name="搜索大厅" type="Button" parent="CanvasLayer/大厅界面" unique_id=1549941776]
-layout_mode = 0
-offset_left = 203.0
-offset_top = -298.0
-offset_right = 369.0
-offset_bottom = -237.0
+[node name="搜索大厅" type="Button" parent="CanvasLayer/游玩菜单" unique_id=1549941776]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = 222.0
+offset_top = 406.0
+offset_right = 388.0
+offset_bottom = 467.0
+grow_horizontal = 2
+grow_vertical = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 theme = ExtResource("7_cjyvh")
 text = "搜索大厅"
 
-[node name="PanelContainer2" type="PanelContainer" parent="CanvasLayer/大厅界面" unique_id=184942701]
-layout_mode = 0
-offset_left = -336.0
-offset_top = -228.0
-offset_right = 364.0
-offset_bottom = 322.0
-size_flags_horizontal = 4
-size_flags_vertical = 4
-theme = ExtResource("7_cjyvh")
-
-[node name="VBoxContainer" type="VBoxContainer" parent="CanvasLayer/大厅界面/PanelContainer2" unique_id=634160728]
-layout_mode = 2
-
-[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/大厅界面/PanelContainer2/VBoxContainer" unique_id=824334434]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="CanvasLayer/大厅界面/PanelContainer2/VBoxContainer/HBoxContainer" unique_id=423003426]
-layout_mode = 2
-text = "大厅信息"
-
-[node name="Button" type="Button" parent="CanvasLayer/大厅界面/PanelContainer2/VBoxContainer/HBoxContainer" unique_id=864876074]
-layout_mode = 2
-text = "加入"
-
-[node name="存档菜单" type="Control" parent="CanvasLayer" unique_id=573337085 node_paths=PackedStringArray("PlayerName", "PlayerBox", "SavePice", "SaveBox", "PlayerDataInfo")]
-layout_mode = 3
+[node name="玩家存档" type="Control" parent="CanvasLayer/游玩菜单" unique_id=573337085 node_paths=PackedStringArray("NameLabel", "BagLabel", "ToggleSaveBtn", "PlayerInfoBox", "SaveSlotBox")]
+layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
@@ -196,60 +223,189 @@ grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 4
 script = ExtResource("4_7d8j3")
-PlayerName = NodePath("PanelContainer4/人物信息/playerName")
-PlayerBox = NodePath("PanelContainer4/人物信息/playeBox")
-SavePice = NodePath("选择")
-SaveBox = NodePath("PanelContainer4/存档栏")
-PlayerDataInfo = NodePath("PanelContainer4/人物信息")
+NameLabel = NodePath("PanelContainer4/人物信息/playerName")
+BagLabel = NodePath("PanelContainer4/人物信息/playeBox")
+ToggleSaveBtn = NodePath("选择")
+PlayerInfoBox = NodePath("PanelContainer4/人物信息")
+SaveSlotBox = NodePath("PanelContainer4/存档栏")
 
-[node name="PanelContainer4" type="PanelContainer" parent="CanvasLayer/存档菜单" unique_id=1104802110]
+[node name="PanelContainer4" type="PanelContainer" parent="CanvasLayer/游玩菜单/玩家存档" unique_id=1104802110]
 layout_mode = 0
-offset_left = 433.0
-offset_top = -208.0
-offset_right = 733.0
-offset_bottom = 342.0
+offset_left = -636.0
+offset_top = -153.0
+offset_right = -336.0
+offset_bottom = 397.0
 size_flags_horizontal = 4
 size_flags_vertical = 4
 theme = ExtResource("7_cjyvh")
 
-[node name="人物信息" type="VBoxContainer" parent="CanvasLayer/存档菜单/PanelContainer4" unique_id=903489941]
-visible = false
+[node name="人物信息" type="VBoxContainer" parent="CanvasLayer/游玩菜单/玩家存档/PanelContainer4" unique_id=903489941]
 layout_mode = 2
 
-[node name="playerName" type="Label" parent="CanvasLayer/存档菜单/PanelContainer4/人物信息" unique_id=1806833901]
+[node name="playerName" type="Label" parent="CanvasLayer/游玩菜单/玩家存档/PanelContainer4/人物信息" unique_id=1806833901]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "未创建人物存档"
+
+[node name="playeBox" type="Label" parent="CanvasLayer/游玩菜单/玩家存档/PanelContainer4/人物信息" unique_id=202698653]
 layout_mode = 2
 theme_override_font_sizes/font_size = 30
 
-[node name="playeBox" type="Label" parent="CanvasLayer/存档菜单/PanelContainer4/人物信息" unique_id=202698653]
-layout_mode = 2
-theme_override_font_sizes/font_size = 30
-
-[node name="存档栏" type="VBoxContainer" parent="CanvasLayer/存档菜单/PanelContainer4" unique_id=1004543893]
+[node name="存档栏" type="VBoxContainer" parent="CanvasLayer/游玩菜单/玩家存档/PanelContainer4" unique_id=1004543893]
 layout_mode = 2
 theme_override_constants/separation = 56
 
-[node name="创建" type="Button" parent="CanvasLayer/存档菜单" unique_id=1717617881]
+[node name="创建" type="Button" parent="CanvasLayer/游玩菜单/玩家存档" unique_id=1717617881]
 visibility_layer = 524288
 layout_mode = 0
-offset_left = 441.0
-offset_top = -278.0
-offset_right = 577.0
-offset_bottom = -217.0
+offset_left = -633.0
+offset_top = -222.0
+offset_right = -497.0
+offset_bottom = -161.0
 size_flags_horizontal = 4
 size_flags_vertical = 4
 theme = ExtResource("7_cjyvh")
 text = "创建"
 
-[node name="选择" type="Button" parent="CanvasLayer/存档菜单" unique_id=1232322588]
+[node name="选择" type="Button" parent="CanvasLayer/游玩菜单/玩家存档" unique_id=1232322588]
 layout_mode = 0
-offset_left = 586.0
-offset_top = -278.0
-offset_right = 722.0
-offset_bottom = -217.0
+offset_left = -477.0
+offset_top = -222.0
+offset_right = -341.0
+offset_bottom = -161.0
 size_flags_horizontal = 4
 size_flags_vertical = 4
 theme = ExtResource("7_cjyvh")
 text = "选择"
+
+[node name="世界存档" type="Control" parent="CanvasLayer/游玩菜单" unique_id=634620310 node_paths=PackedStringArray("m_nameLabel", "m_toggleSaveButton", "m_worldInfoBox", "m_saveSlotBox", "m_inputField", "m_inputTextBox")]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("5_31f7p")
+m_nameLabel = NodePath("画布/世界信息/worldName")
+m_toggleSaveButton = NodePath("世界选择")
+m_worldInfoBox = NodePath("画布/世界信息")
+m_saveSlotBox = NodePath("画布/世界存档")
+m_inputField = NodePath("输入栏")
+m_inputTextBox = NodePath("输入栏/画布/HBoxContainer/LineEdit")
+
+[node name="画布" type="PanelContainer" parent="CanvasLayer/游玩菜单/世界存档" unique_id=736859434]
+layout_mode = 0
+offset_left = 432.0
+offset_top = -153.0
+offset_right = 762.0
+offset_bottom = 397.0
+scale = Vector2(1.04, 1)
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme = ExtResource("7_cjyvh")
+
+[node name="世界信息" type="VBoxContainer" parent="CanvasLayer/游玩菜单/世界存档/画布" unique_id=1730860930]
+layout_mode = 2
+
+[node name="worldName" type="Label" parent="CanvasLayer/游玩菜单/世界存档/画布/世界信息" unique_id=1646124074]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "未创建世界存档"
+
+[node name="世界存档" type="VBoxContainer" parent="CanvasLayer/游玩菜单/世界存档/画布" unique_id=1807112866]
+layout_mode = 2
+theme_override_constants/separation = 56
+
+[node name="世界创建" type="Button" parent="CanvasLayer/游玩菜单/世界存档" unique_id=456800502]
+visibility_layer = 524288
+layout_mode = 0
+offset_left = 432.0
+offset_top = -222.0
+offset_right = 568.0
+offset_bottom = -161.0
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme = ExtResource("7_cjyvh")
+text = "创建"
+
+[node name="世界选择" type="Button" parent="CanvasLayer/游玩菜单/世界存档" unique_id=175421066]
+layout_mode = 0
+offset_left = 634.0
+offset_top = -222.0
+offset_right = 770.0
+offset_bottom = -161.0
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme = ExtResource("7_cjyvh")
+text = "选择"
+
+[node name="输入栏" type="Control" parent="CanvasLayer/游玩菜单/世界存档" unique_id=2116350837]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="画布" type="PanelContainer" parent="CanvasLayer/游玩菜单/世界存档/输入栏" unique_id=580461518]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -333.0
+offset_top = -273.0
+offset_right = 367.0
+offset_bottom = -183.0
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(1.04, 1)
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme = ExtResource("7_cjyvh")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="CanvasLayer/游玩菜单/世界存档/输入栏/画布" unique_id=767747222]
+layout_mode = 2
+theme_override_constants/separation = 7
+
+[node name="Label" type="Label" parent="CanvasLayer/游玩菜单/世界存档/输入栏/画布/HBoxContainer" unique_id=1495428091]
+layout_mode = 2
+theme = ExtResource("7_cjyvh")
+theme_override_colors/font_color = Color(0.3910469, 0.79937005, 0.85892224, 1)
+theme_override_colors/font_shadow_color = Color(0.8132577, 0.8132577, 0.81325763, 0)
+theme_override_colors/font_outline_color = Color(0.5987654, 0.021493316, 0.36786515, 1)
+theme_override_font_sizes/font_size = 55
+theme_override_styles/normal = SubResource("StyleBoxFlat_7d8j3")
+text = "名称"
+
+[node name="LineEdit" type="LineEdit" parent="CanvasLayer/游玩菜单/世界存档/输入栏/画布/HBoxContainer" unique_id=881742134]
+layout_mode = 2
+theme = ExtResource("7_cjyvh")
+theme_override_constants/minimum_character_width = 9
+placeholder_text = "输入名称"
+caret_blink = true
+
+[node name="确认" type="Button" parent="CanvasLayer/游玩菜单/世界存档/输入栏/画布/HBoxContainer" unique_id=555862275]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme = ExtResource("7_cjyvh")
+theme_override_font_sizes/font_size = 54
+text = "确认
+"
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1016467814]
 transform = Transform3D(20, 0, 0, 0, 1, 0, 0, 0, 9.920001, 0, 0, 0)
@@ -258,12 +414,15 @@ mesh = SubResource("BoxMesh_4lmad")
 [node name="Camera3D" type="Camera3D" parent="." unique_id=1793849891]
 transform = Transform3D(1, 0, 0, 0, 0.9924587, 0.12257956, 0, 0.12257956, -0.9924587, 0, 2.6937778, -7.647185)
 
-[connection signal="pressed" from="CanvasLayer/开始界面/VBoxContainer/开始游戏" to="." method="StartGame"]
-[connection signal="pressed" from="CanvasLayer/开始界面/VBoxContainer/退出" to="." method="QuitGame"]
-[connection signal="pressed" from="CanvasLayer/大厅界面/返回" to="." method="ReturnToStart"]
-[connection signal="pressed" from="CanvasLayer/大厅界面/本地游戏" to="." method="LocalGame"]
-[connection signal="pressed" from="CanvasLayer/大厅界面/多人游戏" to="." method="MultiplayerGame"]
-[connection signal="pressed" from="CanvasLayer/大厅界面/搜索大厅" to="." method="FindLobby"]
-[connection signal="pressed" from="CanvasLayer/大厅界面/PanelContainer2/VBoxContainer/HBoxContainer/Button" to="." method="JoinRoom"]
-[connection signal="pressed" from="CanvasLayer/存档菜单/创建" to="CanvasLayer/存档菜单" method="Creator"]
-[connection signal="pressed" from="CanvasLayer/存档菜单/选择" to="CanvasLayer/存档菜单" method="OpenSaveSelection"]
+[connection signal="pressed" from="CanvasLayer/主菜单/VBoxContainer/开始游戏" to="CanvasLayer/主菜单" method="StartGame"]
+[connection signal="pressed" from="CanvasLayer/主菜单/VBoxContainer/退出" to="CanvasLayer/主菜单" method="QuitGame"]
+[connection signal="pressed" from="CanvasLayer/游玩菜单/PanelContainer2/VBoxContainer/HBoxContainer/加入游戏" to="CanvasLayer/游玩菜单" method="JoinRoom"]
+[connection signal="pressed" from="CanvasLayer/游玩菜单/返回" to="CanvasLayer/游玩菜单" method="ReturnToStart"]
+[connection signal="pressed" from="CanvasLayer/游玩菜单/本地游戏" to="CanvasLayer/游玩菜单" method="LocalGame"]
+[connection signal="pressed" from="CanvasLayer/游玩菜单/多人游戏" to="CanvasLayer/游玩菜单" method="MultiplayerGame"]
+[connection signal="pressed" from="CanvasLayer/游玩菜单/搜索大厅" to="CanvasLayer/游玩菜单" method="FindLobby"]
+[connection signal="pressed" from="CanvasLayer/游玩菜单/玩家存档/创建" to="CanvasLayer/游玩菜单/玩家存档" method="Creator"]
+[connection signal="pressed" from="CanvasLayer/游玩菜单/玩家存档/选择" to="CanvasLayer/游玩菜单/玩家存档" method="OpenSaveSelection"]
+[connection signal="pressed" from="CanvasLayer/游玩菜单/世界存档/世界创建" to="CanvasLayer/游玩菜单/世界存档" method="Creator"]
+[connection signal="pressed" from="CanvasLayer/游玩菜单/世界存档/世界选择" to="CanvasLayer/游玩菜单/世界存档" method="OpenSaveSelection"]
+[connection signal="pressed" from="CanvasLayer/游玩菜单/世界存档/输入栏/画布/HBoxContainer/确认" to="CanvasLayer/游玩菜单/世界存档" method="OnConfirmWorldName"]
