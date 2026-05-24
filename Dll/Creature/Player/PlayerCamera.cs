@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using 途畔归所.Dll.Core;
+using 途畔归所.Dll.Manager;
 using 途畔归所.Dll.NetWork;
 using 途畔归所.Dll.Utils;
 
@@ -56,7 +57,7 @@ public partial class PlayerCamera : SpringArm3D
 
 		TopLevel = true;
 
-        var cam = GameCore.Instance.GetCamera();
+        var cam = WorldManager.Instance.GetCamera();
 		if (cam != null && cam.GetParent() != this)
 		{
 			cam.GetParent()?.RemoveChild(cam);

@@ -1,7 +1,5 @@
 using Godot;
-using System;
-using System.Runtime.CompilerServices;
-using static 维修公司.Dll.data.ItemData;
+using 途畔归所.Dll.Data;
 
 [GlobalClass]
 public partial class PlacedData : Resource
@@ -22,10 +20,10 @@ public partial class PlacedData : Resource
     [Export] public Texture2D m_Icon { get; set; }
     [Export] public PlacedType m_Type { get; set; }
 
+    [Export] public Variant m_data { get; set; }
 
 
-
-
+    public PlacedData DeepCopy() => this.DuplicateDeep() as PlacedData;
 
 
 }

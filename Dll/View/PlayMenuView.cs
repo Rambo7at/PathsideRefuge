@@ -29,39 +29,28 @@ namespace 途畔归所.Dll.View
 		/// <summary>回调函数：本地游戏 </summary>
 		public void LocalGame()
 		{
-			if (SaveManager.Instance.HasValidPlayerSaveData() == false)
-			{
-				CatUtils.ChangeScene(this, "角色创建");
-				return;
-			}
+			if (CheckSaveDataBeforeAction() == false) return;
 
-			GetTree().ChangeSceneToFile("res://Scenes/测试场景.tscn");
+			WorldManager.Instance.ChangeScene(this, "测试场景");
 		}
 
 		/// <summary>回调函数：在线游戏 </summary>
 		public void MultiplayerGame()
 		{
-			if (SaveManager.Instance.HasValidPlayerSaveData() == false)
-			{
-				GetTree().ChangeSceneToFile("res://Scenes/角色创建.tscn");
-				return;
-			}
+            if (CheckSaveDataBeforeAction() == false) return;
 
-			NetCore.Instance.StartLANHost();
-			GetTree().ChangeSceneToFile("res://Scenes/测试场景.tscn");
-		}
+            NetCore.Instance.StartLANHost();
+            WorldManager.Instance.ChangeScene(this, "测试场景");
+        }
 
 
 		/// <summary>回调函数：搜索大厅 </summary>
 		public void FindLobby()
 		{
-			if (SaveManager.Instance.HasValidPlayerSaveData() == false)
-			{
-				GetTree().ChangeSceneToFile("res://Scenes/角色创建.tscn");
-				return;
-			}
+            if (CheckSaveDataBeforeAction() == false) return;
 
-			NetCore.Instance.FindLANRoom();
+
+            NetCore.Instance.FindLANRoom();
 		}
 
 
@@ -91,6 +80,28 @@ namespace 途畔归所.Dll.View
 			GetTree().ChangeSceneToFile("res://Scenes/测试场景.tscn");
 			GD.Print("[MainWorld] 连接已就绪，发送玩家请求");
 		}
+
+
+		private bool CheckSaveDataBeforeAction()
+		{
+            if (SaveManager.Instance.HasValidPlayerSaveData() == false)
+            {
+                WorldManager.Instance.ChangeScene(this, "角色创建");
+				return false;
+            }
+
+			if (SaveManager.Instance.HasValidWorldSaveData() == false)
+			{
+				输入框.Visible = true;
+                return false;
+            }
+
+            return true;
+        }
+
+
+
+
 
 	}
 }

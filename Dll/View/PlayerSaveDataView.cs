@@ -6,75 +6,90 @@ using 途畔归所.Dll.Utils;
 
 public partial class PlayerSaveDataView : Control
 {
-    [Export] Label NameLabel;
-    [Export] Label BagLabel;
-    [Export] Button ToggleSaveBtn;
-    [Export] VBoxContainer PlayerInfoBox;
-    [Export] VBoxContainer SaveSlotBox;
+    [Export] Label m_nameLabel;
+    [Export] Label m_bagLabel;
+    [Export] Button m_toggleSaveBtn;
+    [Export] VBoxContainer m_playerInfoBox;
+    [Export] VBoxContainer m_saveSlotBox;
 
-    private Array<PlayerSaveSlotComp> SaveBoxArray = [];
-    string Pickinfo;
+    string _butInfo;
 
     public override void _Ready()
     {
-        Pickinfo = ToggleSaveBtn.Text;
-        SaveSlotBox.Visible = false;
-        PlayerInfoBox.Visible = true;
-        RefreshSaveBox();
+        if (m_nameLabel == null || m_bagLabel == null || m_toggleSaveBtn == null || m_playerInfoBox == null || m_saveSlotBox == null)
+        {
+            CatLog.Err("[PlayerSaveDataView] 存在未赋值的导出控件，已跳过初始化。");
+            CatUtils.StopAndExit(this);
+            return;
+        }
+
+        m_saveSlotBox.Visible = false;
+        _butInfo = m_toggleSaveBtn.Text;
+
+        var player = SaveManager.Instance.GetSelectedPlayerData();
+        if (player != null)
+        {
+            ApplyPlayerInfo(player);
+        }
+
+        RefreshSaveSlots();
     }
 
     public override void _Process(double delta)
     {
-        PlayerData playerData = SaveManager.Instance.GetSelectedPlayerData();
-        if (playerData == null) return;
+        var data = SaveManager.Instance.GetSelectedPlayerData();
+        if (data == null) return;
 
-        ApplyPlayerInfo(playerData);
-        PlayerManager.Instance.m_LocalPlayerData = playerData.DeepCopy();
+        ApplyPlayerInfo(data);
+        PlayerManager.Instance.m_LocalPlayerData = data.DeepCopy();
     }
+
+    private void Creator() => WorldManager.Instance.ChangeScene(this, "角色创建");
 
     private void OpenSaveSelection()
     {
-        SaveSlotBox.Visible = !SaveSlotBox.Visible;
-        PlayerInfoBox.Visible = !PlayerInfoBox.Visible;
-
-        if (SaveSlotBox.Visible == true) ToggleSaveBtn.Text = "返回";
-        else ToggleSaveBtn.Text = Pickinfo;
+        m_saveSlotBox.Visible = !m_saveSlotBox.Visible;
+        m_playerInfoBox.Visible = !m_playerInfoBox.Visible;
+        m_toggleSaveBtn.Text = m_toggleSaveBtn.Text == _butInfo ? "返回" : _butInfo;
     }
 
-    private void Creator()
+    private void ApplyPlayerInfo(PlayerData data)
     {
-        CatUtils.ChangeScene(this, "角色创建");
-        return;
+        m_nameLabel.Text = "玩家名：" + data.m_Name;
+        m_bagLabel.Text = "背包库存：" + data.GetInventoryItemCount();
     }
 
-    private void ApplyPlayerInfo(PlayerData playerData)
+    private void RefreshSaveSlots()
     {
-        if (playerData == null) return;
-        NameLabel.Text = "玩家名：" + playerData.m_Name;
-        BagLabel.Text = "背包库存：" + playerData.GetInventoryItemCount();
-    }
-
-    private void RefreshSaveBox()
-    {
-        if (SaveBoxArray.Count != 0)
+        // 清空旧槽位
+        var children = m_saveSlotBox.GetChildren();
+        foreach (var child in children)
         {
-            foreach (var item in SaveBoxArray)
-            {
-                item.QueueFree();
-            }
+            child.QueueFree();
         }
-        SaveBoxArray.Clear();
 
-        var IDs = SaveManager.Instance.GetAllPlayerIDs();
-        if (IDs.Count <= 1) return;
+        var ids = SaveManager.Instance.GetAllPlayerIDs();
+        if (ids == null || ids.Count == 0) return;
 
-        for (int i = 0; i < IDs.Count; i++)
+        foreach (int id in ids)
         {
-            var ui = UIManager.Instance.GetUI("存档信息") as PlayerSaveSlotComp;
-            if (ui == null) return;
+            var slot = UIManager.Instance.GetUI("Button_A1") as Button;
+            if (slot == null) continue;
 
-            ui.m_PlayerID = IDs[i];
-            SaveSlotBox.AddChild(ui);
+            slot.Text = "ID:" + id;
+            m_saveSlotBox.AddChild(slot);
+
+            slot.Pressed += () => OnButtonPressed(id);
+
         }
     }
+
+    private void OnButtonPressed(int ID)
+    {
+        SaveManager.Instance.m_selPlayerIdx = ID;
+        OpenSaveSelection();
+    }
+
+
+
 }

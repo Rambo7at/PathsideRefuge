@@ -2,6 +2,7 @@ using Godot;
 using System.Collections.Generic;
 using System.Xml.Linq;
 using 途畔归所.Dll.Core;
+using 途畔归所.Dll.Data;
 using 途畔归所.Dll.NetWork;
 using 途畔归所.Dll.Utils;
 
@@ -94,21 +95,25 @@ namespace 途畔归所.Dll.Manager
         }
 
         /// <summary>注：根据参数生成网络对象，参数无效则输出错误。</summary>
-        public void SpawnObject(Vector3 pos, Vector3 rot, int hash = default, Node node = null)
+        public void SpawnObject(Vector3 pos, Vector3 rot, int hash = default, Node node = null , NetObject netObject = null)
         {
-            if (hash != default && node == null)
+            if (hash != default && node == null && netObject == null)
             {
                 if (ContainsPrefab(hash) == false) return;
 
                 HandleSpawned(NetObjectRegistry.Instance.RegisterObject(hash, pos, rot));
             }
-            else if (node != null && hash == default)
+            else if (node != null && hash == default && netObject == null)
             {
                 if (!IsInstanceValid(node)) return;
                 int nodehash = GetPrefabHash(node.Name);
                 if (nodehash == default) return;
 
                 HandleSpawned(NetObjectRegistry.Instance.RegisterObject(nodehash, pos, rot), node);
+            }
+            else if (netObject != null && hash == default && node == null)
+            {
+                HandleSpawned(NetObjectRegistry.Instance.RegisterObject(netObject.PrefabHash, pos, rot, netObject));
             }
             else
             {
@@ -129,6 +134,15 @@ namespace 途畔归所.Dll.Manager
             NetObject netobj = NetObjectRegistry.Instance.GetNetObject(m_id);
             if (netobj == null) return;
 
+            var currentScene = WorldManager.Instance.GetCurrentScene();
+            if (currentScene == null) return;
+
+            if (netobj.sceneHash == default)
+            {
+                if (currentScene.m_sceneData.m_sceneType != SceneData.SceneType.GameScene) return;
+                netobj.sceneHash = currentScene.m_sceneData.m_sceneHash;
+            }
+
             if (node == null)
             {
                 if (!m_PrefabDict.TryGetValue(netobj.PrefabHash, out PackedScene scene))
@@ -143,11 +157,10 @@ namespace 途畔归所.Dll.Manager
                 var sync = node3D.GetNodeOrNull<NetSyncBase>("NetSyncBase");
                 if (sync == null) return;
                 sync.m_NetObj = netobj;
-
                 _netObjectInstances[m_id] = instance;
                 node3D.Position = netobj.Position;
                 node3D.Rotation = netobj.Rotation;
-                GameCore.Instance.GetCurrentScene().AddChild(node3D);
+                currentScene.AddChild(node3D);
             }
             else
             {
@@ -156,11 +169,10 @@ namespace 途畔归所.Dll.Manager
                 var sync = node3D.GetNodeOrNull<NetSyncBase>("NetSyncBase");
                 if (sync == null) return;
                 sync.m_NetObj = netobj;
-
                 _netObjectInstances[m_id] = node;
                 node3D.Position = netobj.Position;
                 node3D.Rotation = netobj.Rotation;
-                GameCore.Instance.GetCurrentScene().AddChild(node3D);
+                currentScene.AddChild(node3D);
             }
 
         }
@@ -179,5 +191,8 @@ namespace 途畔归所.Dll.Manager
 
             }
         }
+
+
+
     }
 }

@@ -11,79 +11,19 @@ namespace 途畔归所.Dll.Core
         private static GameCore _instance;
         public static GameCore Instance { get => _instance; private set => _instance ??= value; }
 
-        public enum SceneType
-        {
-            Unknown,
-            MainMenu,
-            PlayerCreator,
-            MainWorld,
-        }
-
-        public SceneType m_CurrentSceneType { get; private set; } = SceneType.Unknown;
-
-        private Node3D _currentScene;
-
-        // 相机引用
-        private Camera3D m_GameCamera;
-
         public override void _Ready()
         {
             Instance = this;
             InitManagers();
 
-            m_GameCamera = new Camera3D
-            {
-                Name = "GameCamera",
-                Current = false
-            };
-
             CatLog.Ok("[GameCore]：初始化完成");
         }
 
-        public override void _Process(double delta)
-        {
-
-        }
-
-
-        /// <summary>注：场景根节点在 _Ready 时调用，汇报当前场景</summary>
-        public void SetCurrentSceneType(SceneType sceneType, Node3D node3D)
-        {
-            if (m_CurrentSceneType == sceneType) return;
-
-            CatLog.Info($"[GameCore] 场景切换： {m_CurrentSceneType} -> {sceneType}");
-
-
-            if (m_CurrentSceneType == SceneType.MainWorld)
-            {
-                Node parent = m_GameCamera.GetParent();
-                if (parent != null)
-                {
-                    parent.RemoveChild(m_GameCamera);
-                }
-                m_GameCamera.Current = false;
-                Input.MouseMode = Input.MouseModeEnum.Visible;
-            }
-
-            m_CurrentSceneType = sceneType;
-            _currentScene = node3D;
-            if (sceneType == SceneType.MainWorld)
-            {
-                if (!m_GameCamera.IsInsideTree())
-                {
-                    AddChild(m_GameCamera);
-                }
-                Input.MouseMode = Input.MouseModeEnum.Captured;
-            }
-
-        }
-
-        /// <summary>注：获取相机</summary>
-        public Camera3D GetCamera() => m_GameCamera;
 
         /// <summary>注：初始化全部管理器 </summary>
         private void InitManagers()
         {
+            SaveManager.Instance.Init();
 
             AddChild(NetCore.Instance);
             AddChild(NetObjectRegistry.Instance);
@@ -92,7 +32,7 @@ namespace 途畔归所.Dll.Core
             AddChild(NetObjectManager.Instance);
 
 
-            SaveManager.Instance.Init();
+            
             ItemManager.Instance.Init();
             UIManager.Instance.Init();
 
@@ -106,8 +46,5 @@ namespace 途畔归所.Dll.Core
             AddChild(consoleMgr);
         }
 
-        public void SetCurrentScene(Node3D node3D) => _currentScene = node3D;
-
-        public Node3D GetCurrentScene() => _currentScene;
     }
 }

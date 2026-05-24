@@ -4,6 +4,7 @@ using 维修公司.Dll.data;
 using 途畔归所.Dll.Core;
 using 途畔归所.Dll.Data;
 using 途畔归所.Dll.Interface;
+using 途畔归所.Dll.Manager;
 using 途畔归所.Dll.Utils;
 using 途畔归所.Dll.View;
 using static 途畔归所.Dll.Data.InventoryData;
@@ -120,7 +121,7 @@ public partial class InventoryComp : Node
 		if (drop == null) return;
 
 		drop.Position = m_dropPos.GlobalPosition;
-		GameCore.Instance.GetCurrentScene().AddChild(drop);
+        WorldManager.Instance.GetCurrentScene().AddChild(drop);
 
 		slot.m_slotData = null;
 		OnChanged?.Invoke();
@@ -135,7 +136,7 @@ public partial class InventoryComp : Node
 		if (drop == null) return;
 
 		drop.Position = m_dropPos.GlobalPosition;
-		GameCore.Instance.GetCurrentScene().AddChild(drop);
+        WorldManager.Instance.GetCurrentScene().AddChild(drop);
 	}
 
 

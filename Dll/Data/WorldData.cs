@@ -15,6 +15,8 @@ namespace 途畔归所.Dll.Data
         public string m_name { get => _name; set { _name = value; SetWorldID(); } }
         private int SetWorldID() => _worldID = (_worldID == default) ? Math.Abs(Guid.NewGuid().GetHashCode()) : _worldID;
 
+
+
         public WorldData DeepCopy() => this.DuplicateDeep() as WorldData;
     }
 }

@@ -16,37 +16,34 @@ public partial class Player : Humanoid
 
     [Export] public Area3D m_hitBox;
 
+    public bool IsMirror = false;
     public bool m_OnUI = false;
-
     public PlayerData m_PlayerData;
     public float m_BaseAttackDamage = 20f;  // 临时测试变量
 
 
 
 
-
-    public void Equip(ItemData itemData)
-    {
-        var drop = itemData.DataToDrop();
-        if (drop == null) return;
-
-        var item = drop as ItemComp;
-        m_HandR.AddChild(item);
-    }
-
-
-    public override void _Ready()
+    public override void _EnterTree()
     {
         if (m_PlayerData == null)
         {
             SetProcess(false);
             SetPhysicsProcess(false);
-
-
+            IsMirror = true;
             return;
         }
+    }
+
+    public override void _Ready()
+    {
+
         if (!ValidateComponents()) return;
     }
+
+
+
+
 
     public override void _Process(double delta)
     {
@@ -57,6 +54,15 @@ public partial class Player : Humanoid
     {
         if (!IsInsideTree()) return;
         CheckRaycastInteract();
+    }
+
+    public void Equip(ItemData itemData)
+    {
+        var drop = itemData.DataToDrop();
+        if (drop == null) return;
+
+        var item = drop as ItemComp;
+        m_HandR.AddChild(item);
     }
 
     /// <summary> 注：视线射线检测交互对象 </summary>

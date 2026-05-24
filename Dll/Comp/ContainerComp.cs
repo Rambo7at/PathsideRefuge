@@ -1,22 +1,65 @@
 using Godot;
-using 维修公司.Dll.data;
 using 维修公司.Dll.Interface;
+using 途畔归所.Dll.Data;
+using 途畔归所.Dll.Interface;
 using 途畔归所.Dll.Manager;
+using 途畔归所.Dll.NetWork;
+using 途畔归所.Dll.Utils;
 using 途畔归所.Dll.View;
 
-public partial class ContainerComp : PlacedComp, IInteractable
+public partial class ContainerComp : PlacedComp, IInteractable, IInventoryHolder
 {
-	[Export] public InventoryComp m_InventoryComp;
+	private InventoryComp m_InventoryComp;
+	private InventoryData m_inventoryData;
 	public InventoryView m_inventoryView;
-
-	public bool m_IsOpen { get; private set; }   // 改用独立字段
+	public bool m_IsOpen { get; private set; }
+	InventoryData IInventoryHolder.m_HolderInventoryData { get => m_inventoryData ??= new(); set => m_inventoryData = value; }
 
 	private CanvasLayer m_CanvasLayer;
 
 	public override void _Ready()
 	{
-		InitEntityBase();
-		InitInventory();
+
+		NetObject netObject = null;
+
+		foreach (var node in GetChildren())
+		{
+			if (node is NetSyncBase comp)
+			{
+				if (comp.m_NetObj == null) return;
+
+				comp.OnFlushNetState += () => FlushInventory(comp.m_NetObj);
+
+				netObject = comp.m_NetObj;
+			}
+
+			if (node is InventoryComp inventoryComp) m_InventoryComp = inventoryComp;
+		}
+
+		if (m_InventoryComp == null)
+		{
+			CatUtils.StopAndExit(this);
+			return;
+		}
+
+		if (netObject != null)
+		{
+			var custdata = netObject.m_customData.As<PlacedData>();
+			m_placedData = custdata != null ? custdata.DeepCopy() : m_placedData;
+		}
+
+		var data = m_placedData.m_data.As<InventoryData>();
+
+		if (data != null && data.m_SlotDatas != null && data.m_SlotDatas.Count > 0)
+		{
+			m_inventoryData = data.DeepCopy();
+		}
+
+		var UI = UIManager.Instance.GetUI("ContainerUI");
+		if (UI is not InventoryView view) return;
+		m_inventoryView = view;
+		view.BindData(m_InventoryComp);
+		view.Visible = false;
 	}
 
 	public override void _Process(double delta)
@@ -35,21 +78,6 @@ public partial class ContainerComp : PlacedComp, IInteractable
 				}
 			}
 		}
-	}
-
-	private void InitInventory()
-	{
-		if (m_InventoryComp == null)
-		{
-
-			return;
-		}
-
-		var UI = UIManager.Instance.GetUI("ContainerUI");
-		if (UI is not InventoryView view) return;
-		m_inventoryView = view;                  
-		view.BindData(m_InventoryComp);
-		view.Visible = false;
 	}
 
 	public void OpenContainer(Player player)
@@ -76,5 +104,12 @@ public partial class ContainerComp : PlacedComp, IInteractable
 		{
 			OpenContainer(player);
 		}
+	}
+
+
+	private void FlushInventory(NetObject netObject)
+	{
+		m_placedData.m_data = m_inventoryData.DeepCopy();
+		netObject.m_customData = m_placedData.DeepCopy();
 	}
 }

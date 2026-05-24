@@ -1,5 +1,6 @@
 using Godot;
 using 途畔归所.Dll.Core;
+using 途畔归所.Dll.Manager;
 using 途畔归所.Dll.NetWork;
 using 途畔归所.Dll.Utils;
 using static 途畔归所.Dll.Creature.PlayerStateMachine;
@@ -55,7 +56,7 @@ namespace 途畔归所.Dll.Creature
 
             m_player = pl;
 			m_PlayerMesh = pl.m_PlayerModel;
-			m_Camera3D = GameCore.Instance.GetCamera();
+			m_Camera3D = WorldManager.Instance.GetCamera();
 			Speed = pl.m_PlayerData.m_Speed;
 			JumpVelocity = pl.m_PlayerData.m_Jump;
         }

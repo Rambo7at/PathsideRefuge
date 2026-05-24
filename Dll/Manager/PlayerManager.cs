@@ -12,7 +12,7 @@ namespace 途畔归所.Dll.Manager
 
         public Dictionary<int, Player> ActivePlayers = [];
 
-        private int m_playerHash;
+        public int m_playerHash;
 
         public Player m_LocalPlayer;
         public PlayerData m_LocalPlayerData { get; set; }
@@ -48,5 +48,7 @@ namespace 途畔归所.Dll.Manager
         }
 
         public int GetActivePlayersIndex() => ActivePlayers.Count;
+
+
     }
 }

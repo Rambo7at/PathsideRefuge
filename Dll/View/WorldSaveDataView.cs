@@ -41,6 +41,7 @@ namespace 途畔归所.Dll.View
 
         public override void _Process(double delta)
         {
+          
             var data = SaveManager.Instance.GetSelectedWorldData();
             if (data == null) return;
 
@@ -72,9 +73,6 @@ namespace 途畔归所.Dll.View
             m_toggleSaveButton.Text = m_toggleSaveButton.Text == _butInfo ? "返回" : _butInfo;
         }
 
-
-
-
         private void RefreshSaveSlots()
         {
             var savedata = m_saveSlotBox.GetChildren();
@@ -91,12 +89,19 @@ namespace 途畔归所.Dll.View
 
             foreach (var id in IDarr)
             {
-                var ui = UIManager.Instance.GetUI("存档信息") as PlayerSaveSlotComp;
+                var ui = UIManager.Instance.GetUI("Button_A1") as Button;
                 if (ui == null) continue;
-                ui.m_PlayerID = id;
+                ui.Text = "ID:" + id;
                 m_saveSlotBox.AddChild(ui);
+                ui.Pressed += () => OnButtonPressed(id);
             }
-
         }
+
+        private void OnButtonPressed(int ID)
+        {
+            SaveManager.Instance.m_selWorldIdx = ID;
+            OpenSaveSelection();
+        }
+
     }
 }

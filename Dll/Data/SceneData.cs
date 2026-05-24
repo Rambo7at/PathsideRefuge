@@ -13,14 +13,18 @@ namespace 途畔归所.Dll.Data
             ViewScene = 1,
         }
 
+        [Export] public string m_sceneName { get; set; }
 
-        [Export] public string m_sceneName;
+        [Export] public int  m_sceneHash { get; set; }
 
-        [Export] public int  m_sceneHash;
+        [Export] public bool m_newScene { get; set; } = true;
 
-        [Export] public SceneType m_sceneType = SceneType.ViewScene;
+        [Export] public SceneType m_sceneType { get; set; }
 
-        [Export] Array<NetObject> m_NetObject;
+        [Export] public Array<NetObject> m_NetObjectArr { get; set; }
 
+
+
+        public SceneData DeepCopy() => this.DuplicateDeep() as SceneData;
     }
 }

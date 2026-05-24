@@ -19,14 +19,11 @@ namespace 途畔归所.Dll.Manager
 		public int m_selWorldIdx { get => DATA.m_selworldIndex == default ? DATA.TryGetValidWorldDataKey() : DATA.m_selworldIndex; set => DATA.m_selworldIndex = value; }
 		public Dictionary<int, PlayerData> m_playerDataDict { get => DATA.m_playerDataDict; set => DATA.m_playerDataDict = value; }
 		public Dictionary<int, WorldData> m_worldDataDict { get => DATA.m_worldDataDict; set => DATA.m_worldDataDict = value; }
-		private SaveManager()
-		{
 
-			LoadGameSaveData();
 
-		}
+		private SaveManager() => Load();
 
-		public void Init() { }
+        public void Init() { }
 
 		/// <summary>注：创建新世界并添加到存档数据中。</summary>
 		public void CreateWorld(string worldName)
@@ -117,12 +114,12 @@ namespace 途畔归所.Dll.Manager
 
 
 		/// <summary> 注：加载游戏数据 </summary>
-		private void LoadGameSaveData()
+		private void Load()
 		{
 			if (!FileAccess.FileExists(Path))
 			{
-				GD.Print($"目录{Path}中未有存档，准备执行新建");
-				SaveGameSaveDataToLocal();
+                CatLog.Info($"[SaveManager.Load] 目录 {Path} 中未有存档，准备执行新建");
+                Save();
 				return;
 			}
 
@@ -130,67 +127,80 @@ namespace 途畔归所.Dll.Manager
 			if (data != null)
 			{
 				DATA = data;
-			}
+                CatLog.Ok($"[SaveManager.Load] 存档加载成功，玩家数:{DATA.m_playerDataDict?.Count ?? 0}，世界数:{DATA.m_worldDataDict?.Count ?? 0}");
+            }
 			else
 			{
-				GD.Print($"获取的存档数据为空，准备执行新建");
-				SaveGameSaveDataToLocal();
+                CatLog.Err($"[SaveManager.Load] 获取的存档数据为空，准备执行新建");
+                Save();
 			}
 		}
 
 		/// <summary>注：保存数据至本地</summary>
-		public void SaveGameSaveDataToLocal()
+		public void Save()
 		{
 			if (DATA == null)
 			{
 				DATA = new SaveData();
 				ResourceSaver.Save(DATA, Path);
-				return;
+                CatLog.Info($"[SaveManager.Save] 存档 DATA 为空，已创建新 SaveData 并保存至 {Path}");
+                return;
 			}
 
-			UpdateGameSaveData();
+            PersistAll();
 
 			try
 			{
 				ResourceSaver.Save(DATA, Path);
-				GD.Print("成功保存");
-			}
+                CatLog.Ok($"[SaveManager.Save] 成功保存至 {Path}");
+            }
 			catch (Exception ex)
 			{
-				CatLog.Err($"[SaveManager.SaveData]：存储异常：{ex}");
-			}
+                CatLog.Err($"[SaveManager.Save] 存储异常：{ex}");
+            }
 		}
 
 		/// <summary>注：更新存档数据</summary>
-		private void UpdateGameSaveData()
+		private void PersistAll()
 		{
 			int id = PlayerManager.Instance.m_LocalPlayerData.m_PlayerID;
 			m_playerDataDict[id] = PlayerManager.Instance.m_LocalPlayerData.DeepCopy();
-		}
+            CatLog.Info($"[SaveManager.PersistAll] 玩家数据已暂存，ID:{id}");
+
+            var data = WorldManager.Instance.PersistCurrentScene();
+
+			if (data == null)
+			{
+                CatLog.Warn($"[SaveManager.PersistAll] 世界数据获取失败，跳过世界更新（玩家ID:{id}）");
+            }
+
+			m_worldDataDict[data.m_WorldID] = data;
+            CatLog.Info($"[SaveManager.PersistAll] 世界数据已暂存，世界ID:{data.m_WorldID}，场景数:{m_worldDataDict?.Count ?? 0}");
+
+        }
 
 		private void DebugPrintGameSaveData()
 		{
 
-			if (m_playerDataDict == null)
-			{
-				GD.Print("[SaveManager.CheckSaveData]：检测[DATA.m_PlyaerDataDict]为空");
-				return;
-			}
+            if (m_playerDataDict == null)
+            {
+                CatLog.Debug("[SaveManager.Debug] 检测 m_playerDataDict 为空");
+                return;
+            }
 
-			if (m_playerDataDict.Count == 0)
-			{
-				GD.Print("[SaveManager.CheckSaveData]：检测[DATA.m_PlyaerDataDict]数据为空");
-				return;
-			}
+            if (m_playerDataDict.Count == 0)
+            {
+                CatLog.Debug("[SaveManager.Debug] 检测 m_playerDataDict 数据为空");
+                return;
+            }
 
-			GD.Print("[SaveManager.CheckSaveData]：准备打印玩家列表----------");
-
+            CatLog.Debug("[SaveManager.Debug] 准备打印玩家列表----------");
 			foreach (var pl in m_playerDataDict)
 			{
-				GD.Print($"[SaveManager.CheckSaveData]：玩家ID{pl.Key}");
-			}
+                CatLog.Debug($"[SaveManager.Debug] 玩家ID:{pl.Key}");
+            }
 
-		}
+        }
 
 	}
 }

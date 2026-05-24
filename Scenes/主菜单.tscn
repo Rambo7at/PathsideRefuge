@@ -10,7 +10,8 @@
 
 [sub_resource type="Resource" id="Resource_31f7p"]
 script = ExtResource("2_7d8j3")
-m_NetObject = null
+m_sceneType = 1
+m_NetObjectArr = null
 metadata/_custom_type_script = "uid://bcrc0qpx746xk"
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ckshb"]
@@ -208,7 +209,7 @@ size_flags_vertical = 4
 theme = ExtResource("7_cjyvh")
 text = "搜索大厅"
 
-[node name="玩家存档" type="Control" parent="CanvasLayer/游玩菜单" unique_id=573337085 node_paths=PackedStringArray("NameLabel", "BagLabel", "ToggleSaveBtn", "PlayerInfoBox", "SaveSlotBox")]
+[node name="玩家存档" type="Control" parent="CanvasLayer/游玩菜单" unique_id=573337085 node_paths=PackedStringArray("m_nameLabel", "m_bagLabel", "m_toggleSaveBtn", "m_playerInfoBox", "m_saveSlotBox")]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -223,11 +224,11 @@ grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 4
 script = ExtResource("4_7d8j3")
-NameLabel = NodePath("PanelContainer4/人物信息/playerName")
-BagLabel = NodePath("PanelContainer4/人物信息/playeBox")
-ToggleSaveBtn = NodePath("选择")
-PlayerInfoBox = NodePath("PanelContainer4/人物信息")
-SaveSlotBox = NodePath("PanelContainer4/存档栏")
+m_nameLabel = NodePath("PanelContainer4/人物信息/playerName")
+m_bagLabel = NodePath("PanelContainer4/人物信息/playeBox")
+m_toggleSaveBtn = NodePath("选择")
+m_playerInfoBox = NodePath("PanelContainer4/人物信息")
+m_saveSlotBox = NodePath("PanelContainer4/存档栏")
 
 [node name="PanelContainer4" type="PanelContainer" parent="CanvasLayer/游玩菜单/玩家存档" unique_id=1104802110]
 layout_mode = 0
@@ -395,7 +396,7 @@ text = "名称"
 layout_mode = 2
 theme = ExtResource("7_cjyvh")
 theme_override_constants/minimum_character_width = 9
-placeholder_text = "输入名称"
+placeholder_text = "输入世界名称"
 caret_blink = true
 
 [node name="确认" type="Button" parent="CanvasLayer/游玩菜单/世界存档/输入栏/画布/HBoxContainer" unique_id=555862275]

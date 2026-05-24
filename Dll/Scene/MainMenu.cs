@@ -8,11 +8,11 @@ using static 途畔归所.Dll.Core.GameCore;
 
 public partial class MainMenu : SceneBase
 {
-	private readonly SceneType _sceneType = SceneType.MainMenu;
 	public override void _Ready()
 	{
-		GameCore.Instance.SetCurrentSceneType(_sceneType,this);
+		
 	}
+
 
 
 	public override void _Process(double delta)

@@ -68,15 +68,7 @@ namespace 途畔归所.Dll.Utils
 
 
 
-        public static bool ChangeScene(Node node,string name)
-        {
-           
-            var scene = SceneManager.Instance.GetPackedScene(GetStableHashCode(name));
-            if (scene == null) return false;
 
-            node.GetTree().ChangeSceneToNode(scene);
-            return true;
-        }
 
 
 
@@ -84,7 +76,6 @@ namespace 途畔归所.Dll.Utils
         {
             node.SetProcess(false);
             node.SetPhysicsProcess(false);
-
             node.QueueFree();
         }
 

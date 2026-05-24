@@ -35,14 +35,13 @@ namespace 途畔归所.Dll.Manager
             LoadAsset("res://Prefab/View/ConsoleUI.tscn");
             LoadAsset("res://Prefab/View/储物/InventoryUI.tscn");
             LoadAsset("res://Prefab/View/格子/slot_ui.tscn");
-            LoadAsset("res://Prefab/View/主菜单/存档界面/存档信息.tscn");
+            LoadAsset("res://Prefab/View/Button/Button_A1.tscn");
             LoadAsset("res://Prefab/View/容器/ContainerUI.tscn");
 
 
             LoadAsset("res://Scenes/主菜单.tscn");
             LoadAsset("res://Scenes/测试场景.tscn");
             LoadAsset("res://Scenes/角色创建.tscn");
-
 
 
             RegisterNetObjectManager();
@@ -104,7 +103,7 @@ namespace 途畔归所.Dll.Manager
 
                 if (node is SceneBase)
                 {
-                    SceneManager.Instance.SceneDict[hash] = asset;
+                    WorldManager.Instance.SceneDict[hash] = asset;
                 }
 
                 if (NetObjectManager.Instance.m_PrefabDict.ContainsKey(hash))

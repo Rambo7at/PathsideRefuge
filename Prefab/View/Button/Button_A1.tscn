@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cbgrmw8n0a0tr"]
+
+[node name="Button" type="Button" unique_id=1634355155]
+theme_override_font_sizes/font_size = 30
+text = "ID：111111111231"
+alignment = 0

@@ -1,4 +1,5 @@
 using Godot;
+using Godot.Collections;
 using System;
 using System.Collections.Generic;
 using 途畔归所.Dll.Core;
@@ -14,7 +15,7 @@ namespace 途畔归所.Dll.Manager
         private static NetObjectRegistry _instance;
         public static NetObjectRegistry Instance { get => _instance ??= new(); set => _instance ??= value; }
 
-        private readonly Dictionary<NetID, NetObject> _netObjects = new();
+        private readonly System.Collections.Generic.Dictionary<NetID, NetObject> _netObjects = new();
         private uint _nextObjID = 1;
 
         public event Action<NetID, Node> OnSpawned;
@@ -30,10 +31,13 @@ namespace 途畔归所.Dll.Manager
         public NetID GetNetID() => new(NetCore.Instance.LocalPeerID, _nextObjID++);
 
         /// <summary>注：注册网络对象，主机同步或报告给服务器，并返回对象 ID。</summary>
-        public NetID RegisterObject(int hash, Vector3 pos, Vector3 rot)
+        public NetID RegisterObject(int hash, Vector3 pos, Vector3 rot, NetObject netobj = null)
         {
             NetID id = GetNetID();
-            NetObject netobj = new(id, pos, rot, hash, id.UserID);
+
+            netobj ??= new(id, pos, rot, hash, id.UserID);
+
+            netobj.Id = id;
 
             _netObjects[id] = netobj;
             if (NetCore.Instance.IsHost)
@@ -48,6 +52,10 @@ namespace 途畔归所.Dll.Manager
             }
 
         }
+
+
+
+
 
         /// <summary>注：主机同步注册网络对象信息，并触发对象生成事件。</summary>
         [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
@@ -133,5 +141,19 @@ namespace 途畔归所.Dll.Manager
 
         /// <summary>注：根据网络对象 ID 获取网络对象。</summary>
         public NetObject GetNetObject(NetID id) => _netObjects.TryGetValue(id, out var netobj) ? netobj : null;
+
+        public Array<NetObject> GetNetObjectsForCurrentScene(int sceneHash)
+        {
+            Array<NetObject> arr = [];
+
+            foreach (var netobj in _netObjects)
+            {
+                if (netobj.Value.sceneHash != sceneHash) continue;
+                arr.Add(netobj.Value);
+            }
+
+            return arr;
+        }
+
     }
 }
