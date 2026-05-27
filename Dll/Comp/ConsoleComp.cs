@@ -30,10 +30,6 @@ public partial class ConsoleComp : UIPanelBase
 	}
 
 
-	public override void _Process(double delta)
-	{
-	}
-
 	/// <summary>注：获取玩家节点</summary>
 	public void GetPlayer(CharacterBody3D player)
 	{

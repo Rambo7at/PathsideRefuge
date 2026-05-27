@@ -79,7 +79,11 @@ namespace 途畔归所.Dll.Manager
         public bool ContainsPrefab(int hash)
         {
             if (m_PrefabDict.TryGetValue(hash, out var result)) return true;
-            else return false;
+            else
+            {
+                CatLog.Warn($"[NetObjectManager.ContainsPrefab]：未有对应的预制件-哈希值:{hash}");
+                return false;
+            }
         }
 
         /// <summary>注：获取预制件哈希值，未找到对应预制件则输出错误并返回默认值。</summary>
@@ -95,29 +99,34 @@ namespace 途畔归所.Dll.Manager
         }
 
         /// <summary>注：根据参数生成网络对象，参数无效则输出错误。</summary>
-        public void SpawnObject(Vector3 pos, Vector3 rot, int hash = default, Node node = null , NetObject netObject = null)
+        public bool SpawnObject(Vector3 pos, Vector3 rot, int hash = default, Node node = null , NetObject netObject = null)
         {
             if (hash != default && node == null && netObject == null)
             {
-                if (ContainsPrefab(hash) == false) return;
+                if (ContainsPrefab(hash) == false) return false;
 
                 HandleSpawned(NetObjectRegistry.Instance.RegisterObject(hash, pos, rot));
+                return true;
             }
             else if (node != null && hash == default && netObject == null)
             {
-                if (!IsInstanceValid(node)) return;
+                if (!IsInstanceValid(node)) return false;
                 int nodehash = GetPrefabHash(node.Name);
-                if (nodehash == default) return;
+                if (nodehash == default) return false;
 
                 HandleSpawned(NetObjectRegistry.Instance.RegisterObject(nodehash, pos, rot), node);
+                return true;
             }
             else if (netObject != null && hash == default && node == null)
             {
                 HandleSpawned(NetObjectRegistry.Instance.RegisterObject(netObject.PrefabHash, pos, rot, netObject));
+                return true;
             }
             else
             {
+               
                 GD.PrintErr("[NetObjectManager.SpawnObject]：无效参数");
+                return false;
             }
         }
 
@@ -132,7 +141,11 @@ namespace 途畔归所.Dll.Manager
             }
 
             NetObject netobj = NetObjectRegistry.Instance.GetNetObject(m_id);
-            if (netobj == null) return;
+            if (netobj == null)
+            {
+                CatLog.Warn($"[{NetCore.Instance.LocalPeerID}][NetObjectManager.HandleSpawned] NetID {m_id} 的 NetObject 是空的");
+                return;
+            }
 
             var currentScene = WorldManager.Instance.GetCurrentScene();
             if (currentScene == null) return;
@@ -154,6 +167,8 @@ namespace 途畔归所.Dll.Manager
                 Node instance = scene.Instantiate();
                 if (instance is not Node3D node3D) return;
 
+                node3D.Name = $"{node3D.Name}-{netobj.Id}";
+
                 var sync = node3D.GetNodeOrNull<NetSyncBase>("NetSyncBase");
                 if (sync == null) return;
                 sync.m_NetObj = netobj;
@@ -165,6 +180,8 @@ namespace 途畔归所.Dll.Manager
             else
             {
                 if (node is not Node3D node3D) return;
+
+                node3D.Name = $"{node3D.Name}-{netobj.Id}";
 
                 var sync = node3D.GetNodeOrNull<NetSyncBase>("NetSyncBase");
                 if (sync == null) return;

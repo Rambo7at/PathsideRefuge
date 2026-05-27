@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using 途畔归所.Dll.Core;
 
 namespace 途畔归所.Dll.Utils
 {
@@ -20,7 +21,7 @@ namespace 途畔归所.Dll.Utils
         public static void Warn(string msg) { if (onWarn) GD.PrintRich($"[color=yellow]{msg}[/color]"); }
         public static void Err(string msg) { if (onErr) GD.PrintErr(msg); }
 
-        public static void Net(string msg) { if (onNet) GD.PrintRich($"[color=#9932CC]{msg}[/color]"); }
+        public static void Net(string msg) { if (onNet) GD.PrintRich($"[color=#9932CC][{NetCore.Instance.LocalPeerID}]{msg}[/color]"); }
         public static void Debug(string msg) { if (onDebug) GD.PrintRich($"[color=#778899]{msg}[/color]"); }
     }
 }

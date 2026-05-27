@@ -116,12 +116,10 @@ namespace 途畔归所.Dll.Manager
             {
                 if (kvp.Key.UserID == id) continue;
 
-                var prefab = NetObjectManager.Instance.GetPrefab(kvp.Value.PrefabHash);
-
                 RpcId(id, nameof(Rpc_SyncToPeer), kvp.Key.UserID, kvp.Key.ID, kvp.Value.PrefabHash, kvp.Value.Position, kvp.Value.Rotation);
             }
 
-            CatLog.Net($"[{NetCore.Instance.LocalPeerID}][NetObjectRegistry] 已向客户端 {id} 补发 {_netObjects.Count} 个对象");
+            CatLog.Net($"[NetObjectRegistry] 已向客户端 {id} 补发 {_netObjects.Count} 个对象");
         }
 
 
@@ -129,6 +127,7 @@ namespace 途畔归所.Dll.Manager
         [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
         private void Rpc_SyncToPeer(long userId, uint objId, int hash, Vector3 pos, Vector3 rot)
         {
+            CatLog.Net($"[NetObjectRegistry] 收到对象哈希值:{hash}");
             NetID id = new(userId, objId);
             if (_netObjects.ContainsKey(id)) return;
 
@@ -136,7 +135,8 @@ namespace 途畔归所.Dll.Manager
 
             _netObjects[id] = netobj;
 
-            OnSpawned?.Invoke(id, null);   
+            OnSpawned?.Invoke(id, null);
+            CatLog.Net($"[NetObjectRegistry] 已成功生成对象:{hash}");
         }
 
         /// <summary>注：根据网络对象 ID 获取网络对象。</summary>

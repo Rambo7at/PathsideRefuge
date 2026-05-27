@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using 途畔归所.Dll.Core;
 using 途畔归所.Dll.Data;
 using 途畔归所.Dll.Manager;
 using 途畔归所.Dll.Utils;
@@ -16,7 +17,7 @@ namespace 途畔归所.Dll.Base
         {
             WorldManager.Instance.SetCurrentSceneType(this);
 
-            if (m_sceneData.m_sceneType == SceneData.SceneType.ViewScene) return;
+            if (m_sceneData.m_sceneType == SceneData.SceneType.ViewScene || NetCore.Instance.IsClient) return;
 
             var data = WorldManager.Instance.LoadSceneData(this);
             if (data == null) return;

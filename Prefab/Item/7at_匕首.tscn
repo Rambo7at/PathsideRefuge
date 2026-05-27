@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://uquicwf3cleb" path="res://Dll/Comp/ItemComp.cs" id="1_nbal6"]
 [ext_resource type="Script" uid="uid://inh0sbmkkjuj" path="res://Dll/Data/ItemData.cs" id="2_b3m6x"]
 [ext_resource type="Texture2D" uid="uid://bd4ep2lljwap3" path="res://Asset/Character/Player_rogue_texture.png" id="2_nbal6"]
+[ext_resource type="Script" uid="uid://bgndbmht2eucx" path="res://Dll/NetWork/NetSyncBase.cs" id="4_b3m6x"]
 
 [sub_resource type="Resource" id="Resource_n7s87"]
 resource_name = "7at_匕首"
@@ -76,3 +77,7 @@ mesh = SubResource("ArrayMesh_516wm")
 [node name="hitbox" type="CollisionShape3D" parent="Area3D" unique_id=1142291759]
 transform = Transform3D(-1.0000001, 2.8014688e-07, -1.8239048e-08, 2.8014688e-07, 0.99999994, -1.7136298e-07, 1.8238993e-08, -1.7136298e-07, -1, -0.00948283, 0.37801296, -1.9126696e-07)
 shape = SubResource("BoxShape3D_fy1x4")
+
+[node name="NetSyncBase" type="Node" parent="." unique_id=22840253]
+script = ExtResource("4_b3m6x")
+metadata/_custom_type_script = "uid://bgndbmht2eucx"

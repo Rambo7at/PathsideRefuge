@@ -49,7 +49,7 @@ namespace 途畔归所.Dll.Creature
 
 			if (m_StateMachine == null || _IsOwner == false || m_StateMachine == null)
 			{
-				CatLog.Err($"[PlayerController._Ready]：检测部分未通过，已销毁");
+				CatLog.Warn($"[PlayerController._Ready]：检测部分未通过，已销毁");
                 CatUtils.StopAndExit(this);
                 return;
 			}

@@ -16,7 +16,6 @@ public partial class Player : Humanoid
 
     [Export] public Area3D m_hitBox;
 
-    public bool IsMirror = false;
     public bool m_OnUI = false;
     public PlayerData m_PlayerData;
     public float m_BaseAttackDamage = 20f;  // 临时测试变量
@@ -30,14 +29,12 @@ public partial class Player : Humanoid
         {
             SetProcess(false);
             SetPhysicsProcess(false);
-            IsMirror = true;
-            return;
         }
+
     }
 
     public override void _Ready()
     {
-
         if (!ValidateComponents()) return;
     }
 

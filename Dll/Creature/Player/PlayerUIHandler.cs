@@ -20,9 +20,12 @@ namespace 途畔归所.Dll.Creature
 		private CanvasLayer m_CanvasLayer;
 		private bool _IsOwner = false;
 
-		InventoryData IInventoryHolder.m_HolderInventoryData { get => m_player.m_PlayerData.m_InventoryData ??= new InventoryData(); set => m_player.m_PlayerData.m_InventoryData = value; }
 
-		public override void _EnterTree()
+		private InventoryData m_InventoryData;
+
+		InventoryData IInventoryHolder.m_HolderInventoryData { get => m_InventoryData ??= new InventoryData(); set => m_InventoryData = value; }
+
+		public override void _Ready()
 		{
 			var node = GetParent();
 			if (node == null)
@@ -38,10 +41,8 @@ namespace 途畔归所.Dll.Creature
 				return;
 			}
 			m_player = pl;
-		}
 
-		public override void _Ready()
-		{
+
 
 			foreach (var comp in m_player.GetChildren())
 			{
@@ -50,12 +51,16 @@ namespace 途畔归所.Dll.Creature
 				if (comp is CanvasLayer canvasLayer) m_CanvasLayer = canvasLayer;
 			}
 
+
+
 			if (_IsOwner == false)
 			{
 				CatLog.Warn($"[PlayerUIHandler._Ready]：检测player对象并非 本地所有，已销毁");
 				CatUtils.StopAndExit(this);
 				return;
 			}
+
+			m_InventoryData = m_player.m_PlayerData.m_InventoryData;
 
 
 			InitInventory();

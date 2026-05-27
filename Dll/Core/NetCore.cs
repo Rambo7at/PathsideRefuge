@@ -29,7 +29,7 @@ namespace 途畔归所.Dll.Core
 
 
         //─────────────── 连接管理 ───────────────
-        public int LocalPeerID => Multiplayer.GetUniqueId();
+        public int LocalPeerID {get => Multiplayer.GetUniqueId(); }
 
         public override void _Ready()
         {

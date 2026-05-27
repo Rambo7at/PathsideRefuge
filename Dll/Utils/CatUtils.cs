@@ -1,5 +1,12 @@
 using Godot;
+using Godot.Collections;
+using Godot.NativeInterop;
 using System;
+using System.IO;
+using System.Reflection;
+using System.Runtime.Serialization.Formatters.Binary;
+using 维修公司.Dll.data;
+using 途畔归所.Dll.Interface;
 using 途畔归所.Dll.Manager;
 
 namespace 途畔归所.Dll.Utils
@@ -66,12 +73,6 @@ namespace 途畔归所.Dll.Utils
             return resourceName;
         }
 
-
-
-
-
-
-
         public static void StopAndExit(Node node)
         {
             node.SetProcess(false);
@@ -79,6 +80,61 @@ namespace 途畔归所.Dll.Utils
             node.QueueFree();
         }
 
+
+
+
+
+
+
+        public static Dictionary<string, Variant> SerializerToDict<T>(T obj) where T : Resource
+        {
+            if (obj == null) return null;
+
+            Type type = obj.GetType();
+            Dictionary<string, Variant> dict = [];
+            PropertyInfo[] Properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+
+            foreach (PropertyInfo prop in Properties)
+            {
+                if (!prop.CanRead) continue;
+
+                string key = prop.Name;
+                object value = prop.GetValue(obj);
+                if (value == null) continue;
+
+                if (IsVariant(value.GetType())) dict[key] = Variant.From(value);
+
+            }
+            return dict;
+        }
+
+        // 修正方法名，并补全所有 Variant 兼容类型
+        private static bool IsVariant(Type type)
+        {
+            // 内置值类型和 string (根据文档)
+            if (type == typeof(bool) || type == typeof(long) || type == typeof(double) 
+                || type == typeof(string) || type == typeof(float) || type == typeof(int)) return true;
+
+            // Godot 结构体 (根据文档)
+            if (type == typeof(Vector2) || type == typeof(Vector2I) || type == typeof(Vector3) || type == typeof(Vector3I)) return true;
+            if (type == typeof(Rect2) || type == typeof(Rect2I) || type == typeof(Transform2D) || type == typeof(Transform3D)) return true;
+            if (type == typeof(Vector4) || type == typeof(Vector4I) || type == typeof(Plane) || type == typeof(Quaternion)) return true;
+            if (type == typeof(Aabb) || type == typeof(Basis) || type == typeof(Projection)) return true;
+            if (type == typeof(Color) || type == typeof(StringName) || type == typeof(NodePath) || type == typeof(Rid)) return true;
+            if (type == typeof(Callable) || type == typeof(Signal)) return true;
+
+            // Godot 集合类型 (根据文档)
+            if (type == typeof(Godot.Collections.Dictionary) || type == typeof(Godot.Collections.Array)) return true;
+
+            // Packed Arrays (根据文档)
+            if (type == typeof(byte[]) || type == typeof(int[]) || type == typeof(long[]) ||
+                type == typeof(float[]) || type == typeof(double[]) || type == typeof(string[]) ||
+                type == typeof(Vector2[]) || type == typeof(Vector3[]) || type == typeof(Vector4[]) || type == typeof(Color[]))
+                return true;
+
+
+            return false;
+        }
 
 
 

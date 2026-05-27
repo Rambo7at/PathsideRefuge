@@ -5,6 +5,7 @@ using System.Linq;
 using 维修公司.Dll;
 using 途畔归所.Dll.Core;
 using 途畔归所.Dll.Manager;
+using 途畔归所.Dll.Utils;
 
 public partial class ConsoleManager : Node
 {
@@ -37,6 +38,7 @@ public partial class ConsoleManager : Node
     public bool ParseCommand(ConsoleComp consoleComp)
     {
         if (!m_CommandMap.ContainsKey(consoleComp.m_Command[0])) return false;
+
         m_CommandMap[consoleComp.m_Command[0]](consoleComp);  // 执行委托内容
         return true;
     }
@@ -58,23 +60,11 @@ public partial class ConsoleManager : Node
     /// <summary>注：生成功能  </summary>
     private bool Spawn(ConsoleComp consoleComp)
     {
-        RigidBody3D itemDrop = ItemManager.Instance.GetItemDrop(consoleComp.m_Command[1]);
-        if (itemDrop == null)
-        {
-            GD.PrintErr($"[ConsoleManager.Spawn] 物品[{consoleComp.m_Command[1]}]生成失败（GetItemDrop返回空）");
-            return false;
-        }
-
-        // 先将物品加入场景树（必须放在设置位置前面）
-        if (!itemDrop.IsInsideTree())GetTree().CurrentScene.AddChild(itemDrop);
-
-        // 核心：计算玩家前方1.5单位的位置（保留你的偏移）
         Vector3 offset = new Vector3(0, 2, -1.5f);
         Vector3 finalPos = consoleComp.m_player.GlobalPosition + offset;
 
-        // 核心修复2：加入场景树后，再设置全局位置
-        itemDrop.GlobalPosition = finalPos;
-        return true;
+
+        return NetObjectManager.Instance.SpawnObject(finalPos, default, CatUtils.GetStableHashCode(consoleComp.m_Command[1]));
     }
 
     private bool PlayerInfo(ConsoleComp consoleComp)

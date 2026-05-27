@@ -4,6 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://b6h2h0bi0oqgm" path="res://Asset/EmacEArt/EmacEArt-中世纪_EA03_FREE_Slavica.png" id="1_fr7df"]
 [ext_resource type="Texture2D" uid="uid://dwfqgfvwjgure" path="res://标题.png" id="2_ur6ws"]
 [ext_resource type="Script" uid="uid://inh0sbmkkjuj" path="res://Dll/Data/ItemData.cs" id="3_8fwts"]
+[ext_resource type="Script" uid="uid://bgndbmht2eucx" path="res://Dll/NetWork/NetSyncBase.cs" id="5_ur6ws"]
 
 [sub_resource type="Resource" id="Resource_yd7se"]
 script = ExtResource("3_8fwts")
@@ -66,3 +67,7 @@ mesh = SubResource("ArrayMesh_d8oxc")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1975710782]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.007446289, 0.05456543, 0.005126953)
 shape = SubResource("BoxShape3D_kmc16")
+
+[node name="NetSyncBase" type="Node" parent="." unique_id=760539696]
+script = ExtResource("5_ur6ws")
+metadata/_custom_type_script = "uid://bgndbmht2eucx"

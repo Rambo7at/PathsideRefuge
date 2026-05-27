@@ -40,18 +40,17 @@ namespace 途畔归所.Dll.Creature
 		{
             var node = GetParent();
 
-            if (node == null)
-            {
-                CatLog.Err($"[PlayerStateMachine._Ready]：检测挂载对象是空，已返回");
-                QueueFree();
-                return;
-            }
-
+			if (node == null)
+			{
+				CatLog.Err($"[PlayerStateMachine._Ready]：检测挂载对象是空，已返回");
+				CatUtils.StopAndExit(this);
+				return;
+			}
 
             if (node is not Player pl)
             {
                 CatLog.Err($"[PlayerController._Ready]：检测挂载对象并非 player ，已返回");
-                QueueFree();
+                CatUtils.StopAndExit(this);
                 return;
             }
 

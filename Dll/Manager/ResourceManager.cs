@@ -85,7 +85,6 @@ namespace 途畔归所.Dll.Manager
                 if (node is RigidBody3D)
                 {
                     m_ItemAssetList.Add(asset);
-                    continue;
                 }
 
 

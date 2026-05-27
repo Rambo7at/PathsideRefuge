@@ -36,6 +36,7 @@ public partial class InventoryComp : Node
 	/// <summary>注：初始化库存格子UI并加载存档数据，完成后刷新显示。</summary>
 	public override void _Ready()
 	{
+		
 
 		var node = GetParent();
 
@@ -46,7 +47,6 @@ public partial class InventoryComp : Node
 		}
 
 		m_holder = Interface;
-
 
 		while (m_holder.m_HolderInventoryData.m_SlotDatas.Count < m_capacity)
 		{
@@ -121,7 +121,7 @@ public partial class InventoryComp : Node
 		if (drop == null) return;
 
 		drop.Position = m_dropPos.GlobalPosition;
-        WorldManager.Instance.GetCurrentScene().AddChild(drop);
+		WorldManager.Instance.GetCurrentScene().AddChild(drop);
 
 		slot.m_slotData = null;
 		OnChanged?.Invoke();
@@ -136,7 +136,7 @@ public partial class InventoryComp : Node
 		if (drop == null) return;
 
 		drop.Position = m_dropPos.GlobalPosition;
-        WorldManager.Instance.GetCurrentScene().AddChild(drop);
+		WorldManager.Instance.GetCurrentScene().AddChild(drop);
 	}
 
 

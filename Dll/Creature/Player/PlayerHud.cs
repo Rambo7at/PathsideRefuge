@@ -33,7 +33,7 @@ public partial class PlayerHud : Node
 
         if (_IsOwner == false)
         {
-            CatLog.Err($"[PlayerUIHandler._Ready]：非所有组件，已销毁");
+            CatLog.Ok($"[PlayerUIHandler._Ready]：非所有组件，已销毁");
             CatUtils.StopAndExit(this);
             return;
 
