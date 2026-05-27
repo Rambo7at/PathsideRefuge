@@ -1,3 +1,6 @@
+## 许可
+本项目基于 MIT 许可证开源，详情见 [LICENSE](LICENSE) 文件。
+
 # Godot AmbientCG Integration Plugin
 
   _Built in 4.5.1 and may not work in earlier versions before 4.4_

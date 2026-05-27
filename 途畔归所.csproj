@@ -9,6 +9,9 @@
     <EmbeddedResource Remove="Prefab\**" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="LICENSE" />
+  </ItemGroup>
+  <ItemGroup>
     <None Include="优先级.md" />
     <None Include="开发计划.md" />
     <None Include="日志信息.md" />
