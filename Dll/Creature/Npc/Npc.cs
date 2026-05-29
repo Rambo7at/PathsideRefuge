@@ -7,6 +7,8 @@ using 途畔归所.Dll.Data;
 using 途畔归所.Dll.Manager;
 using 途畔归所.Dll.Utils;
 
+
+namespace 途畔归所.Dll.Creature.Npc { 
 /// <summary> 注：NPC 实体类。当前仅用于测试导航巡逻 </summary>
 public partial class Npc : Humanoid
 {
@@ -24,34 +26,18 @@ public partial class Npc : Humanoid
 
 	private Vector3 m_NavPatrolTarget { get => m_NavigationAgent3D.TargetPosition; set => m_NavigationAgent3D.TargetPosition = value; }
 	private float m_NavStopTimer = 0f;
-	private CreatureBase m_creature;
+	private CreatureBase m_player;
 
 	public override void _Ready()
 	{
+		m_NpcData ??= new NpcData();
 
-        if (m_NpcData == null)
-        {
-            GD.PrintErr("[Npc] m_NpcData 为空");
-            return;
-        }
+		if (m_NavigationAgent3D == null) return;
 
-        if (NetCore.Instance.IsClient)
-        {
-            SetProcess(false);
-            SetPhysicsProcess(false);
-            return;
-        }
-
-        if (m_NavigationAgent3D != null)
-        {
-            m_NavigationAgent3D.TargetDesiredDistance = m_NpcData.m_targetDistance;
-            m_NavigationAgent3D.Radius = 0.5f;
-            m_NavigationAgent3D.Height = 1.8f;
-            m_NavigationAgent3D.AvoidanceEnabled = false;
-        }
-
-
-		TestNavigationAvailability();
+		m_NavigationAgent3D.TargetDesiredDistance = m_NpcData.m_targetDistance;
+		m_NavigationAgent3D.Radius = 0.5f;
+		m_NavigationAgent3D.Height = 1.8f;
+		m_NavigationAgent3D.AvoidanceEnabled = false;
 	}
 
 	public override void _PhysicsProcess(double delta)
@@ -124,7 +110,7 @@ public partial class Npc : Humanoid
 		{
 			MoveHorizontally(dir.Normalized(), m_NpcData.m_speed);
 		}
-			
+
 	}
 
 
@@ -185,13 +171,13 @@ public partial class Npc : Humanoid
 
 	private void See()
 	{
-		if (m_eye.IsColliding() == false || m_creature != null) return;
+		if (m_eye.IsColliding() == false || m_player != null) return;
 
 		var TT = m_eye.GetCollider();
 
 		if (TT is not Player pl) return;
 
-		m_creature = pl;
+		m_player = pl;
 		m_currentState = NpcState.Chase;
 		GD.Print("测试:发现玩家辣！");
 	}
@@ -202,20 +188,20 @@ public partial class Npc : Humanoid
 	/// <param name="delta"></param>
 	private void UpdateChaseLogic()
 	{
-		if (m_creature == null) return;
+		if (m_player == null) return;
 
-		if (!IsInstanceValid(m_creature))
+		if (!IsInstanceValid(m_player))
 		{
-			m_creature = null;
+			m_player = null;
 			m_currentState = NpcState.Patrol;
 			return;
 		}
 
-		Rid map = m_NavigationAgent3D.GetNavigationMap();        
-		m_NavPatrolTarget = NavigationServer3D.MapGetClosestPoint(map, m_creature.GlobalPosition);
+		Rid map = m_NavigationAgent3D.GetNavigationMap();
+		m_NavPatrolTarget = NavigationServer3D.MapGetClosestPoint(map, m_player.GlobalPosition);
 		m_NavStopTimer = 0f;
 	}
 
-
+}
 
 }

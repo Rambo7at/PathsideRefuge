@@ -23,11 +23,6 @@ namespace 途畔归所.Dll.Data
         }
 
 
-
-
-
-
-
         [ExportGroup("基础")]
         [Export] public string m_name = string.Empty;
         [Export] public float m_speed = 5.0f;
@@ -40,5 +35,8 @@ namespace 途畔归所.Dll.Data
 
         [ExportGroup("移动和寻路")]
         [Export] public float m_targetDistance = 1.0f;
+
+
+
     }
 }
