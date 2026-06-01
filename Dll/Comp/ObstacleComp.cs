@@ -10,34 +10,37 @@ public partial class ObstacleComp : NavigationObstacle3D
 	{
 		Node parent = GetParent();
 		NetSyncBase net = CatUtils.FindChildNode<NetSyncBase>(parent);
-		CollisionShape3D col = CatUtils.FindChildNode<CollisionShape3D>(parent);
+		if (net?.m_NetObj == null) return;
 
-		if (net?.m_NetObj == null)
-		{
-			CatLog.Warn("ObstacleComp: 未找到有效 NetSyncBase，跳过");
-			return;
-		}
-
-		if (col?.Shape == null)
-		{
-			CatLog.Err($"ObstacleComp: 父节点 {parent?.Name} 下找不到 CollisionShape3D 或形状为空");
-			return;
-		}
-
-		// 获取导航组件：从场景根或直接通过路径
-		Node currentScene = WorldManager.Instance.GetCurrentScene();
-		NavigationRegionComp navRegion = currentScene?.GetNodeOrNull<NavigationRegionComp>("NavigationRegion3D");
+		NavigationRegionComp navRegion = CatUtils.FindChildNode<NavigationRegionComp>(WorldManager.Instance.GetCurrentScene());
 		if (navRegion == null)
 		{
 			CatLog.Err("ObstacleComp: 找不到 NavigationRegionComp");
 			return;
 		}
 
-		ArrayMesh debugMesh = col.Shape.GetDebugMesh();
-		Aabb localAabb = debugMesh.GetAabb();
-		Aabb worldAabb = col.Transform * localAabb;
+		// 获取手绘的底面轮廓顶点（局部坐标）
+		Vector3[] localVerts = Vertices;
+		if (localVerts == null || localVerts.Length < 3)
+		{
+			CatLog.Err("ObstacleComp: 顶点不足，无法构成多边形");
+			return;
+		}
 
-		CatLog.Info($"ObstacleComp: 准备上报，局部AABB: {localAabb}, 世界AABB: {worldAabb}");
-		navRegion.RegisterObstacle(worldAabb);
+		// 转换为世界坐标
+		Node3D crate = parent as Node3D;
+		if (crate == null)
+		{
+			CatLog.Err("ObstacleComp: 父节点不是 Node3D");
+			return;
+		}
+
+		Vector3[] worldVerts = new Vector3[localVerts.Length];
+		for (int i = 0; i < localVerts.Length; i++)
+			worldVerts[i] = crate.Transform * localVerts[i];
+
+		// 上报给导航区域组件
+		navRegion.RegisterObstacle(worldVerts);
+		CatLog.Info($"ObstacleComp: 已上报障碍物顶点，数量: {worldVerts.Length}");
 	}
 }
