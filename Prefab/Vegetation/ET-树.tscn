@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://dh5ok5xganeg7" path="res://Dll/Comp/Vegetation/TreeComp.cs" id="1_qgaes"]
 [ext_resource type="Script" uid="uid://cjr6gm14qc0n2" path="res://Dll/Data/VegetationData.cs" id="2_ow5uk"]
 [ext_resource type="Texture2D" uid="uid://b6h2h0bi0oqgm" path="res://Asset/EmacEArt/EmacEArt-中世纪_EA03_FREE_Slavica.png" id="3_x4qfl"]
+[ext_resource type="Script" uid="uid://cb4swgob65vq" path="res://Dll/Comp/ObstacleComp.cs" id="4_ow5uk"]
 
 [sub_resource type="Resource" id="Resource_u1rlb"]
 script = ExtResource("2_ow5uk")
@@ -69,3 +70,12 @@ mesh = SubResource("ArrayMesh_i61w8")
 
 [node name="Node3D" type="Node3D" parent="." unique_id=1670584274]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5.311166, 0)
+
+[node name="ObstacleComp" type="NavigationObstacle3D" parent="." unique_id=1712419015]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.023070812, 0, 0.11642891)
+vertices = PackedVector3Array(0.050188065, 0, -0.39093918, 0.31018198, 0, 0.0067284703, -0.21996713, 0, 0.50886136, -0.54204154, 0, -0.026843429)
+affect_navigation_mesh = true
+carve_navigation_mesh = true
+avoidance_enabled = false
+script = ExtResource("4_ow5uk")
+metadata/_custom_type_script = "uid://cb4swgob65vq"

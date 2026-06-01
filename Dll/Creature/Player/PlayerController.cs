@@ -1,5 +1,4 @@
 using Godot;
-using 途畔归所.Dll.Core;
 using 途畔归所.Dll.Manager;
 using 途畔归所.Dll.NetWork;
 using 途畔归所.Dll.Utils;
@@ -7,102 +6,102 @@ using static 途畔归所.Dll.Creature.PlayerStateMachine;
 
 namespace 途畔归所.Dll.Creature
 {
-	[GlobalClass]
-	public partial class PlayerController : Node
-	{
-		private Player m_player;
-		private Node3D m_PlayerMesh;
-		private Camera3D m_Camera3D;
-		private SpringArm3D m_springArm3D;
+    [GlobalClass]
+    public partial class PlayerController : Node
+    {
+        private Player m_player;
+        private Node3D m_PlayerMesh;
+        private Camera3D m_Camera3D;
+        private SpringArm3D m_springArm3D;
 
 
 
         private PlayerStateMachine m_StateMachine;
 
 
-		// 从 Player 中获取的固定数值
-		private  float Speed;
-		private  float JumpVelocity;
-		private float targetAngle = Mathf.Pi;
+        // 从 Player 中获取的固定数值
+        private float Speed;
+        private float JumpVelocity;
+        private float targetAngle = Mathf.Pi;
 
-		private bool _IsOwner = false;
+        private bool _IsOwner = false;
 
-		public override void _Ready()
-		{
-			var node = GetParent();
+        public override void _Ready()
+        {
+            var node = GetParent();
 
-			if (node is not Player pl)
-			{
-				CatLog.Err($"[PlayerController._Ready]：检测挂载对象并非 player ，已销毁");
-				CatUtils.StopAndExit(this);
-				return;
-			}
-
-			var nodeaar = pl.GetChildren();
-
-			foreach (var comp in nodeaar)
-			{
-				if (comp is PlayerStateMachine StateMachine) m_StateMachine = StateMachine;
-				if (comp is NetSyncBase netSyncBase) _IsOwner = netSyncBase.IsOwner;
-				if (comp is SpringArm3D springArm3D) m_springArm3D = springArm3D;
-            }
-
-			if (m_StateMachine == null || _IsOwner == false || m_StateMachine == null)
-			{
-				CatLog.Warn($"[PlayerController._Ready]：检测部分未通过，已销毁");
+            if (node is not Player pl)
+            {
+                CatLog.Err($"[PlayerController._Ready]：检测挂载对象并非 player ，已销毁");
                 CatUtils.StopAndExit(this);
                 return;
-			}
+            }
+
+            var nodeaar = pl.GetChildren();
+
+            foreach (var comp in nodeaar)
+            {
+                if (comp is PlayerStateMachine StateMachine) m_StateMachine = StateMachine;
+                if (comp is NetSyncBase netSyncBase) _IsOwner = netSyncBase.IsOwner;
+                if (comp is SpringArm3D springArm3D) m_springArm3D = springArm3D;
+            }
+
+            if (m_StateMachine == null || _IsOwner == false || m_StateMachine == null)
+            {
+                CatLog.Warn($"[PlayerController._Ready]：检测部分未通过，已销毁");
+                CatUtils.StopAndExit(this);
+                return;
+            }
 
             m_player = pl;
-			m_PlayerMesh = pl.m_PlayerModel;
-			m_Camera3D = WorldManager.Instance.GetCamera();
-			Speed = pl.m_PlayerData.m_Speed;
-			JumpVelocity = pl.m_PlayerData.m_Jump;
+            m_PlayerMesh = pl.m_PlayerModel;
+            m_Camera3D = WorldManager.Instance.GetCamera();
+            Speed = pl.m_PlayerData.m_Speed;
+            JumpVelocity = pl.m_PlayerData.m_Jump;
         }
 
 
 
-		public override void _Process(double delta)
-		{
+        public override void _Process(double delta)
+        {
             PlayerMoveAnimationDirection(delta);
         }
 
 
-		public override void _PhysicsProcess(double delta)
-		{
+        public override void _PhysicsProcess(double delta)
+        {
             m_player.ApplyGravity(delta);
             HandlePlayerMovement(delta);
         }
 
-		private void HandlePlayerMovement(double delta)
-		{
-			Vector3 velocity = m_player.Velocity;
+        private void HandlePlayerMovement(double delta)
+        {
+            Vector3 velocity = m_player.Velocity;
 
-			if (Input.IsActionJustPressed("ui_accept") && m_player.IsOnFloor() && m_StateMachine.s_PlayerState != PlayerState.Attack)
-			{
+            if (Input.IsActionJustPressed("ui_accept") && m_player.IsOnFloor() && m_StateMachine.s_PlayerState != PlayerState.Attack)
+            {
                 velocity.Y = JumpVelocity;
             }
 
-            Vector2 inputDir = Input.GetVector("cat_Left", "cat_Right", "cat_Forward", "cat_Backward"); 
+            Vector2 inputDir = Input.GetVector("cat_Left", "cat_Right", "cat_Forward", "cat_Backward");
             Vector3 direction = GetCameraRelativeDirection(inputDir);
 
             if (m_player.IsOnFloor() && m_StateMachine.s_PlayerState != PlayerState.Attack)
-			{
-				// 地面移动逻辑（保持原样）
-				if (direction != Vector3.Zero)
-				{
-					velocity.X = direction.X * Speed;
-					velocity.Z = direction.Z * Speed;
-				}
-				else
-				{
-					velocity.X = Mathf.MoveToward(velocity.X, 0, Speed);
-					velocity.Z = Mathf.MoveToward(velocity.Z, 0, Speed);
-				}
-			}
-			else if ((m_player.IsOnFloor() && m_StateMachine.s_PlayerState == PlayerState.Attack))
-			{
+            {
+                // 地面移动逻辑（保持原样）
+                if (direction != Vector3.Zero)
+                {
+                    velocity.X = direction.X * Speed;
+                    velocity.Z = direction.Z * Speed;
+                }
+                else
+                {
+                    velocity.X = Mathf.MoveToward(velocity.X, 0, Speed);
+                    velocity.Z = Mathf.MoveToward(velocity.Z, 0, Speed);
+                }
+            }
+            else if ((m_player.IsOnFloor() && m_StateMachine.s_PlayerState == PlayerState.Attack))
+            {
 
                 // 地面移动逻辑（保持原样）
                 if (direction != Vector3.Zero)
@@ -117,15 +116,15 @@ namespace 途畔归所.Dll.Creature
                 }
 
             }
-			else
-			{
-				velocity.X *= 0.98f;
-				velocity.Z *= 0.98f;
-			}
+            else
+            {
+                velocity.X *= 0.98f;
+                velocity.Z *= 0.98f;
+            }
 
-			m_player.Velocity = velocity;
-			m_player.MoveAndSlide();
-		}
+            m_player.Velocity = velocity;
+            m_player.MoveAndSlide();
+        }
 
         private void PlayerMoveAnimationDirection(double delta)
         {

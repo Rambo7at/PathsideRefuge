@@ -31,6 +31,18 @@ namespace 途畔归所.Dll.Data
             return JsonSerializer.SerializeToUtf8Bytes(list);
         }
 
+
+        public void UpdetaSlotData(int indxe)
+        {
+
+            m_SlotDatas.Clear();
+
+            for (int i = 0; i < indxe; i++)
+            {
+                m_SlotDatas.Add(null);
+            }
+        }
+
         public void Deserialize(byte[] data)
         {
             m_SlotDatas.Clear();

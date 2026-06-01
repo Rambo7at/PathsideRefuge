@@ -124,6 +124,8 @@ namespace 途畔归所.Dll.Manager
             string name = CatUtils.GetResourceName(prefabPath);
             return name != null && m_ItemDict.ContainsKey(name);
         }
+
+
     }
 
 

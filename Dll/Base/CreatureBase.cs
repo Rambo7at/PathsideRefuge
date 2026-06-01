@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using 途畔归所.Dll.Creature.Npc;
 using 途畔归所.Dll.Data;
 
 namespace 途畔归所.Dll.Base
@@ -13,6 +14,8 @@ namespace 途畔归所.Dll.Base
         [Export] public float m_Health = 100f;
         [Export] public AnimationTree m_AnimationTree;
         [Export] public RayCast3D m_eye;
+
+
 
         private float targetAngle;
         public bool IsDead = false;
@@ -55,24 +58,31 @@ namespace 途畔归所.Dll.Base
         }
 
         /// <summary> 注：水平移动 </summary>
-        public virtual void MoveHorizontally(Vector3 direction, float speed)
+        public virtual bool MoveHorizontally(Vector3 point, float speed)
         {
-            Vector3 vel = Velocity;
-            if (direction != Vector3.Zero)
+            Vector3 toTarget = point - GlobalPosition;
+            toTarget.Y = 0; 
+
+            if (toTarget.LengthSquared() < 0.001f) 
             {
-                vel.X = direction.X * speed;
-                vel.Z = direction.Z * speed;
-            }
-            else
-            {
+                // 停止水平速度，避免惯性滑动
+                Vector3 vel = Velocity;
                 vel.X = 0;
                 vel.Z = 0;
+                Velocity = vel;
+                return false;
             }
-            Velocity = vel;
+
+            Vector3 direction = toTarget.Normalized();
+            Vector3 vel2 = Velocity;
+            vel2.X = direction.X * speed;
+            vel2.Z = direction.Z * speed;
+            Velocity = vel2;
+            return true;
         }
 
         /// <summary> 注：智能转向，移动时面朝速度方向，静止时面朝目标点 </summary>
-        protected void FaceMovementOrTarget(Vector3 lookTarget, float rotationSpeed, float delta)
+        public void FaceMovementOrTarget(Vector3 lookTarget, float rotationSpeed, float delta)
         {
             Vector3 horizontalVel = new Vector3(Velocity.X, 0, Velocity.Z);
             Vector3 target;

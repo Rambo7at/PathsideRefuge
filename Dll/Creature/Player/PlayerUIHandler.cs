@@ -60,7 +60,18 @@ namespace 途畔归所.Dll.Creature
 				return;
 			}
 
-			m_InventoryData = m_player.m_PlayerData.m_InventoryData;
+			m_InventoryData = m_player.m_PlayerData.m_InventoryData ?? new();
+
+
+			int indxe = m_InventoryComp.m_maxCol * m_InventoryComp.m_maxRow;
+
+
+			if (m_InventoryData.m_SlotDatas.Count != indxe)
+			{
+                m_InventoryData.UpdetaSlotData(indxe);
+            }
+
+
 
 
 			InitInventory();
