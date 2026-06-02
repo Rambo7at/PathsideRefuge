@@ -1,142 +1,128 @@
 using Godot;
+using 途畔归所.Dll.Interface;
 using 途畔归所.Dll.Utils;
 
-namespace 途畔归所.Dll.Creature
+[GlobalClass]
+public partial class PlayerStateMachine : Node, ISyncStateMachine
 {
-    [GlobalClass]
-    public partial class PlayerStateMachine : Node
-	{
-		public enum PlayerState
-		{
-			Idle = 0,
-			Walk = 1,
-			Run = 2,
-			Jump = 3,
-			Fall = 4,
-			Interact = 5, // 开箱子/UI 锁定
-			Build = 6,     // 建造预览模式
-			Attack = 7,
-            AttackFinished = 8
-        }
-
-		private Player m_player;
-
-		private PlayerState m_CurrentState = PlayerState.Idle;
-
-		public bool Walk => m_CurrentState == PlayerState.Walk;
-
-		public bool Jump => m_CurrentState == PlayerState.Jump;
-
-		public bool Idle => m_CurrentState == PlayerState.Idle;
-
-		public bool Attack => m_CurrentState == PlayerState.Attack;
-
-        public bool AttackFinished => m_CurrentState == PlayerState.AttackFinished;
-
-
-        public PlayerState s_PlayerState => m_CurrentState;
-
-		public override void _Ready()
-		{
-            var node = GetParent();
-
-			if (node == null)
-			{
-				CatLog.Err($"[PlayerStateMachine._Ready]：检测挂载对象是空，已返回");
-				CatUtils.StopAndExit(this);
-				return;
-			}
-
-            if (node is not Player pl)
-            {
-                CatLog.Err($"[PlayerController._Ready]：检测挂载对象并非 player ，已返回");
-                CatUtils.StopAndExit(this);
-                return;
-            }
-
-            m_player = pl;
-
-            if (m_player.m_PlayerData == null)
-			{
-                SetProcess(false);
-                SetPhysicsProcess(false);
-                return;
-            }
-		}
-
-		public override void _PhysicsProcess(double delta)
-		{
-            if (m_player.m_PlayerData == null) return;
-
-
-            // 只有在非锁定状态下才自动检测物理状态切换
-            if (m_CurrentState != PlayerState.Interact && m_CurrentState != PlayerState.Build)
-			{
-				UpdatePhysicsBasedState();
-			}
-		}
-
-		/// <summary> 注：切换玩家状态，状态不变则不执行 </summary>
-		public void SwitchState(PlayerState newState)
-		{
-			if (m_CurrentState == newState) return;
-
-			m_CurrentState = newState;
-			//CatLog.Ok($"[State] Changed to: {newState}");
-		}
-
-
-
-		/// <summary> 注：根据玩家速度和是否在地面自动切换物理状态 </summary>
-		private void UpdatePhysicsBasedState()
-		{
-			if (m_CurrentState == PlayerState.Attack) return;
-
-            if (Input.IsActionJustPressed("cat_Attack"))
-            {
-                SwitchState(PlayerState.Attack);
-                return; // 攻击触发后不再判断 Walk/Idle
-            }
-
-
-            // 地面状态：优先检测攻击输入
-            if (m_player.IsOnFloor())
-			{
-
-				Vector3 horizontalVel = new(m_player.Velocity.X, 0, m_player.Velocity.Z);
-				float speed = horizontalVel.Length();
-
-				if (speed > 0.1f)
-				{
-					SwitchState(PlayerState.Walk);
-				}
-				else
-				{
-					SwitchState(PlayerState.Idle);
-				}
-			}
-			else
-			{
-				// 在空中
-				SwitchState(m_player.Velocity.Y > 0 ? PlayerState.Jump : PlayerState.Fall);
-			}
-		}
-
-
-
-        /// <summary> 注：给动画调用的函数 </summary>
-        public void EndAttack()
-        {
-            if (m_CurrentState != PlayerState.Attack) return;
-
-            // 根据当前水平速度决定下一个状态
-            Vector3 horizontalVel = new(m_player.Velocity.X, 0, m_player.Velocity.Z);
-            PlayerState nextState = horizontalVel.Length() > 0.1f ? PlayerState.Walk : PlayerState.Idle;
-
-            SwitchState(nextState);
-            //CatLog.Ok("执行了EndAttack函数 -> 切换到 " + nextState);
-        }
-
-
+    public enum PlayerState
+    {
+        Idle = 0,
+        Interact = 1,   
+        Build = 2,      
     }
+
+    public enum PlayerAnimState
+    {
+        Idle = 0,
+        Walk = 1,
+        Run = 2,
+        Jump = 3,
+        Fall = 4,
+        Attack = 5,
+        AttackFinished = 6
+    }
+
+    private Player m_player;
+
+    public PlayerAnimState m_playerAnimState { get; set; } = PlayerAnimState.Idle;
+    public PlayerState m_playerState { get; set; } = PlayerState.Idle;
+    public bool Walk => m_playerAnimState == PlayerAnimState.Walk;
+    public bool Jump => m_playerAnimState == PlayerAnimState.Jump;
+    public bool Idle => m_playerAnimState == PlayerAnimState.Idle;
+    public bool Attack => m_playerAnimState == PlayerAnimState.Attack;
+    public bool AttackFinished => m_playerAnimState == PlayerAnimState.AttackFinished;
+
+
+    public override void _Ready()
+    {
+        var node = GetParent();
+
+        if (node == null)
+        {
+            CatLog.Err($"[PlayerStateMachine._Ready]：检测挂载对象是空，已返回");
+            CatUtils.StopAndExit(this);
+            return;
+        }
+
+        if (node is not Player pl)
+        {
+            CatLog.Err($"[PlayerController._Ready]：检测挂载对象并非 player ，已返回");
+            CatUtils.StopAndExit(this);
+            return;
+        }
+
+        m_player = pl;
+
+        if (m_player.m_PlayerData == null)
+        {
+            SetProcess(false);
+            SetPhysicsProcess(false);
+            return;
+        }
+    }
+
+    public override void _PhysicsProcess(double delta)
+    {
+        if (m_player.m_PlayerData == null) return;
+
+        UpdatePhysicsBasedState();
+    }
+
+    /// <summary> 切换移动状态，状态不变则不执行 </summary>
+    public void SwitchState(PlayerAnimState newState)
+    {
+        if (m_playerAnimState == newState) return;
+
+        m_playerAnimState = newState;
+        //CatLog.Ok($"[State] Changed to: {newState}");
+    }
+
+    /// <summary> 根据玩家速度和是否在地面自动切换物理状态 </summary>
+    private void UpdatePhysicsBasedState()
+    {
+        // 攻击状态下不允许物理状态切换（保持攻击动画）
+        if (m_playerAnimState == PlayerAnimState.Attack)
+            return;
+
+        if (Input.IsActionJustPressed("cat_Attack"))
+        {
+            SwitchState(PlayerAnimState.Attack);
+            return;
+        }
+
+        if (m_player.IsOnFloor())
+        {
+            Vector3 horizontalVel = new(m_player.Velocity.X, 0, m_player.Velocity.Z);
+            float speed = horizontalVel.Length();
+
+            if (speed > 0.1f)
+                SwitchState(PlayerAnimState.Walk);
+            else
+                SwitchState(PlayerAnimState.Idle);
+        }
+        else
+        {
+            SwitchState(m_player.Velocity.Y > 0 ? PlayerAnimState.Jump : PlayerAnimState.Fall);
+        }
+    }
+
+    /// <summary> 动画调用，结束攻击 </summary>
+    public void EndAttack()
+    {
+        if (m_playerAnimState != PlayerAnimState.Attack) return;
+
+        Vector3 horizontalVel = new(m_player.Velocity.X, 0, m_player.Velocity.Z);
+        PlayerAnimState nextState = horizontalVel.Length() > 0.1f ? PlayerAnimState.Walk : PlayerAnimState.Idle;
+
+        SwitchState(nextState);
+    }
+
+    public int GetState() => (int)m_playerState;
+
+    public int GetAnimState() => (int)m_playerAnimState;
+
+    public void SetState(int State) => m_playerState = (PlayerState)State;
+
+    public void SetAnimState(int State) => m_playerAnimState = (PlayerAnimState)State;
 }

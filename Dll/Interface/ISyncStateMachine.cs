@@ -6,11 +6,11 @@ namespace 途畔归所.Dll.Interface
     {
         int GetState();
 
-        int GetMoveState();
+        int GetAnimState();
 
         void SetState(int State);
 
-        void SetMoveState(int State);
+        void SetAnimState(int State);
 
     }
 }

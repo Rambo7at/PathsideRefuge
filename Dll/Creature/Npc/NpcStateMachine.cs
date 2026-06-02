@@ -14,7 +14,7 @@ namespace 途畔归所.Dll.Creature.Npc
             Chase = 1,  // 追击
         }
 
-        public enum NpcMoveState
+        public enum NpcAnimState
         {
             Idle = 0,
             Walk = 1,
@@ -23,11 +23,11 @@ namespace 途畔归所.Dll.Creature.Npc
             Fall = 4,
         }
 
-        public NpcMoveState m_npcMoveState { get; set; } = NpcMoveState.Idle;
+        public NpcAnimState m_npcAnimState { get; set; } = NpcAnimState.Idle;
         public NpcState m_npcState { get; set; } = NpcState.Patrol;
 
-        public bool Walk => m_npcMoveState == NpcMoveState.Walk;
-        public bool Idle => m_npcMoveState == NpcMoveState.Idle;
+        public bool Walk => m_npcAnimState == NpcAnimState.Walk;
+        public bool Idle => m_npcAnimState == NpcAnimState.Idle;
 
         private Npc _npc;
 
@@ -48,10 +48,7 @@ namespace 途畔归所.Dll.Creature.Npc
         }
 
 
-        public override void _PhysicsProcess(double delta)
-        {
-            UpdateState();
-        }
+        public override void _PhysicsProcess(double delta) => UpdateState();
 
 
         /// <summary> 注：移动状态 </summary>
@@ -62,30 +59,30 @@ namespace 途畔归所.Dll.Creature.Npc
                 Vector3 horizontalVel = new(_npc.Velocity.X, 0, _npc.Velocity.Z);
                 float speed = horizontalVel.Length();
                 if (speed > 0.1f)
-                    SwitchMoveState(NpcMoveState.Walk);
+                    SwitchMoveState(NpcAnimState.Walk);
                 else
-                    SwitchMoveState(NpcMoveState.Idle);
+                    SwitchMoveState(NpcAnimState.Idle);
             }
             else
             {
                 // 如果意外离地（掉落），自动切 Fall（不主动跳跃）
-                SwitchMoveState(_npc.Velocity.Y > 0 ? NpcMoveState.Jump : NpcMoveState.Fall);
+                SwitchMoveState(_npc.Velocity.Y > 0 ? NpcAnimState.Jump : NpcAnimState.Fall);
             }
         }
 
         /// <summary> 注：切换移动状态 </summary>
-        private void SwitchMoveState(NpcMoveState newState)
+        private void SwitchMoveState(NpcAnimState newState)
         {
-            if (m_npcMoveState == newState) return;
-            m_npcMoveState = newState;
+            if (m_npcAnimState == newState) return;
+            m_npcAnimState = newState;
             // CatLog.Ok($"[Npc] MoveState → {newState}");
         }
 
         public int GetState() => (int)m_npcState;
 
-        public int GetMoveState() => (int)m_npcMoveState;
+        public int GetAnimState() => (int)m_npcAnimState;
         public void SetState(int State) => m_npcState = (NpcState)State;
 
-        public void SetMoveState(int State) => m_npcMoveState = (NpcMoveState)State;
+        public void SetAnimState(int State) => m_npcAnimState = (NpcAnimState)State;
     }
 }

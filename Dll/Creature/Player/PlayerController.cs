@@ -2,7 +2,7 @@ using Godot;
 using 途畔归所.Dll.Manager;
 using 途畔归所.Dll.NetWork;
 using 途畔归所.Dll.Utils;
-using static 途畔归所.Dll.Creature.PlayerStateMachine;
+using static PlayerStateMachine;
 
 namespace 途畔归所.Dll.Creature
 {
@@ -78,7 +78,7 @@ namespace 途畔归所.Dll.Creature
         {
             Vector3 velocity = m_player.Velocity;
 
-            if (Input.IsActionJustPressed("ui_accept") && m_player.IsOnFloor() && m_StateMachine.s_PlayerState != PlayerState.Attack)
+            if (Input.IsActionJustPressed("ui_accept") && m_player.IsOnFloor() && m_StateMachine.m_playerAnimState != PlayerAnimState.Attack)
             {
                 velocity.Y = JumpVelocity;
             }
@@ -86,7 +86,7 @@ namespace 途畔归所.Dll.Creature
             Vector2 inputDir = Input.GetVector("cat_Left", "cat_Right", "cat_Forward", "cat_Backward");
             Vector3 direction = GetCameraRelativeDirection(inputDir);
 
-            if (m_player.IsOnFloor() && m_StateMachine.s_PlayerState != PlayerState.Attack)
+            if (m_player.IsOnFloor() && m_StateMachine.m_playerAnimState != PlayerAnimState.Attack)
             {
                 // 地面移动逻辑（保持原样）
                 if (direction != Vector3.Zero)
@@ -100,7 +100,7 @@ namespace 途畔归所.Dll.Creature
                     velocity.Z = Mathf.MoveToward(velocity.Z, 0, Speed);
                 }
             }
-            else if ((m_player.IsOnFloor() && m_StateMachine.s_PlayerState == PlayerState.Attack))
+            else if ((m_player.IsOnFloor() && m_StateMachine.m_playerAnimState == PlayerAnimState.Attack))
             {
 
                 // 地面移动逻辑（保持原样）

@@ -45,11 +45,11 @@ namespace 途畔归所.Dll.NetWork
 
             if (NetCore.Instance.IsHost)
             {
-                Rpc(nameof(Rpc_SyncAnimationState), _stateMachine.GetState());
+                Rpc(nameof(Rpc_SyncAnimationState), _stateMachine.GetAnimState() , -1);
             }
             else
             {
-                RpcId(1, nameof(Rpc_ClientAnimReport), _stateMachine.GetState(), NetCore.Instance.LocalPeerID);
+                RpcId(1, nameof(Rpc_ClientAnimReport), _stateMachine.GetAnimState(), NetCore.Instance.LocalPeerID);
             }
         }
 
@@ -68,7 +68,7 @@ namespace 途畔归所.Dll.NetWork
         {
             if (NetCore.Instance.IsHost || NetCore.Instance.LocalPeerID == ignoreID) return;
 
-            _stateMachine.SetState(state);
+            _stateMachine.SetAnimState(state);
         }
     }
 }

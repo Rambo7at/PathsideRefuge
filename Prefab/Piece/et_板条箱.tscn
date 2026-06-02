@@ -76,6 +76,7 @@ metadata/_custom_type_script = "uid://1abgpj4o3um1"
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=838669804]
 shape = SubResource("ConcavePolygonShape3D_lymi8")
+debug_fill = false
 
 [node name="mesh-板条箱" type="MeshInstance3D" parent="." unique_id=2123879812]
 mesh = SubResource("ArrayMesh_gxco0")
@@ -85,7 +86,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1648115, 0)
 
 [node name="ObstacleComp" type="NavigationObstacle3D" parent="." unique_id=830526848]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.013098061, 0)
-vertices = PackedVector3Array(-0.34830755, 0, -0.40506217, 0.442105, 0, -0.3943809, 0.4634673, 0, 0.38535032, -0.3322857, 0, 0.39603156)
-avoidance_enabled = false
+height = 0.8
+vertices = PackedVector3Array(-0.3547381, 0, -0.4301184, 0.45766416, 0, -0.4301184, 0.49048844, 0, 0.41510805, -0.3547381, 0, 0.42331436)
+use_3d_avoidance = true
 script = ExtResource("6_4acy4")
 metadata/_custom_type_script = "uid://cb4swgob65vq"

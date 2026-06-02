@@ -4,9 +4,6 @@ using 途畔归所.Dll.Creature.Npc;
 using 途畔归所.Dll.Data;
 using 途畔归所.Dll.Utils;
 
-
-
-/// <summary>注：Npc移动组件 </summary>
 [GlobalClass]
 public partial class NpcMovement : Node3D
 {
@@ -14,6 +11,7 @@ public partial class NpcMovement : Node3D
 
     private Npc _npc;
     private NpcData _npcData;
+    private Vector3 _safeVelocity = Vector3.Zero;  // 存储 avoidance 后的安全速度
 
     public override void _Ready()
     {
@@ -40,10 +38,11 @@ public partial class NpcMovement : Node3D
         _npc = node;
         _npcData = _npc.m_NpcData ?? new NpcData();
 
-        m_navAgent.Radius = 0.5f;
-        m_navAgent.Height = 1.8f;
-       
+        // 连接 avoidance 计算结果信号
+        m_navAgent.VelocityComputed += OnVelocityComputed;
     }
+
+
 
     public override void _PhysicsProcess(double delta)
     {
@@ -53,32 +52,53 @@ public partial class NpcMovement : Node3D
         _npc.MoveAndSlide();
     }
 
-    /// <summary>注：执行移动 </summary>
     private void ApplyMovement(float delta)
     {
         if (m_navAgent.IsNavigationFinished())
         {
-            _npc.MoveHorizontally(_npc.GlobalPosition, 0);
+            // 停止
+            m_navAgent.Velocity = Vector3.Zero;
+            _npc.Velocity = new Vector3(0, _npc.Velocity.Y, 0);
             return;
         }
 
+        // 1. 获取下一个路径点，计算期望水平速度
         Vector3 nextPoint = m_navAgent.GetNextPathPosition();
+        Vector3 toTarget = nextPoint - _npc.GlobalPosition;
+        toTarget.Y = 0;
 
-        _npc.MoveHorizontally(nextPoint, _npcData.m_speed);
-        _npc.FaceMovementOrTarget(nextPoint, _npcData.m_rotationSpeed, delta);
+        float speed = _npcData.m_speed;
+        Vector3 desiredVelocity = toTarget.Length() > 0.1f
+            ? toTarget.Normalized() * speed
+            : Vector3.Zero;
+
+        // 2. 将期望速度提交给导航代理（触发 avoidance 计算）
+        m_navAgent.Velocity = desiredVelocity;
+
+        // 3. 使用上一帧计算出的安全速度（由信号更新）
+        _npc.Velocity = new Vector3(_safeVelocity.X, _npc.Velocity.Y, _safeVelocity.Z);
+
+        // 4. 面向移动方向
+        if (_safeVelocity.LengthSquared() > 0.01f)
+        {
+            _npc.FaceMovementOrTarget(_safeVelocity, _npcData.m_rotationSpeed, delta);
+        }
     }
 
-    /// <summary>注：设置导航目标 </summary>
+    private void OnVelocityComputed(Vector3 safeVelocity)
+    {
+        _safeVelocity = safeVelocity;
+    }
+
     public void SetNavigation(Vector3 target)
     {
-        CatLog.Ok($"设置目标导航点{target}");
         m_navAgent.TargetPosition = target;
     }
 
-    /// <summary>注：清除导航目标并停止移动。 </summary>
     public void ClearNavigation()
     {
         m_navAgent.TargetPosition = _npc.GlobalPosition;
-        _npc.MoveHorizontally(_npc.GlobalPosition, 0);
+        m_navAgent.Velocity = Vector3.Zero;
+        _npc.Velocity = new Vector3(0, _npc.Velocity.Y, 0);
     }
 }

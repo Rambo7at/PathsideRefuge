@@ -5,7 +5,6 @@
 [ext_resource type="Texture2D" uid="uid://c1jss78hg0iuv" path="res://Mat/岩石-1/Rock058_1K-PNG_NormalGL.png" id="2_ak4h6"]
 [ext_resource type="Script" uid="uid://bcrc0qpx746xk" path="res://Dll/Data/SceneData.cs" id="2_e120r"]
 [ext_resource type="Texture2D" uid="uid://bdiidrnx6whrn" path="res://Mat/草地-1/Ground037_1K-PNG_Color.png" id="3_04x88"]
-[ext_resource type="Script" uid="uid://c3xvbe0vvx4u3" path="res://Dll/Comp/NavigationRegionComp.cs" id="3_luoyv"]
 [ext_resource type="Texture2D" uid="uid://dtdyslx8t74rv" path="res://Mat/草地-1/Ground037_1K-PNG_NormalGL.png" id="4_qutry"]
 [ext_resource type="Texture2D" uid="uid://3qru426iufg1" path="res://Mat/道路-1/Ground067_1K-PNG_Color.png" id="5_qutry"]
 [ext_resource type="Texture2D" uid="uid://c1066cwr4ibtc" path="res://Mat/道路-1/Ground067_1K-PNG_NormalGL.png" id="6_4sfak"]
@@ -160,7 +159,6 @@ m_sceneData = SubResource("Resource_luoyv")
 
 [node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=660417127]
 navigation_mesh = SubResource("NavigationMesh_luoyv")
-script = ExtResource("3_luoyv")
 
 [node name="Terrain3D" type="Terrain3D" parent="NavigationRegion3D" unique_id=1701916262]
 data_directory = "res://Terrain"
