@@ -30,7 +30,6 @@ public partial class Player : Humanoid
 			SetProcess(false);
 			SetPhysicsProcess(false);
 		}
-
 	}
 
 	public override void _Ready()

@@ -16,7 +16,7 @@ namespace 途畔归所.Dll.Core
             Instance = this;
             InitManagers();
 
-            CatLog.Ok("[GameCore]：初始化完成");
+            CatLog.Ok("[GameCore._Ready]：初始化完成");
         }
 
 

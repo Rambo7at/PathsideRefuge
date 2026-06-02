@@ -6,7 +6,7 @@ using 途畔归所.Dll.Utils;
 
 namespace 途畔归所.Dll.Manager
 {
-	/// <summary>注：负责游戏存档管理，包括数据加载、玩家数据操作等。</summary>
+	/// <summary>注：游戏存档管理。</summary>
 	public class SaveManager
 	{
 		private static SaveManager _instance;
@@ -111,6 +111,8 @@ namespace 途畔归所.Dll.Manager
 
 			return true;
 		}
+
+
 
 
 		/// <summary> 注：加载游戏数据 </summary>

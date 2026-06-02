@@ -20,8 +20,7 @@ namespace 途畔归所.Dll.Manager
 
 
 
-        /// <summary>初始化UI资源</summary>
-        /// <param name="packedScene">UI预制件列表</param>
+        /// <summary>注：初始化UI资源</summary>
         public void Init()
         {
             if (ResourceManager.Instance.m_UIAssetList == null) return;
@@ -40,9 +39,7 @@ namespace 途畔归所.Dll.Manager
         }
 
 
-        /// <summary>获取UI预制件</summary>
-        /// <param name="uiName">UI预制件名称</param>
-        /// <returns>独立的Control实例，失败返回null</returns>
+        /// <summary>注：获取UI预制件</summary>
         public Control GetUI(string uiName)
         {
             if (!m_UiDict.TryGetValue(uiName, out var prefabUi))

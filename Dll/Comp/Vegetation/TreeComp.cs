@@ -10,7 +10,6 @@ namespace 途畔归所.Dll.Comp.Vegetation
     public partial class TreeComp : VegetationComp, IDamageable
     {
 
-
         [Export] public Array<string> m_dropList { get; set; }
 
         [Export] public Node3D spawn;
