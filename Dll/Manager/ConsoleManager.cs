@@ -1,17 +1,15 @@
 using Godot;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using 维修公司.Dll;
-using 途畔归所.Dll.Core;
 using 途畔归所.Dll.Manager;
 using 途畔归所.Dll.Utils;
+using 途畔归所.Dll.View;
 
 public partial class ConsoleManager : Node
 {
-    public static ConsoleManager Instance { get;  set; }
+    public static ConsoleManager Instance { get; set; }
 
-    Dictionary<string, Func<ConsoleComp,bool>> m_CommandMap = [];
+    Dictionary<string, Func<ConsoleView, bool>> m_CommandMap = [];
 
 
     public override void _Ready()
@@ -35,7 +33,7 @@ public partial class ConsoleManager : Node
 
 
     /// <summary>注：解析命令 </summary>
-    public bool ParseCommand(ConsoleComp consoleComp)
+    public bool ParseCommand(ConsoleView consoleComp)
     {
         if (!m_CommandMap.ContainsKey(consoleComp.m_Command[0])) return false;
 
@@ -44,13 +42,13 @@ public partial class ConsoleManager : Node
     }
 
     #region 命令处理
-    private bool Clear(ConsoleComp consoleComp)
+    private bool Clear(ConsoleView consoleComp)
     {
         consoleComp.m_RichTextLabel.Text = "";
         consoleComp.m_RichTextLabel.Text += "[成功] 控制台已清空\n";
         return true;
     }
-    private bool Help(ConsoleComp consoleComp)
+    private bool Help(ConsoleView consoleComp)
     {
         consoleComp.m_RichTextLabel.Text += "===== 控制台命令 =====\n";
         consoleComp.m_RichTextLabel.Text += "spawn 物品名 - 生成指定物品\n";
@@ -58,7 +56,7 @@ public partial class ConsoleManager : Node
         return true;
     }
     /// <summary>注：生成功能  </summary>
-    private bool Spawn(ConsoleComp consoleComp)
+    private bool Spawn(ConsoleView consoleComp)
     {
         Vector3 offset = new Vector3(0, 2, -1.5f);
         Vector3 finalPos = consoleComp.m_player.GlobalPosition + offset;
@@ -67,7 +65,7 @@ public partial class ConsoleManager : Node
         return NetObjectManager.Instance.SpawnObject(finalPos, default, CatUtils.GetStableHashCode(consoleComp.m_Command[1]));
     }
 
-    private bool PlayerInfo(ConsoleComp consoleComp)
+    private bool PlayerInfo(ConsoleView consoleComp)
     {
         consoleComp.m_RichTextLabel.Text += $"目前活跃玩家数量：{PlayerManager.Instance.GetActivePlayersIndex()}";
         return true;

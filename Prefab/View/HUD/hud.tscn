@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://dqnvs5qiu0y42"]
 
-[ext_resource type="Script" uid="uid://e7eausygckao" path="res://Dll/Comp/UI/HudComp.cs" id="1_a431q"]
+[ext_resource type="Script" uid="uid://bhn1u4unx2dbj" path="res://Dll/View/HudView.cs" id="1_a431q"]
 [ext_resource type="Texture2D" uid="uid://c3ydq76rt57j6" path="res://Prefab/View/HUD/红条.png" id="1_vvi7k"]
 [ext_resource type="Texture2D" uid="uid://b8srh5f7g2y8j" path="res://Prefab/View/HUD/绿条.png" id="2_o2ye0"]
 [ext_resource type="Texture2D" uid="uid://bgfs47j4osaw4" path="res://Prefab/View/HUD/血框.png" id="3_w34op"]

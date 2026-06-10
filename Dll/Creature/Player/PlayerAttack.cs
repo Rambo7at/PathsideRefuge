@@ -13,13 +13,20 @@ namespace 途畔归所.Dll.Creature
 
         public override void _Ready()
         {
-            var parent = GetParent();
-            if (parent is not Player pl)
+            if (GetParent() is not Player pl)
             {
-                CatLog.Err("[PlayerAttack] 挂载节点不是 Player，已销毁");
-                QueueFree();
+                CatLog.Err("[PlayerAttack._Ready] 挂载节点不是 Player，已销毁");
+                CatUtils.StopAndExit(this);
                 return;
             }
+
+            if (pl.m_IsOwner == false)
+            {
+                CatLog.Net($"[PlayerAttack._Ready]：非所有组件，已销毁");
+                CatUtils.StopAndExit(this);
+                return;
+            }
+
             m_player = pl;
             m_hitBox = m_player.m_hitBox;
         }

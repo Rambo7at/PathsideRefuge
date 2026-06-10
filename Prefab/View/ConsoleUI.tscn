@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://twtg5h2hlc42"]
 
 [ext_resource type="Theme" uid="uid://c1hlpbolrk8po" path="res://Prefab/View/Theme/ConsoleTheme.tres" id="1_ovshx"]
-[ext_resource type="Script" uid="uid://dn6vm0h3sikd2" path="res://Dll/Comp/ConsoleComp.cs" id="2_a2pcr"]
+[ext_resource type="Script" uid="uid://cbe7jrx5wmw8i" path="res://Dll/View/ConsoleView.cs" id="2_a2pcr"]
 
 [node name="ConsoleUI" type="Control" unique_id=965073543 node_paths=PackedStringArray("m_RichTextLabel", "m_LineEdit")]
 layout_mode = 3

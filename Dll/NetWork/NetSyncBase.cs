@@ -37,6 +37,14 @@ namespace 途畔归所.Dll.NetWork
 			EnsureNetObj(scene, node3D);
 		}
 
+		public override void _ExitTree()
+		{
+			if (m_NetObj == null) return;
+
+			NetObjectRegistry.Instance.RemoveNet(m_NetObj.Id);
+		}
+
+
 		private void EnsureNetObj(SceneBase sceneBase, Node3D node3D)
 		{
 			m_node3D = node3D;

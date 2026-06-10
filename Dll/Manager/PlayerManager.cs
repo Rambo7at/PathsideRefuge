@@ -32,7 +32,7 @@ namespace 途畔归所.Dll.Manager
 
             m_LocalPlayer = pl;
 
-            m_CanvasLayer = m_LocalPlayer.m_CanvasLayer;
+            m_CanvasLayer = m_LocalPlayer.m_playerGUI;
 
         }
 

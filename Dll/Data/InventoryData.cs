@@ -11,13 +11,25 @@ namespace 途畔归所.Dll.Data
     [GlobalClass]
     public partial class InventoryData : Resource, ISerializable
     {
+
         public enum InventoryType
         {
             Backpack = 0,
             Chest = 1,
         }
 
+        [Export] public string m_UIname = "InventoryUI";
+
+        [Export] public string m_SlotUIName = "slot_ui";
+
+        [Export] public int m_maxCol = 1;
+
+        [Export] public int m_maxRow = 10;
+
+
         [Export] public Array<ItemData> m_SlotDatas = [];
+
+        public int GetCapacity() => m_maxCol * m_maxRow;
 
         public InventoryData DeepCopy() => this.DuplicateDeep() as InventoryData;
 
@@ -29,18 +41,6 @@ namespace 途畔归所.Dll.Data
                 list.Add(item?.Serialize());
             }
             return JsonSerializer.SerializeToUtf8Bytes(list);
-        }
-
-
-        public void UpdetaSlotData(int indxe)
-        {
-
-            m_SlotDatas.Clear();
-
-            for (int i = 0; i < indxe; i++)
-            {
-                m_SlotDatas.Add(null);
-            }
         }
 
         public void Deserialize(byte[] data)
@@ -67,5 +67,6 @@ namespace 途畔归所.Dll.Data
                 }
             }
         }
+
     }
 }

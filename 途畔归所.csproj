@@ -13,6 +13,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />
+    <None Include="优先级.md" />
     <None Include="日志信息.md" />
   </ItemGroup>
 </Project>

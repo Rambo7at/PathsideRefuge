@@ -13,48 +13,74 @@ namespace 途畔归所.Dll.Comp
 {
 	public partial class ContainerComp : PlacedComp, IInteractable, IInventoryHolder
 	{
-		private InventoryComp m_InventoryComp;
-		private InventoryData m_inventoryData;
-		private InventoryView m_inventoryView;
 
-		private CanvasLayer m_CanvasLayer;
-		private NetSyncBase m_netSyncBase;
+		[Export] private InventoryData m_inventoryData;
+		[Export] private Node3D m_dropPos;
+
+        private InventoryComp m_InventoryComp;
+		private InventoryView m_inventoryView;
+        private NetSyncBase m_netSyncBase;
+
+
+
 
 		public bool m_IsOpen { get; private set; }
-		InventoryData IInventoryHolder.m_HolderInventoryData { get => m_inventoryData ??= new(); set => m_inventoryData = value; }
+        InventoryData IInventoryHolder.InventoryData { get => m_inventoryData; set => m_inventoryData = value; }
+        Vector3 IInventoryHolder.DropPos  => m_dropPos.GlobalPosition; 
 
-		public override void _Ready()
+        public override void _Ready()
 		{
-			foreach (var node in GetChildren())
-			{
-				if (node is NetSyncBase comp) m_netSyncBase = comp;
-
-				if (node is InventoryComp inventoryComp) m_InventoryComp = inventoryComp;
-			}
-
-			if (m_InventoryComp == null)
+			m_netSyncBase = CatUtils.FindChildNode<NetSyncBase>(this);
+			if (m_inventoryData == null || m_netSyncBase == null)
 			{
 				CatUtils.StopAndExit(this);
-				CatLog.Err("[ContainerComp._Ready]：ContainerComp 未挂载 InventoryComp 组件，已销毁");
+				CatLog.Err("[ContainerComp._Ready]：ContainerComp 缺少 m_inventoryData 数据 或 NetSyncBase 组件 ，已销毁");
 				return;
 			}
 
-			if (InitContainerNetSync(m_netSyncBase) == false)
+
+			if (InitSync(m_netSyncBase) == false)
 			{
 				CatUtils.StopAndExit(this);
 				return;
 			}
 
+			m_InventoryComp ??= new();
+			AddChild(m_InventoryComp);
+            m_inventoryView = m_InventoryComp.GetView();
 
-			m_netSyncBase.RegisterRpc("RequestOpenContainer", RPC_RequestOpenContainer);
+
+            m_netSyncBase.RegisterRpc("RequestOpenContainer", RPC_RequestOpenContainer);
 			m_netSyncBase.RegisterRpc<byte[]>("ReceiveContainerInventory", RPC_ReceiveContainerInventory);
 			m_netSyncBase.RegisterRpc<bool>("SyncContainerOpenState", RPC_SyncContainerOpenState);
 			m_netSyncBase.RegisterRpc("RequestCloseContainer", RPC_RequestCloseContainer);
 			m_netSyncBase.RegisterRpc("ReceiveCloseContainer", RPC_ReceiveCloseContainer);
 			m_netSyncBase.RegisterRpc<byte[]>("SubmitFinalInventory", RPC_SubmitFinalInventory);
 		}
+        private bool InitSync(NetSyncBase netSync)
+        {
 
-		public override void _Process(double delta)
+            if (netSync == null || netSync.m_NetObj == null)
+            {
+                CatLog.Net("[ContainerComp.InitContainerNetSync] NetSyncBase 或 NetSyncBase.NetObj 为空");
+                return false;
+            }
+            NetObject netObject = netSync.m_NetObj;
+
+            netSync.OnFlushNetState += () => FlushInventory(netSync.m_NetObj);
+
+            var custdata = netObject.m_customData.As<PlacedData>();
+            m_placedData = custdata != null ? custdata.DeepCopy() : m_placedData;
+
+            var data = m_placedData.m_data.As<InventoryData>();
+            m_inventoryData = (data?.m_SlotDatas == null || data.m_SlotDatas.Count == 0) ? m_inventoryData : data;
+
+            return true;
+        }
+
+
+
+        public override void _Process(double delta)
 		{
 			if (m_IsOpen && m_inventoryView.GetParent() == PlayerManager.Instance.m_CanvasLayer)
 			{
@@ -206,40 +232,7 @@ namespace 途畔归所.Dll.Comp
 
 		}
 
-		private bool InitContainerNetSync(NetSyncBase netSync)
-		{
 
-			if (netSync == null || netSync.m_NetObj == null)
-			{
-				CatLog.Net("[ContainerComp.InitContainerNetSync] NetSyncBase 或 NetSyncBase.NetObj 为空，已销毁");
-				return false;
-			}
-			NetObject netObject = netSync.m_NetObj;
-
-			netSync.OnFlushNetState += () => FlushInventory(netSync.m_NetObj);
-
-			var custdata = netObject.m_customData.As<PlacedData>();
-			m_placedData = custdata != null ? custdata.DeepCopy() : m_placedData;
-
-			var data = m_placedData.m_data.As<InventoryData>();
-
-			if (data != null && data.m_SlotDatas != null && data.m_SlotDatas.Count > 0)
-			{
-				m_inventoryData = data.DeepCopy();
-			}
-
-			var UI = UIManager.Instance.GetUI("ContainerUI");
-			if (UI is not InventoryView view)
-			{
-				CatLog.Err("[ContainerComp.InitContainerNetSync] 查找的UI 非对应UI 组件，已销毁");
-				return false;
-			}
-			view.BindData(m_InventoryComp);
-			view.Visible = false;
-			m_inventoryView = view;
-
-			return true;
-		}
 
 		private void FlushInventory(NetObject netObject)
 		{

@@ -36,29 +36,19 @@ public partial class PlayerStateMachine : Node, ISyncStateMachine
 
     public override void _Ready()
     {
-        var node = GetParent();
-
-        if (node == null)
+        if (GetParent() is not Player pl)
         {
-            CatLog.Err($"[PlayerStateMachine._Ready]：检测挂载对象是空，已返回");
-            CatUtils.StopAndExit(this);
-            return;
-        }
-
-        if (node is not Player pl)
-        {
-            CatLog.Err($"[PlayerController._Ready]：检测挂载对象并非 player ，已返回");
+            CatLog.Err($"[PlayerController._Ready]：检测挂载对象并非 player ，已销毁");
             CatUtils.StopAndExit(this);
             return;
         }
 
         m_player = pl;
 
-        if (m_player.m_PlayerData == null)
+        if (pl.m_IsOwner == false)
         {
             SetProcess(false);
             SetPhysicsProcess(false);
-            return;
         }
     }
 
@@ -82,8 +72,8 @@ public partial class PlayerStateMachine : Node, ISyncStateMachine
     private void UpdatePhysicsBasedState()
     {
         // 攻击状态下不允许物理状态切换（保持攻击动画）
-        if (m_playerAnimState == PlayerAnimState.Attack)
-            return;
+        if (m_playerAnimState == PlayerAnimState.Attack) return;
+
 
         if (Input.IsActionJustPressed("cat_Attack"))
         {

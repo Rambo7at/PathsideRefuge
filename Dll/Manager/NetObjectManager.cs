@@ -25,6 +25,7 @@ namespace 途畔归所.Dll.Manager
             if (NetObjectRegistry.Instance != null)
             {
                 NetObjectRegistry.Instance.OnSpawned += HandleSpawned;
+                NetObjectRegistry.Instance.OnDestroyed += HandleDestroyed;
             }
             else
             {
@@ -192,6 +193,21 @@ namespace 途畔归所.Dll.Manager
                 currentScene.AddChild(node3D);
             }
 
+        }
+
+        /// <summary>注：网络对象注销时，从管理器中移除并清理场景实例。</summary>
+        private void HandleDestroyed(NetID id)
+        {
+            if (_netObjectInstances.TryGetValue(id, out Node node))
+            {
+                _netObjectInstances.Remove(id);
+
+                // 安全清理：如果节点还有效且未销毁，就移除它
+                if (GodotObject.IsInstanceValid(node) && node.IsInsideTree())
+                {
+                    node.QueueFree();
+                }
+            }
         }
 
         /// <summary>注：打印网络实例的调试信息，包括数量及对象类型。</summary>

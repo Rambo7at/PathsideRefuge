@@ -14,47 +14,28 @@ public partial class PlayerCamera : SpringArm3D
 
     private Player m_Plyaer;
 
-	private bool _IsOwner = false;
-
     private Camera3D m_Camera3D;  // 引用子节点 Camera3D，可以不导出，通过 GetNode 获取
     public override void _Ready()
     {
-		
-        var node = GetParent();
-        if (node == null)
-        {
-            CatLog.Err($"[PlayerCamera._Ready]：检测挂载对象是空，已返回");
-            QueueFree();
-            return;
-        }
-
-        if (node is not Player pl)
+        if (GetParent() is not Player pl)
         {
             CatLog.Err($"[PlayerCamera._Ready]：检测挂载对象并非 player ，已返回");
             QueueFree();
             return;
         }
 
-		m_Plyaer = pl;
 
-        var nodeaar = pl.GetChildren();
 
-        foreach (var comp in nodeaar)
+        if (pl.m_IsOwner == false)
         {
-            if (comp == null) continue;
+            CatLog.Net($"[PlayerCamera._Ready]：非所有组件，已销毁");
+            CatUtils.StopAndExit(this);
+            return;
 
-            if (comp is not NetSyncBase netSyncBase) continue;
-
-			_IsOwner = netSyncBase.IsOwner;
-
-            if (netSyncBase.IsOwner == false)
-			{
-                CatLog.Warn($"[PlayerCamera._Ready]：检测player对象并非 本地所有，已销毁");
-                QueueFree();
-                return;
-            }
         }
 
+
+        m_Plyaer = pl;
 		TopLevel = true;
 
         var cam = WorldManager.Instance.GetCamera();
@@ -70,7 +51,6 @@ public partial class PlayerCamera : SpringArm3D
 
     public override void _Process(double delta)
 	{
-		if (_IsOwner == false) return;
 		m_RayCast3D.GlobalRotation = this.GlobalRotation;
 
         GlobalPosition = m_Plyaer.GlobalPosition + new Vector3(0, 1.439f, 0);

@@ -24,29 +24,31 @@ namespace 途畔归所.Dll.Creature
         private float JumpVelocity;
         private float targetAngle = Mathf.Pi;
 
-        private bool _IsOwner = false;
-
         public override void _Ready()
         {
-            var node = GetParent();
+           
 
-            if (node is not Player pl)
+            if (GetParent() is not Player pl)
             {
                 CatLog.Err($"[PlayerController._Ready]：检测挂载对象并非 player ，已销毁");
                 CatUtils.StopAndExit(this);
                 return;
             }
 
-            var nodeaar = pl.GetChildren();
+            if (pl.m_IsOwner == false)
+            {
+                CatLog.Net($"[PlayerController._Ready]：非所有组件，已销毁");
+                CatUtils.StopAndExit(this);
+                return;
+            }
 
-            foreach (var comp in nodeaar)
+            foreach (var comp in pl.GetChildren())
             {
                 if (comp is PlayerStateMachine StateMachine) m_StateMachine = StateMachine;
-                if (comp is NetSyncBase netSyncBase) _IsOwner = netSyncBase.IsOwner;
                 if (comp is SpringArm3D springArm3D) m_springArm3D = springArm3D;
             }
 
-            if (m_StateMachine == null || _IsOwner == false || m_StateMachine == null)
+            if (m_StateMachine == null || m_StateMachine == null)
             {
                 CatLog.Warn($"[PlayerController._Ready]：检测部分未通过，已销毁");
                 CatUtils.StopAndExit(this);

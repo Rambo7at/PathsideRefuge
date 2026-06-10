@@ -145,6 +145,8 @@ namespace 途畔归所.Dll.Manager
         public Array<NetObject> GetNetObjectsForCurrentScene(int sceneHash)
         {
             Array<NetObject> arr = [];
+            
+
 
             foreach (var netobj in _netObjects)
             {
@@ -153,6 +155,13 @@ namespace 途畔归所.Dll.Manager
             }
 
             return arr;
+        }
+
+        public void RemoveNet(NetID ID)
+        {
+            if (!_netObjects.TryGetValue(ID, out var netObj)) return;
+            _netObjects.Remove(ID);
+            OnDestroyed?.Invoke(ID);
         }
 
     }

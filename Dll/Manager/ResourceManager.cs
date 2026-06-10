@@ -100,9 +100,10 @@ namespace 途畔归所.Dll.Manager
                 asset.ResourceName = node.Name;
                 int hash = CatUtils.GetStableHashCode(node.Name);
 
-                if (node is SceneBase)
+                if (node is SceneBase && !WorldManager.Instance.SceneDict.ContainsKey(hash))
                 {
                     WorldManager.Instance.SceneDict[hash] = asset;
+                    continue;
                 }
 
                 if (NetObjectManager.Instance.m_PrefabDict.ContainsKey(hash))

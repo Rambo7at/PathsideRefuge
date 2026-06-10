@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://bhe3xyqk5me"]
 
-[ext_resource type="Script" uid="uid://nl5e1gk62sjy" path="res://Dll/Comp/EscComp.cs" id="1_lorfs"]
+[ext_resource type="Script" uid="uid://vwlgdx0rkuk2" path="res://Dll/View/EscView.cs" id="1_lorfs"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ycny2"]
 bg_color = Color(0.039215688, 0.039215688, 0.039215688, 0.043137256)

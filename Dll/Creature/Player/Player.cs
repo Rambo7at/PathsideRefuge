@@ -4,12 +4,13 @@ using 途畔归所.Dll.Base;
 using 途畔归所.Dll.Comp;
 using 途畔归所.Dll.Creature;
 using 途畔归所.Dll.Data;
+using 途畔归所.Dll.NetWork;
+using 途畔归所.Dll.Utils;
 
 public partial class Player : Humanoid
 {
 	[Export] public Node3D m_PlayerModel;
-	[Export] public CanvasLayer m_CanvasLayer;
-	[Export] public PlayerUIHandler m_PlayerUIHandler;
+	[Export] public PlayerGUI m_playerGUI;
 
 	[Export] public BoneAttachment3D m_HandL;
 	[Export] public BoneAttachment3D m_HandR;
@@ -20,13 +21,26 @@ public partial class Player : Humanoid
 	public PlayerData m_PlayerData;
 	public float m_BaseAttackDamage = 20f;  // 临时测试变量
 
+	private NetSyncBase netSync;
+	public bool m_IsOwner => netSync != null && netSync.IsOwner;
 
 
 
 	public override void _EnterTree()
 	{
-		if (m_PlayerData == null)
+		netSync = CatUtils.FindChildNode<NetSyncBase>(this);
+
+		if (netSync == null)
 		{
+			CatLog.Err($"[Player._EnterTree]：未找到NetSyncBase网络同步组件，已关闭运行逻辑");
+			SetProcess(false);
+			SetPhysicsProcess(false);
+			return;
+		}
+
+		if (!m_IsOwner)
+		{
+			CatLog.Net($"[Player._EnterTree]：当前并非本地玩家，已关闭运行逻辑");
 			SetProcess(false);
 			SetPhysicsProcess(false);
 		}
@@ -97,7 +111,7 @@ public partial class Player : Humanoid
 			GD.PrintErr("[Player.ValidateComponents]：m_PlayerModel 字段为空");
 			return false;
 		}
-		if (m_CanvasLayer == null)
+		if (m_playerGUI == null)
 		{
 			GD.PrintErr("[Player.ValidateComponents]：m_CanvasLayer 字段为空");
 			return false;
