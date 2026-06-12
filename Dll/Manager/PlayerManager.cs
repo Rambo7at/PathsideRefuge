@@ -15,7 +15,7 @@ namespace 途畔归所.Dll.Manager
         public int m_playerHash;
 
         public Player m_LocalPlayer;
-        public PlayerData m_LocalPlayerData { get; set; }
+        public CreatureData m_LocalPlayerData { get; set; }
 
         public CanvasLayer m_CanvasLayer;
 
@@ -43,12 +43,14 @@ namespace 途畔归所.Dll.Manager
                 CatLog.Err("[PlayerManager.SpawnLocalPlayer]：检测数据信息 m_LocalPlayerData 是空！");
                 return;
             }
-            m_LocalPlayer.m_PlayerData = m_LocalPlayerData;
+            m_LocalPlayer.m_data = m_LocalPlayerData;
+
             NetObjectManager.Instance.SpawnObject(Pos, rot, default, m_LocalPlayer);
         }
 
         public int GetActivePlayersIndex() => ActivePlayers.Count;
 
+        public int GetPlayerID() => (m_LocalPlayer?.m_data?.m_playerData == null || m_LocalPlayer?.m_data?.m_playerData.m_playerID == default) ? 0 : m_LocalPlayer.m_data.m_playerData.m_playerID;
 
     }
 }

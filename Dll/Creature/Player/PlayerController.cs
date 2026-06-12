@@ -58,8 +58,8 @@ namespace 途畔归所.Dll.Creature
             m_player = pl;
             m_PlayerMesh = pl.m_PlayerModel;
             m_Camera3D = WorldManager.Instance.GetCamera();
-            Speed = pl.m_PlayerData.m_Speed;
-            JumpVelocity = pl.m_PlayerData.m_Jump;
+            Speed = pl.m_data.m_speed;
+            JumpVelocity = pl.m_data.m_jump;
         }
 
 

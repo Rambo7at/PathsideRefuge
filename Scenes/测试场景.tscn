@@ -9,7 +9,7 @@
 [ext_resource type="Texture2D" uid="uid://3qru426iufg1" path="res://Mat/道路-1/Ground067_1K-PNG_Color.png" id="5_qutry"]
 [ext_resource type="Texture2D" uid="uid://c1066cwr4ibtc" path="res://Mat/道路-1/Ground067_1K-PNG_NormalGL.png" id="6_4sfak"]
 [ext_resource type="PackedScene" uid="uid://ccyut3db0phlt" path="res://Prefab/Npc/Npc.tscn" id="8_qutry"]
-[ext_resource type="Script" uid="uid://coweqxoimmlvb" path="res://Dll/Data/NpcData.cs" id="9_4sfak"]
+[ext_resource type="PackedScene" uid="uid://dohla8te3p0fh" path="res://Prefab/Vegetation/ET-树.tscn" id="11_luoyv"]
 [ext_resource type="PackedScene" uid="uid://b67gkoovomi8k" path="res://Prefab/Piece/et_板条箱.tscn" id="12_luoyv"]
 
 [sub_resource type="Resource" id="Resource_luoyv"]
@@ -147,11 +147,6 @@ ssao_enabled = true
 ssil_enabled = true
 volumetric_fog_sky_affect = 0.434
 
-[sub_resource type="Resource" id="Resource_3ycm5"]
-script = ExtResource("9_4sfak")
-m_speed = 3.0
-metadata/_custom_type_script = "uid://coweqxoimmlvb"
-
 [node name="测试场景" type="Node3D" unique_id=1047784342 node_paths=PackedStringArray("SpawnPian")]
 script = ExtResource("1_04x88")
 SpawnPian = NodePath("playerSpawn")
@@ -181,9 +176,11 @@ shadow_enabled = true
 [node name="playerSpawn" type="Node3D" parent="." unique_id=373272656]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3174372, 0)
 
-[node name="Npc" parent="." unique_id=1650011338 instance=ExtResource("8_qutry")]
-transform = Transform3D(0.9992379, 0.0390331, 0, -0.0390331, 0.9992379, 0, 0, 0, 1, -0.594718, 0.49989223, 20.64327)
-m_NpcData = SubResource("Resource_3ycm5")
+[node name="ET-树" parent="." unique_id=798133478 instance=ExtResource("11_luoyv")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.663575, -1.1920929e-07, -2.6612482)
 
 [node name="ET-板条箱" parent="." unique_id=868758898 instance=ExtResource("12_luoyv")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.276643, 0, -12.308217)
+
+[node name="Npc" parent="." unique_id=1650011338 instance=ExtResource("8_qutry")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.38994598, 31.100912)

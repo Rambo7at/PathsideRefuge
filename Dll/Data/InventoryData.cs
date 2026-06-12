@@ -31,7 +31,7 @@ namespace 途畔归所.Dll.Data
 
         public int GetCapacity() => m_maxCol * m_maxRow;
 
-        public InventoryData DeepCopy() => this.DuplicateDeep() as InventoryData;
+
 
         public byte[] Serialize()
         {
@@ -67,6 +67,8 @@ namespace 途畔归所.Dll.Data
                 }
             }
         }
+
+        public InventoryData DeepCopy() => this.DuplicateDeep() as InventoryData;
 
     }
 }

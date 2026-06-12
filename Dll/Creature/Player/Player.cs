@@ -15,12 +15,9 @@ public partial class Player : Humanoid
 	[Export] public BoneAttachment3D m_HandL;
 	[Export] public BoneAttachment3D m_HandR;
 
-	[Export] public Area3D m_hitBox;
-
 	public bool m_OnUI = false;
-	public PlayerData m_PlayerData;
-	public float m_BaseAttackDamage = 20f;  // 临时测试变量
 
+	public CreatureData m_data;
 	private NetSyncBase netSync;
 	public bool m_IsOwner => netSync != null && netSync.IsOwner;
 

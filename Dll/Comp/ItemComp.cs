@@ -1,6 +1,7 @@
 using Godot;
 using 维修公司.Dll.data;
 using 维修公司.Dll.Interface;
+using 途畔归所.Dll.Utils;
 
 
 /// <summary> 注：游戏场景中可拾取的物品掉落实体，包含物品基础属性和拾取逻辑</summary>
@@ -16,7 +17,12 @@ public partial class ItemComp : RigidBody3D, IInteractable
 
 	public override void _Ready()
 	{
-		if (m_ItemData == null) return;
+		if (m_ItemData == null)
+		{
+			CatUtils.StopAndExit(this);
+			return;
+		}
+
 		InitWeapon();
 	}
 
@@ -31,7 +37,8 @@ public partial class ItemComp : RigidBody3D, IInteractable
 		if (m_ItemData.m_Type != ItemData.ItemType.武器) return;
 		if (m_WeaponHitBox == null)
 		{
-			GD.PrintErr($"[ItemComp.InitWeapon]：检测{m_ItemData.m_Name}-未添加 HitBox");
+			GD.PrintErr($"[ItemComp.InitWeapon]：检测{m_ItemData.m_Name}-未添加 HitBox 已销毁");
+			CatUtils.StopAndExit(this);
 			return;
 		}
 		if (IsEquipped) Freeze = true;

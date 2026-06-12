@@ -5,7 +5,7 @@ namespace 途畔归所.Dll.Data
 
 	public partial class SaveData : Resource
 	{
-		[Export] public Dictionary<int, PlayerData> m_playerDataDict { get; set; } = [];
+		[Export] public Dictionary<int, CreatureData> m_playerDataDict { get; set; } = [];
 
         [Export] public Dictionary<int, WorldData> m_worldDataDict { get; set; } = [];
 

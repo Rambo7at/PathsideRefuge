@@ -6,25 +6,26 @@ namespace 途畔归所.Dll.View
 {
 	public partial class SlotView : Control
 	{
-		[Export] public Button m_button;
-
+        [ExportGroup("基础")]
+        [Export] public Button m_button;
 		[Export] public TextureRect m_itemIcon;
-
 		[Export] public Label m_itemInfo;
 
-		[Export] public CheckBox m_checkBox;  // 临时功能后续可能删除 
 
-		public int m_slotIndex;
+		public int m_slotIndex { get; set; }
+		public InventoryComp m_owner { get; set; }
+        public ItemData m_slotData { get => m_owner.m_SlotDataArr[m_slotIndex]; set => m_owner.m_SlotDataArr[m_slotIndex] = value; }
+		public bool isNull => m_slotData == null;
 
-		public InventoryComp m_owner;
+        private SlotView s_draggingFrom;
+        private TextureRect s_dragIcon;
+        private CanvasLayer s_dragCanvas; // 拖拽图标的父节点（全局顶层）
 
-		public ItemData m_slotData { get => m_owner.m_SlotDataArr[m_slotIndex]; set => m_owner.m_SlotDataArr[m_slotIndex] = value; }
 
-		public bool isNull => m_slotData == null; 
 
-		public override void _Ready()
+        public override void _Ready()
 		{
-			if (m_button == null || m_itemIcon == null || m_itemInfo == null || m_checkBox == null)
+			if (m_button == null || m_itemIcon == null || m_itemInfo == null)
 			{
 				CatLog.Err($"[SlotView._Ready]：检测需求字段 有空 已销毁");
 				CatUtils.StopAndExit(this);
@@ -51,5 +52,50 @@ namespace 途畔归所.Dll.View
 			}
 		}
 
-	}
+
+    //    // -------------- 新增代码
+
+    //    private void OnSlotGuiInput(InputEvent @event)
+    //    {
+    //        if (@event is InputEventMouseButton mb && mb.ButtonIndex == MouseButton.Left)
+    //        {
+				//if (mb.Pressed && !isNull)
+				//{
+				//	StartDrag();
+				//}
+				//else if (!mb.Pressed && s_draggingFrom != null)
+				//{
+    //                StopDrag();
+    //            }
+					
+    //        }
+    //        else if (@event is InputEventMouseMotion motion && s_draggingFrom != null)
+    //        {
+    //            s_dragIcon.GlobalPosition = motion.GlobalPosition;
+    //        }
+    //    }
+
+
+    //    private void StartDrag()
+    //    {
+    //        s_draggingFrom = this;
+    //        m_itemIcon.Visible = false;
+
+    //        s_dragIcon = new TextureRect
+    //        {
+    //            ExpandMode = m_itemIcon.ExpandMode,
+    //            Size = m_itemIcon.Size,
+    //            Texture = m_itemIcon.Texture,
+    //            ZIndex = 1000,
+    //            TopLevel = true,
+    //            MouseFilter = MouseFilterEnum.Ignore,
+    //            GlobalPosition = GetGlobalMousePosition()
+    //        };
+    //        s_dragCanvas.AddChild(s_dragIcon);
+    //    }
+
+
+
+
+    }
 }

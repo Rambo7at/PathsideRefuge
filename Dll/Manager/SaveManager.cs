@@ -17,7 +17,7 @@ namespace 途畔归所.Dll.Manager
 
 		public int m_selPlayerIdx { get => DATA.m_selPlayerIndex == default ? DATA.TryGetValidPlayerDataKey() : DATA.m_selPlayerIndex; set => DATA.m_selPlayerIndex = value; }
 		public int m_selWorldIdx { get => DATA.m_selworldIndex == default ? DATA.TryGetValidWorldDataKey() : DATA.m_selworldIndex; set => DATA.m_selworldIndex = value; }
-		public Dictionary<int, PlayerData> m_playerDataDict { get => DATA.m_playerDataDict; set => DATA.m_playerDataDict = value; }
+		public Dictionary<int, CreatureData> m_playerDataDict { get => DATA.m_playerDataDict; set => DATA.m_playerDataDict = value; }
 		public Dictionary<int, WorldData> m_worldDataDict { get => DATA.m_worldDataDict; set => DATA.m_worldDataDict = value; }
 
 
@@ -86,10 +86,10 @@ namespace 途畔归所.Dll.Manager
 		}
 
 		/// <summary>注：获取选中玩家的数据。</summary>
-		public PlayerData GetSelectedPlayerData()
+		public CreatureData GetSelectedPlayerData()
 		{
-			if (!m_playerDataDict.TryGetValue(m_selPlayerIdx, out PlayerData plData)) return null;
-			return plData;
+			if (!m_playerDataDict.TryGetValue(m_selPlayerIdx, out CreatureData data)) return null;
+			return data;
 		}
 
 		/// <summary>注：创建新玩家并添加到存档数据中。</summary>
@@ -97,9 +97,16 @@ namespace 途畔归所.Dll.Manager
 		{
 			if (m_playerDataDict == null) return;
 
-			PlayerData pldata = new() { m_Name = playerName };
+			CreatureData data = new()
+			{
+				m_name = playerName,
+				m_isPlayer = true,
+				m_playerData = new PlayerData()
+			};
 
-			m_playerDataDict.Add(pldata.m_PlayerID, pldata);
+
+			m_playerDataDict.Add(data.m_playerData.m_playerID, data);
+
 		}
 
 		/// <summary>注：判断存档是否存在有效的玩家存档数据。</summary>
@@ -165,7 +172,10 @@ namespace 途畔归所.Dll.Manager
 		/// <summary>注：更新存档数据</summary>
 		private void PersistAll()
 		{
-			int id = PlayerManager.Instance.m_LocalPlayerData.m_PlayerID;
+			int id = PlayerManager.Instance.GetPlayerID();
+
+			if (id == default) return; 
+
 			m_playerDataDict[id] = PlayerManager.Instance.m_LocalPlayerData.DeepCopy();
             CatLog.Info($"[SaveManager.PersistAll] 玩家数据已暂存，ID:{id}");
 

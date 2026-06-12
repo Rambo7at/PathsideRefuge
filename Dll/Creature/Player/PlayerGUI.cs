@@ -20,7 +20,7 @@ namespace 途畔归所.Dll.Creature
 		private EscView m_escView;
 		private HudView m_hudView;
 
-		public InventoryData InventoryData { get => m_player.m_PlayerData.m_InventoryData ??= new InventoryData(); set => m_player.m_PlayerData.m_InventoryData = value; }
+		public InventoryData InventoryData { get => m_player.m_data.m_inventoryData ??= new InventoryData(); set => m_player.m_data.m_inventoryData = value; }
 		Vector3 IInventoryHolder.DropPos => m_dropPos.GlobalPosition;
 		public override void _Ready()
 		{

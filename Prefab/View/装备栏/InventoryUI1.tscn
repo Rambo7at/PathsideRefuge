@@ -1,0 +1,72 @@
+[gd_scene format=3 uid="uid://dyw3q6tfi030b"]
+
+[ext_resource type="PackedScene" uid="uid://droxh7tkm7y42" path="res://Prefab/View/格子/slot_ui.tscn" id="1_40u1q"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pn5rc"]
+bg_color = Color(0.12156863, 0.12156863, 0.12156863, 1)
+border_width_left = 6
+border_width_top = 6
+border_width_right = 6
+border_width_bottom = 6
+border_color = Color(0.95686275, 0.45490196, 0.47058824, 1)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+shadow_size = 12
+
+[node name="InventoryUI" type="Control" unique_id=1275478942]
+top_level = true
+layout_mode = 3
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+
+[node name="Panel" type="Panel" parent="." unique_id=666655981]
+layout_mode = 0
+offset_left = 330.0
+offset_top = -399.0
+offset_right = 830.0
+offset_bottom = 101.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_pn5rc")
+
+[node name="SlotUi" parent="Panel" unique_id=1872644542 instance=ExtResource("1_40u1q")]
+layout_mode = 0
+offset_left = 35.0
+offset_top = 32.0
+offset_right = 99.0
+offset_bottom = 96.0
+
+[node name="SlotUi2" parent="Panel" unique_id=1860067400 instance=ExtResource("1_40u1q")]
+layout_mode = 0
+offset_left = 30.0
+offset_top = 117.0
+offset_right = 94.0
+offset_bottom = 181.0
+
+[node name="SlotUi3" parent="Panel" unique_id=1100442867 instance=ExtResource("1_40u1q")]
+layout_mode = 0
+offset_left = 30.0
+offset_top = 204.0
+offset_right = 94.0
+offset_bottom = 268.0
+
+[node name="SlotUi4" parent="Panel" unique_id=898188020 instance=ExtResource("1_40u1q")]
+layout_mode = 0
+offset_left = 30.0
+offset_top = 293.0
+offset_right = 94.0
+offset_bottom = 357.0
+
+[node name="SlotUi5" parent="Panel" unique_id=436228351 instance=ExtResource("1_40u1q")]
+layout_mode = 0
+offset_left = 30.0
+offset_top = 387.0
+offset_right = 94.0
+offset_bottom = 451.0

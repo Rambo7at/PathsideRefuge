@@ -10,7 +10,7 @@ public partial class NpcMovement : Node3D
     [Export] public NavigationAgent3D m_navAgent;
 
     private Npc _npc;
-    private NpcData _npcData;
+    private CreatureData _npcData;
     private Vector3 _safeVelocity = Vector3.Zero;  // 存储 avoidance 后的安全速度
 
     public override void _Ready()
@@ -36,7 +36,7 @@ public partial class NpcMovement : Node3D
         }
 
         _npc = node;
-        _npcData = _npc.m_NpcData ?? new NpcData();
+        _npcData = _npc.m_data ?? new CreatureData();
 
         // 连接 avoidance 计算结果信号
         m_navAgent.VelocityComputed += OnVelocityComputed;

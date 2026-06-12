@@ -54,7 +54,7 @@ public partial class PlayerStateMachine : Node, ISyncStateMachine
 
     public override void _PhysicsProcess(double delta)
     {
-        if (m_player.m_PlayerData == null) return;
+        if (m_player.m_data == null) return;
 
         UpdatePhysicsBasedState();
     }

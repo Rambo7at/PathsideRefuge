@@ -7,7 +7,7 @@ namespace 途畔归所.Dll.Creature
     [GlobalClass]
     public partial class PlayerAttack : Node
     {
-
+        [Export] private Area3D m_emptyhanded;
         private Player m_player;
         private Area3D m_hitBox;
 
@@ -28,7 +28,6 @@ namespace 途畔归所.Dll.Creature
             }
 
             m_player = pl;
-            m_hitBox = m_player.m_hitBox;
         }
 
         // 动画轨道调用：开启判定窗口
@@ -47,17 +46,14 @@ namespace 途畔归所.Dll.Creature
             m_hitBox.Monitoring = false;
         }
 
-        // 判定回调：在这个方法里做伤害逻辑
+        // Area3D回调函数：在这个方法里做伤害逻辑
         private void OnHit(Node3D body)
         {
-            if (body == m_player) return;
+            if (body == m_player || body is not IDamageable node) return;
 
-            if (body is IDamageable node)
-            {
-                node.TakeDamage(m_player.m_BaseAttackDamage);
+            node.TakeDamage(m_player.m_data.m_baseAttack);
 
-                CatLog.Ok($"[PlayerAttack] 命中 {body.Name}");
-            }
+            CatLog.Ok($"[PlayerAttack] 命中 {body.Name}");
         }
 
 

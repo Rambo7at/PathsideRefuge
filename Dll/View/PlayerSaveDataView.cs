@@ -53,9 +53,9 @@ public partial class PlayerSaveDataView : Control
         m_toggleSaveBtn.Text = m_toggleSaveBtn.Text == _butInfo ? "返回" : _butInfo;
     }
 
-    private void ApplyPlayerInfo(PlayerData data)
+    private void ApplyPlayerInfo(CreatureData data)
     {
-        m_nameLabel.Text = "玩家名：" + data.m_Name;
+        m_nameLabel.Text = "玩家名：" + data.m_name;
         m_bagLabel.Text = "背包库存：" + data.GetInventoryItemCount();
     }
 

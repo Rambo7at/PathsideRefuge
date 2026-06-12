@@ -25,7 +25,7 @@ script = ExtResource("1_uvxin")
 m_button = NodePath("Button")
 m_itemIcon = NodePath("Button/PanelContainer/TextureRect")
 m_itemInfo = NodePath("Button/PanelContainer/TextureRect/Label")
-m_checkBox = NodePath("CheckBox")
+m_checkBox = NodePath("")
 
 [node name="Button" type="Button" parent="." unique_id=2092678774]
 self_modulate = Color(1, 1, 1, 0)
@@ -62,8 +62,3 @@ theme_override_colors/font_color = Color(0.38039216, 1, 0.8039216, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 2
 theme_override_font_sizes/font_size = 6
-
-[node name="CheckBox" type="CheckBox" parent="." unique_id=93745602]
-layout_mode = 0
-offset_right = 24.0
-offset_bottom = 24.0

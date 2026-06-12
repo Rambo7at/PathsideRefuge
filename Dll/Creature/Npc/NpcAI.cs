@@ -13,7 +13,7 @@ namespace 途畔归所.Dll.Creature.Npc
         private Npc _npc;
         private NpcStateMachine _stateMachine;
         private NpcMovement _movement;
-        private NpcData _npcData;
+        private CreatureData _npcData;
 
         public CreatureBase m_huntTarget;
         
@@ -37,7 +37,7 @@ namespace 途畔归所.Dll.Creature.Npc
                 return;
             }
             _npc = comp;
-            _npcData = _npc.m_NpcData ?? new NpcData();
+            _npcData = _npc.m_data ?? new CreatureData();
 
             _stateMachine = CatUtils.FindChildNode<NpcStateMachine>(_npc);
             _movement = CatUtils.FindChildNode<NpcMovement>(_npc);
@@ -108,7 +108,7 @@ namespace 途畔归所.Dll.Creature.Npc
 
             if (_movement.m_navAgent.IsNavigationFinished())
             {
-                m_navStopTimer = _npcData.m_stopTime;
+                m_navStopTimer = _npcData.m_patrolStopTime;
                 m_isWaiting = true;
             }
         }
@@ -160,14 +160,14 @@ namespace 途畔归所.Dll.Creature.Npc
                 Vector3 closest = NavigationServer3D.MapGetClosestPoint(map, candidate);
 
                 float d = closest.DistanceTo(origin);
-                if (d <= radius && d > _npcData.m_targetDistance * 1.5f)
+                if (d <= radius && d > _npcData.m_chaseTargetDistance * 1.5f)
                 {
                     _movement.SetNavigation(closest);
                     return;
                 }
             }
 
-            m_navStopTimer = _npcData.m_stopTime;
+            m_navStopTimer = _npcData.m_patrolStopTime;
             m_isWaiting = true;
             CatLog.Warn("[NpcAI] 未找到合适巡逻点，原地停留");
         }
