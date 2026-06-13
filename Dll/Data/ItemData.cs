@@ -70,13 +70,11 @@ namespace 维修公司.Dll.data
 
         public ItemData DeepCopy() => this.DuplicateDeep() as ItemData;
 
-        public RigidBody3D DataToDrop()
+        public ItemComp DataToDrop()
         {
-            var drop = ItemManager.Instance.GetItemDrop(this.m_ID);
-            if (drop is not ItemComp comp) return null;
-
-            comp.m_ItemData = this;
-            return drop;
+            if (ItemManager.Instance.GetItemDrop(m_ID) is not ItemComp comp) return null;
+            comp.m_ItemData = DeepCopy();
+            return comp;
         }
 
         public int GetStackNum() => Mathf.Max(0, m_MaxStack - m_Stack);
@@ -94,6 +92,12 @@ namespace 维修公司.Dll.data
             }
 
             return outData.m_Stack <= 0;
+        }
+
+        public void TryDropItem(Vector3 DropPos)
+        {
+            if (DataToDrop() is not ItemComp drop) return;
+            NetObjectManager.Instance.SpawnObject(DropPos, new Vector3(), default, drop);
         }
 
         public byte[] Serialize()
@@ -137,8 +141,5 @@ namespace 维修公司.Dll.data
             m_Damage = dto._Damage;
         }
     }
-
-
-
 
 }

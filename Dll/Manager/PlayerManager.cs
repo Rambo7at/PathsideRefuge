@@ -1,5 +1,6 @@
 using Godot;
 using System.Collections.Generic;
+using 途畔归所.Dll.Creature;
 using 途畔归所.Dll.Data;
 using 途畔归所.Dll.Utils;
 
@@ -17,7 +18,7 @@ namespace 途畔归所.Dll.Manager
         public Player m_LocalPlayer;
         public CreatureData m_LocalPlayerData { get; set; }
 
-        public CanvasLayer m_CanvasLayer;
+        public PlayerGUI m_CanvasLayer;
 
 
         private PlayerManager()

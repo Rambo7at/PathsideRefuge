@@ -73,7 +73,7 @@ namespace 途畔归所.Dll.Data
         public int GetInventoryItemCount()
         {
             int index = 0;
-            foreach (var item in m_inventoryData.m_SlotDatas)
+            foreach (var item in m_inventoryData.m_itemArr)
             {
                 if (item == null) continue;
 

@@ -48,7 +48,7 @@ public partial class ItemComp : RigidBody3D, IInteractable
 	/// <summary>互动：拾取功能 </summary>
 	private void PickUp(Player player)
 	{
-		var b = player.m_playerGUI.m_inventoryComp.TryAddItem(m_ItemData);
+		var b = player.m_data.m_inventoryData.TryAddItem(m_ItemData);
 		GD.Print($"已拾取物品[{m_ItemData.m_Name}]，添加到背包{b}");
 		QueueFree();
 	}

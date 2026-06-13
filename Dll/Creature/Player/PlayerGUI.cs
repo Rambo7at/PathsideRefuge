@@ -14,11 +14,15 @@ namespace 途畔归所.Dll.Creature
 		[Export] private Node3D m_dropPos;
 
 		private Player m_player;
-
-		public InventoryComp m_inventoryComp;
+		private InventoryView m_inventoryView;
 		private ConsoleView m_consoleView;
 		private EscView m_escView;
 		private HudView m_hudView;
+
+		public SlotView CurrentDragSource { get; set; }
+		public TextureRect CurrentDragIcon { get; set; }
+
+
 
 		public InventoryData InventoryData { get => m_player.m_data.m_inventoryData ??= new InventoryData(); set => m_player.m_data.m_inventoryData = value; }
 		Vector3 IInventoryHolder.DropPos => m_dropPos.GlobalPosition;
@@ -56,9 +60,16 @@ namespace 途畔归所.Dll.Creature
 
 		private void InitInventory()
 		{
-			m_inventoryComp = new InventoryComp();
-			AddChild(m_inventoryComp);
-			m_inventoryComp.AddChild(m_inventoryComp.GetView());
+			// 直接创建 InventoryView 并通过 UIManager 获取预制体
+			if (UIManager.Instance.GetUI(InventoryData.m_UIname) is not InventoryView view)
+			{
+				CatLog.Err("[PlayerGUI.InitInventory] 背包视图加载失败");
+				return;
+			}
+
+			m_inventoryView = view;
+			m_inventoryView.Visible = false;   
+			AddChild(m_inventoryView);         
 		}
 
 		private void InitConsole()
@@ -101,11 +112,7 @@ namespace 途畔归所.Dll.Creature
 		private void ProcessUIInputs()
 		{
 			if (Input.IsActionJustPressed("cat_Console")) m_consoleView.ToggleUI();
-			if (Input.IsActionJustPressed("cat_Tab"))
-			{
-				m_inventoryComp.OnChanged.Invoke();
-				m_inventoryComp.OnToggle.Invoke();
-			}
+			if (Input.IsActionJustPressed("cat_Tab")) m_inventoryView.ToggleUI();
 			if (Input.IsActionJustPressed("cat_Esc")) m_escView.ToggleUI();
 		}
 
@@ -113,10 +120,10 @@ namespace 途畔归所.Dll.Creature
 		/// <summary>注：根据当前打开的 UI 面板自动切换鼠标模式与 UI 状态标志。</summary>
 		private void UpdateMouseMode()
 		{
-			if (m_consoleView.Visible || m_escView.Visible || m_inventoryComp.Ui_Visible.Invoke())
+			// 用视图的 Visible 替代原来的 Ui_Visible 委托
+			if (m_consoleView.Visible || m_escView.Visible || m_inventoryView.Visible)
 			{
 				Input.MouseMode = Input.MouseModeEnum.Visible;
-
 				m_player.m_OnUI = true;
 			}
 			else
