@@ -31,9 +31,6 @@ namespace 途畔归所.Dll.Core
             ResourceManager.Instance.Init();
             AddChild(NetObjectManager.Instance);
 
-
-            
-            ItemManager.Instance.Init();
             UIManager.Instance.Init();
 
 

@@ -10,7 +10,6 @@ public partial class NpcMovement : Node3D
     [Export] public NavigationAgent3D m_navAgent;
 
     private Npc _npc;
-    private CreatureData _npcData;
     private Vector3 _safeVelocity = Vector3.Zero;  // 存储 avoidance 后的安全速度
 
     public override void _Ready()
@@ -36,13 +35,10 @@ public partial class NpcMovement : Node3D
         }
 
         _npc = node;
-        _npcData = _npc.m_data ?? new CreatureData();
 
         // 连接 avoidance 计算结果信号
         m_navAgent.VelocityComputed += OnVelocityComputed;
     }
-
-
 
     public override void _PhysicsProcess(double delta)
     {
@@ -67,10 +63,8 @@ public partial class NpcMovement : Node3D
         Vector3 toTarget = nextPoint - _npc.GlobalPosition;
         toTarget.Y = 0;
 
-        float speed = _npcData.m_speed;
-        Vector3 desiredVelocity = toTarget.Length() > 0.1f
-            ? toTarget.Normalized() * speed
-            : Vector3.Zero;
+        float speed = _npc.m_Speed;
+        Vector3 desiredVelocity = toTarget.Length() > 0.1f? toTarget.Normalized() * speed : Vector3.Zero;
 
         // 2. 将期望速度提交给导航代理（触发 avoidance 计算）
         m_navAgent.Velocity = desiredVelocity;
@@ -81,7 +75,7 @@ public partial class NpcMovement : Node3D
         // 4. 面向移动方向
         if (_safeVelocity.LengthSquared() > 0.01f)
         {
-            _npc.FaceMovementOrTarget(_safeVelocity, _npcData.m_rotationSpeed, delta);
+            _npc.FaceMovementOrTarget(_safeVelocity, _npc.m_RotationSpeed, delta);
         }
     }
 

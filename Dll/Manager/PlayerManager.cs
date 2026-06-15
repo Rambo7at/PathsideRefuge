@@ -16,25 +16,19 @@ namespace 途畔归所.Dll.Manager
         public int m_playerHash;
 
         public Player m_LocalPlayer;
-        public CreatureData m_LocalPlayerData { get; set; }
+        public CreatureData m_LocalPlayerData { get ; set; }
 
         public PlayerGUI m_CanvasLayer;
-
 
         private PlayerManager()
         {
             m_playerHash = CatUtils.GetStableHashCode("Player");
 
-            var node = NetObjectManager.Instance.GetPrefab(m_playerHash);
-            if (node == null) return;
-
-            Player pl = node.Instantiate<Player>();
-            if (pl == null) return;
+            if (NetObjectManager.Instance.GetPrefab(m_playerHash).Instantiate() is not Player pl) return;
 
             m_LocalPlayer = pl;
 
             m_CanvasLayer = m_LocalPlayer.m_playerGUI;
-
         }
 
         public void SpawnLocalPlayer(Vector3 Pos, Vector3 rot)
@@ -44,14 +38,14 @@ namespace 途畔归所.Dll.Manager
                 CatLog.Err("[PlayerManager.SpawnLocalPlayer]：检测数据信息 m_LocalPlayerData 是空！");
                 return;
             }
-            m_LocalPlayer.m_data = m_LocalPlayerData;
+            m_LocalPlayer.m_CreatureData = m_LocalPlayerData;
 
             NetObjectManager.Instance.SpawnObject(Pos, rot, default, m_LocalPlayer);
         }
 
         public int GetActivePlayersIndex() => ActivePlayers.Count;
 
-        public int GetPlayerID() => (m_LocalPlayer?.m_data?.m_playerData == null || m_LocalPlayer?.m_data?.m_playerData.m_playerID == default) ? 0 : m_LocalPlayer.m_data.m_playerData.m_playerID;
+        public int GetPlayerID() => (m_LocalPlayerData?.PlayerID == default) ? 0 : m_LocalPlayerData.PlayerID;
 
     }
 }

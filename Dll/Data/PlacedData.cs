@@ -1,4 +1,5 @@
 using Godot;
+using System.ComponentModel;
 using 途畔归所.Dll.Data;
 
 [GlobalClass]
@@ -11,6 +12,7 @@ public partial class PlacedData : Resource
         容器,
         工作台
     }
+
 
     [Export] public string m_ID { get; set; }
 

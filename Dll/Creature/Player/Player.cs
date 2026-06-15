@@ -12,8 +12,7 @@ public partial class Player : Humanoid
 	[Export] public Node3D m_PlayerModel;
 	[Export] public PlayerGUI m_playerGUI;
 
-	[Export] public BoneAttachment3D m_HandL;
-	[Export] public BoneAttachment3D m_HandR;
+
 
 	public bool m_OnUI = false;
 
@@ -75,9 +74,9 @@ public partial class Player : Humanoid
 	/// <summary> 注：视线射线检测交互对象 </summary>
 	public void CheckRaycastInteract()
 	{
-		if (!m_eye.IsColliding()) return;
+		if (!m_Eye.IsColliding()) return;
 
-		var ojb = m_eye.GetCollider();
+		var ojb = m_Eye.GetCollider();
 
 		if (ojb == null) return;
 
@@ -98,7 +97,7 @@ public partial class Player : Humanoid
 	/// <summary> 注：验证所有关键组件是否非空 </summary>
 	private bool ValidateComponents()
 	{
-		if (m_eye == null)
+		if (m_Eye == null)
 		{
 			GD.PrintErr("[Player.ValidateComponents]：m_eye 字段为空");
 			return false;

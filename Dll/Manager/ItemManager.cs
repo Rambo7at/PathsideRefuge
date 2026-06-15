@@ -9,123 +9,57 @@ namespace 途畔归所.Dll.Manager
 	/// <summary>注：物品资源管理器</summary>
 	public class ItemManager 
 	{
-
         private static ItemManager _instance;
         public static ItemManager Instance => _instance ??= new ItemManager();
 
         private ItemManager() { }
 
-        public Dictionary<string, PackedScene> m_ItemDict = [];
+        public Dictionary<PackedScene, ItemData> m_ItemDataDict = [];
 
-
-
-		/// <summary>注：加载资源</summary>
-		/// <param name="packedScene">预制件列表</param>
-		public void Init()
+        /// <summary>注：加载资源</summary>
+        /// <param name="packedScene">预制件列表</param>
+        public void RegisterItem(PackedScene packedScene, ItemData item)
 		{
-			if (ResourceManager.Instance.m_ItemAssetList == null || ResourceManager.Instance.m_ItemAssetList.Count == 0) return;
+			if (packedScene == null || item == null) return;
 
-            foreach (var item in ResourceManager.Instance.m_ItemAssetList)
+			if (m_ItemDataDict.ContainsKey(packedScene)) return;
+
+			m_ItemDataDict[packedScene] = item.DeepCopy();
+        }
+        /// <summary>注：获取物品</summary>
+        public ItemComp GetItemDrop(string itemName)
+        {
+            var prefab = NetObjectManager.Instance.GetPrefab(itemName);
+            if (prefab?.Instantiate() is not ItemComp item)
             {
-                string prefabName = CatUtils.GetResourceName(item.ResourcePath);
-                if (prefabName == null) continue;
-                if (m_ItemDict.ContainsKey(prefabName))
-                {
-                    GD.Print($"[ItemManager.InitItemDict]：物品 {prefabName} 已存在，跳过");
-                    continue;
-                }
-
-                m_ItemDict.Add(prefabName, item);
-
+                string err = prefab == null ? "预制件不存在" : "目标预制件不是 ItemComp 类型";
+                GD.PrintErr($"[GetItemDrop] {itemName} {err}");
+                return null;
             }
-		}
-
-
-		/// <summary>获取预制件</summary>
-		/// <param name="itemName">预制件名称</param>
-		/// <returns>独立的RigidBody3D实例，失败返回null</returns>
-		public RigidBody3D GetItemDrop(string itemName)
-		{
-			if (!m_ItemDict.TryGetValue(itemName, out var prefab))
-			{
-				GD.PrintErr($"[GetItem] 预制件 {itemName} 不存在");
-				return null;
-			}
-
-			Node itemNode = prefab.Instantiate();
-			if (itemNode == null)
-			{
-				GD.PrintErr($"[GetItem] 预制件 {itemName} 实例化失败");
-				return null;
-			}
-
-			RigidBody3D itemInstance = itemNode as RigidBody3D;
-			if (itemInstance == null)
-			{
-				GD.PrintErr($"[GetItem] 预制件 {itemName} 根节点不是 RigidBody3D");
-				itemNode.QueueFree(); 
-				return null;
-			}
-
-			return itemInstance;
-		}
-
-
+            return item;
+        }
 		/// <summary>注：加载物品数据</summary>
 		/// <param name="itemName">预制件名称</param>
 		/// <returns>ItemData副本，失败返回null</returns>
-		public ItemData GetItemData(string itemName)
-		{
-			if (!m_ItemDict.TryGetValue(itemName, out var prefab))
-			{
-				GD.PrintErr($"[GetItemData] 预制件 {itemName} 不存在");
-				return null;
-			}
-
-			Node itemNode = prefab.Instantiate();
-			if (itemNode == null)
-			{
-				GD.PrintErr($"[GetItemData] 预制件 {itemName} 实例化失败");
-				return null;
-			}
-
-			ItemComp script = itemNode as ItemComp; 
-			if (script == null)
-			{
-				GD.PrintErr($"[GetItemData] 预制件 {itemName} 不是ItemDrop类型（根节点需继承ItemDrop）");
-				itemNode.QueueFree(); 
-				return null;
-			}
-
-			try
-			{
-				return script.m_ItemData;
-			}
-			catch (Exception ex)
-			{
-				GD.PrintErr($"[GetItemData] 提取 {itemName} 数据失败：{ex.Message}");
-				return null;
-			}
-			finally
-			{
-				if (itemNode != null && !itemNode.IsQueuedForDeletion())
-				{
-					itemNode.QueueFree();
-				}
-			}
-		}
-
-
-
-        public bool HasPrefab(string prefabPath)
+		public ItemData GetItemData(string itemName) => GetItemData(NetObjectManager.Instance.GetPrefab(itemName));
+        public ItemData GetItemData(PackedScene prefab)
         {
-            // 根据 m_ItemDict 的键值设计，可能需要存储完整路径，或在此处提取文件名
-            // 假设 Init 时已经用完整路径或名称作为 Key，此处按需匹配
-            string name = CatUtils.GetResourceName(prefabPath);
-            return name != null && m_ItemDict.ContainsKey(name);
+            if (m_ItemDataDict.TryGetValue(prefab, out var data)) return data.DeepCopy(); 
+
+
+            if (prefab?.Instantiate() is not ItemComp comp)
+            {
+                string err = prefab == null ? "为空" : $"实例化失败，资源非ItemComp 类型 路径：{prefab?.ResourcePath}";
+                GD.PrintErr($"[GetItemData] 预制件 {err} ");
+                return null;
+            }
+
+            data = comp.m_ItemData.DeepCopy();
+            comp.QueueFree();
+            if (data != null) m_ItemDataDict[prefab] = data;
+
+            return m_ItemDataDict[prefab].DeepCopy();
         }
-
-
     }
 
 

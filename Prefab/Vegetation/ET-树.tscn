@@ -1,14 +1,30 @@
 [gd_scene format=4 uid="uid://dohla8te3p0fh"]
 
-[ext_resource type="Script" uid="uid://dh5ok5xganeg7" path="res://Dll/Comp/Vegetation/TreeComp.cs" id="1_qgaes"]
+[ext_resource type="Script" uid="uid://cq7m8o0tsebxf" path="res://Dll/Comp/TreeComp.cs" id="1_qgaes"]
 [ext_resource type="Script" uid="uid://cjr6gm14qc0n2" path="res://Dll/Data/VegetationData.cs" id="2_ow5uk"]
+[ext_resource type="PackedScene" uid="uid://bafrpbcppu3k1" path="res://Prefab/Item/et_木材.tscn" id="2_u1rlb"]
+[ext_resource type="Script" uid="uid://co7nevja8c62g" path="res://Dll/Base/DropBase.cs" id="3_ly452"]
+[ext_resource type="Script" uid="uid://bgndbmht2eucx" path="res://Dll/NetWork/NetSyncBase.cs" id="3_ow5uk"]
 [ext_resource type="Texture2D" uid="uid://b6h2h0bi0oqgm" path="res://Asset/EmacEArt/EmacEArt-中世纪_EA03_FREE_Slavica.png" id="3_x4qfl"]
-[ext_resource type="Script" uid="uid://cb4swgob65vq" path="res://Dll/Comp/ObstacleComp.cs" id="4_ow5uk"]
+[ext_resource type="PackedScene" uid="uid://dy4otmhab0ycb" path="res://Prefab/Item/et_牛奶罐.tscn" id="4_ly452"]
 
-[sub_resource type="Resource" id="Resource_u1rlb"]
+[sub_resource type="Resource" id="Resource_j20i8"]
+script = ExtResource("3_ly452")
+m_prefab = ExtResource("2_u1rlb")
+metadata/_custom_type_script = "uid://co7nevja8c62g"
+
+[sub_resource type="Resource" id="Resource_v1b2k"]
+script = ExtResource("3_ly452")
+m_prefab = ExtResource("4_ly452")
+metadata/_custom_type_script = "uid://co7nevja8c62g"
+
+[sub_resource type="Resource" id="Resource_ow5uk"]
 script = ExtResource("2_ow5uk")
 m_ID = "ET-树"
-m_Name = "测试树"
+m_name = "树"
+m_description = "它就是一棵树"
+m_dropTable = Array[Object]([SubResource("Resource_j20i8"), SubResource("Resource_v1b2k")])
+m_data = null
 metadata/_custom_type_script = "uid://cjr6gm14qc0n2"
 
 [sub_resource type="ConcavePolygonShape3D" id="ConcavePolygonShape3D_5gdv6"]
@@ -56,11 +72,15 @@ _surfaces = [{
 blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_xebuv")
 
-[node name="ET-树" type="StaticBody3D" unique_id=798133478 node_paths=PackedStringArray("spawn")]
+[node name="ET-树" type="StaticBody3D" unique_id=522848780 node_paths=PackedStringArray("m_dropPot")]
 script = ExtResource("1_qgaes")
-m_dropList = Array[String](["et_木材"])
-spawn = NodePath("Node3D")
-m_VegetationData = SubResource("Resource_u1rlb")
+m_dropPot = NodePath("dropPot")
+m_VegetationData = SubResource("Resource_ow5uk")
+metadata/_custom_type_script = "uid://cq7m8o0tsebxf"
+
+[node name="NetSyncBase" type="Node" parent="." unique_id=21652823]
+script = ExtResource("3_ow5uk")
+metadata/_custom_type_script = "uid://bgndbmht2eucx"
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=122819653]
 shape = SubResource("ConcavePolygonShape3D_5gdv6")
@@ -68,14 +88,5 @@ shape = SubResource("ConcavePolygonShape3D_5gdv6")
 [node name="ET-树" type="MeshInstance3D" parent="." unique_id=1994178221]
 mesh = SubResource("ArrayMesh_i61w8")
 
-[node name="Node3D" type="Node3D" parent="." unique_id=1670584274]
+[node name="dropPot" type="Node3D" parent="." unique_id=1670584274]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5.311166, 0)
-
-[node name="ObstacleComp" type="NavigationObstacle3D" parent="." unique_id=1712419015]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.023070812, 0, 0.11642891)
-vertices = PackedVector3Array(0.050188065, 0, -0.39093918, 0.31018198, 0, 0.0067284703, -0.21996713, 0, 0.50886136, -0.54204154, 0, -0.026843429)
-affect_navigation_mesh = true
-carve_navigation_mesh = true
-avoidance_enabled = false
-script = ExtResource("4_ow5uk")
-metadata/_custom_type_script = "uid://cb4swgob65vq"

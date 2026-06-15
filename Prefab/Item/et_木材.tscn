@@ -61,13 +61,13 @@ size = Vector3(1.6364746, 0.48950195, 0.5805664)
 script = ExtResource("1_1ie87")
 m_ItemData = SubResource("Resource_yd7se")
 
+[node name="NetSyncBase" type="Node" parent="." unique_id=760539696]
+script = ExtResource("5_ur6ws")
+metadata/_custom_type_script = "uid://bgndbmht2eucx"
+
 [node name="ET-木材" type="MeshInstance3D" parent="." unique_id=144448716]
 mesh = SubResource("ArrayMesh_d8oxc")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1975710782]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.007446289, 0.05456543, 0.005126953)
 shape = SubResource("BoxShape3D_kmc16")
-
-[node name="NetSyncBase" type="Node" parent="." unique_id=760539696]
-script = ExtResource("5_ur6ws")
-metadata/_custom_type_script = "uid://bgndbmht2eucx"

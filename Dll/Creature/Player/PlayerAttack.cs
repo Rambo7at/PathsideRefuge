@@ -28,7 +28,9 @@ namespace 途畔归所.Dll.Creature
 			}
 
 			m_player = pl;
-		}
+			m_hitBox = m_emptyhanded;
+
+        }
 
 		// 动画轨道调用：开启判定窗口
 		public void EnableHitbox()
@@ -51,7 +53,7 @@ namespace 途畔归所.Dll.Creature
 		{
 			if (body == m_player || body is not IDamageable node) return;
 
-			node.TakeDamage(m_player.m_data.m_baseAttack);
+			node.TakeDamage(m_player.m_BaseAttack);
 
 			CatLog.Ok($"[PlayerAttack] 命中 {body.Name}");
 		}

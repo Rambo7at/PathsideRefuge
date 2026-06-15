@@ -3,7 +3,6 @@ using Godot;
 
 namespace 途畔归所.Dll.NetWork
 {
-    [GlobalClass]
     public partial class NetObject : Resource
     {
         public NetID Id { get; set; }

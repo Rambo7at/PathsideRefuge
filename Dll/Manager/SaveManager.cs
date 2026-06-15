@@ -99,14 +99,13 @@ namespace 途畔归所.Dll.Manager
 
 			CreatureData data = new()
 			{
-				m_name = playerName,
-				m_isPlayer = true,
-				m_playerData = new PlayerData()
-			};
+				Name = playerName,
+				IsPlayer = true,
+				PlayerID = Math.Abs(Guid.NewGuid().GetHashCode())
 
+            };
 
-			m_playerDataDict.Add(data.m_playerData.m_playerID, data);
-
+			m_playerDataDict.Add(data.PlayerID, data);
 		}
 
 		/// <summary>注：判断存档是否存在有效的玩家存档数据。</summary>

@@ -30740,16 +30740,14 @@ _data = {
 [sub_resource type="SphereShape3D" id="SphereShape3D_hw4ku"]
 radius = 1.1321139
 
-[node name="Player" type="CharacterBody3D" unique_id=67650192 node_paths=PackedStringArray("m_PlayerModel", "m_playerGUI", "m_HandL", "m_HandR", "m_AnimationTree", "m_eye")]
-collision_layer = 3
-collision_mask = 1025
+[node name="Player" type="CharacterBody3D" unique_id=67650192 node_paths=PackedStringArray("m_PlayerModel", "m_playerGUI", "m_HandL", "m_HandR", "m_AnimationTree", "m_Eye")]
 script = ExtResource("1_3tphh")
 m_PlayerModel = NodePath("PlayerMesh")
 m_playerGUI = NodePath("PlayerGUI")
 m_HandL = NodePath("PlayerMesh/Rig/Skeleton3D/handslot_l")
 m_HandR = NodePath("PlayerMesh/Rig/Skeleton3D/handslot_r")
 m_AnimationTree = NodePath("AnimationTree")
-m_eye = NodePath("RayCast3D")
+m_Eye = NodePath("RayCast3D")
 
 [node name="NetTransformSync" type="Node" parent="." unique_id=331436499]
 script = ExtResource("2_y265s")

@@ -11,7 +11,7 @@ using 途畔归所.Dll.View;
 
 namespace 途畔归所.Dll.Comp
 {
-    public partial class ContainerComp : PlacedComp, IInteractable, IInventoryHolder
+    public partial class ContainerComp : PlacedBase, IInteractable, IInventoryHolder
     {
         [Export] private InventoryData m_inventoryData;
         [Export] private Node3D m_dropPos;

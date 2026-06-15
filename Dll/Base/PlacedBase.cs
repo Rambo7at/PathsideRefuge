@@ -1,7 +1,7 @@
 using Godot;
 
 
-public partial class PlacedComp : StaticBody3D
+public partial class PlacedBase : StaticBody3D
 {
     [Export] public PlacedData m_placedData { get; set; }
 

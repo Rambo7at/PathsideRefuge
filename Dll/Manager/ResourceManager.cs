@@ -14,8 +14,6 @@ namespace 途畔归所.Dll.Manager
         public static ResourceManager Instance => _instance ??= new ResourceManager();
 
         private Array<PackedScene> _resourceList = [];
-
-        public Array<PackedScene> m_ItemAssetList { get; private set; } = [];
         public Array<PackedScene> m_UIAssetList { get; private set; } = [];
 
         private ResourceManager() { }
@@ -29,6 +27,7 @@ namespace 途畔归所.Dll.Manager
             LoadAsset("res://Prefab/Npc/Npc.tscn");
             LoadAsset("res://Prefab/Piece/et_板条箱.tscn");
 
+            LoadAsset("res://Prefab/Vegetation/ET-树.tscn");
 
             LoadAsset("res://Prefab/View/HUD/hud.tscn");
             LoadAsset("res://Prefab/View/ESC/esc_ui.tscn");
@@ -44,10 +43,60 @@ namespace 途畔归所.Dll.Manager
             LoadAsset("res://Scenes/角色创建.tscn");
 
 
-            RegisterNetObjectManager();
+            RegisterResource();
        
             CatLog.Ok("[ResourceManager] 已完成初始化");
         }
+
+        /// <summary> 注: 注册网络对象管理器并处理资源列表 </summary>
+        private void RegisterResource()
+        {
+            foreach (var prefab in _resourceList)
+            {
+
+                if (prefab.Instantiate() is not Node node) continue;
+
+                if (string.IsNullOrEmpty(node.Name))
+                {
+                    CatLog.Warn($"[ResourceManager.RegisterResource]：执行发现未有预制名的资源，文件地址: {prefab.ResourcePath}，已跳过");
+                    continue;
+                }
+
+                prefab.ResourceName = node.Name;
+                int prefabHash = CatUtils.GetStableHashCode(node.Name);
+
+                if (node is Control)
+                {
+                    m_UIAssetList.Add(prefab);
+                    node.QueueFree();
+                    continue;
+                }
+
+                if (node is SceneBase && !WorldManager.Instance.SceneDict.ContainsKey(prefabHash))
+                {
+                    WorldManager.Instance.SceneDict[prefabHash] = prefab;
+                    node.QueueFree();
+                    continue;
+                }
+
+                if (node is ItemComp item)
+                {
+                    ItemManager.Instance.RegisterItem(prefab, item.m_ItemData);
+                }
+
+                if (!NetObjectManager.Instance.m_PrefabDict.ContainsKey(prefabHash))
+                {
+                    NetObjectManager.Instance.m_PrefabDict.Add(prefabHash, prefab);
+                }
+
+                node.QueueFree();
+            }
+
+        }
+
+
+
+
 
         /// <summary> 注: 从指定路径加载资源 </summary>
         private void LoadAsset(string res)
@@ -64,58 +113,11 @@ namespace 途畔归所.Dll.Manager
             }
         }
 
-        /// <summary> 注: 注册网络对象管理器并处理资源列表 </summary>
-        private void RegisterNetObjectManager()
-        {
-            NetObjectManager netObj = new();
-            NetObjectManager.Instance = netObj;
-
-            foreach (var asset in _resourceList)
-            {
-                if (asset == null) continue;
-
-                Node node = asset.Instantiate();
-
-                if (node is Control)
-                {
-                    m_UIAssetList.Add(asset);
-                    continue;
-                }
-
-                if (node is RigidBody3D)
-                {
-                    m_ItemAssetList.Add(asset);
-                }
 
 
 
-                
-                if (string.IsNullOrEmpty(node.Name))
-                {
-                    if (!string.IsNullOrEmpty(node.Name)) 
-                    CatLog.Warn($"[ResourceManager.RegisterNetObjManager]：执行发现未有预制名的资源，文件地址: {asset.ResourcePath}，已跳过");
-                    continue;
-                }
 
-                asset.ResourceName = node.Name;
-                int hash = CatUtils.GetStableHashCode(node.Name);
 
-                if (node is SceneBase && !WorldManager.Instance.SceneDict.ContainsKey(hash))
-                {
-                    WorldManager.Instance.SceneDict[hash] = asset;
-                    continue;
-                }
-
-                if (NetObjectManager.Instance.m_PrefabDict.ContainsKey(hash))
-                {
-                    CatLog.Warn($"预制体名 '{node.Name}' 哈希冲突，请检查是否有重名根节点在: {asset.ResourcePath}，已跳过");
-                    continue;
-                }
-
-                NetObjectManager.Instance.m_PrefabDict.Add(hash, asset);
-            }
-
-        }
 
 
     }

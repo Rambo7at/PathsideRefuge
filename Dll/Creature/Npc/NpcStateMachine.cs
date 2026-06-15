@@ -21,6 +21,7 @@ namespace 途畔归所.Dll.Creature.Npc
             Run = 2,
             Jump = 3,
             Fall = 4,
+            Stagger = 5,
         }
 
         public NpcAnimState m_npcAnimState { get; set; } = NpcAnimState.Idle;
@@ -31,6 +32,9 @@ namespace 途畔归所.Dll.Creature.Npc
 
         private Npc _npc;
 
+        private bool IsOnFloor => _npc.IsOnFloor();
+
+        private float Speed => new Vector3(_npc.Velocity.X, 0, _npc.Velocity.Z).Length();
 
         public override void _Ready()
         {
@@ -54,21 +58,21 @@ namespace 途畔归所.Dll.Creature.Npc
         /// <summary> 注：移动状态 </summary>
         private void UpdateState()
         {
-            if (_npc.IsOnFloor())
-            {
-                Vector3 horizontalVel = new(_npc.Velocity.X, 0, _npc.Velocity.Z);
-                float speed = horizontalVel.Length();
-                if (speed > 0.1f)
-                    SwitchMoveState(NpcAnimState.Walk);
-                else
-                    SwitchMoveState(NpcAnimState.Idle);
-            }
-            else
-            {
-                // 如果意外离地（掉落），自动切 Fall（不主动跳跃）
-                SwitchMoveState(_npc.Velocity.Y > 0 ? NpcAnimState.Jump : NpcAnimState.Fall);
-            }
+
+
+            MoveState();
         }
+
+        private void MoveState()
+        {
+
+            if (!IsOnFloor) SwitchMoveState(_npc.Velocity.Y > 0 ? NpcAnimState.Jump : NpcAnimState.Fall);
+            if (Speed == 0f) SwitchMoveState(NpcAnimState.Idle);
+            if (Speed > 0.1f) SwitchMoveState(NpcAnimState.Walk);
+
+        }
+
+
 
         /// <summary> 注：切换移动状态 </summary>
         private void SwitchMoveState(NpcAnimState newState)

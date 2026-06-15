@@ -48,6 +48,11 @@ namespace 途畔归所.Dll.Manager
         /// <summary>注：根据预制件名称获取预制件，未找到则返回 null。</summary>
         public PackedScene GetPrefab(string prefabName)
         {
+            if (string.IsNullOrEmpty(prefabName))
+            {
+                GD.PrintErr($"[NetObjectManager.GetPrefab]：传入了一个空的字符");
+                return null;
+            }
             int hash = GetPrefabHash(prefabName);
             if (hash == default) return null;
 

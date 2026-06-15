@@ -55,7 +55,7 @@ public partial class PlayerSaveDataView : Control
 
     private void ApplyPlayerInfo(CreatureData data)
     {
-        m_nameLabel.Text = "玩家名：" + data.m_name;
+        m_nameLabel.Text = "玩家名：" + data.Name;
         m_bagLabel.Text = "背包库存：" + data.GetInventoryItemCount();
     }
 

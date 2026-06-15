@@ -13,7 +13,6 @@ namespace 途畔归所.Dll.Creature.Npc
         private Npc _npc;
         private NpcStateMachine _stateMachine;
         private NpcMovement _movement;
-        private CreatureData _npcData;
 
         public CreatureBase m_huntTarget;
         
@@ -37,7 +36,6 @@ namespace 途畔归所.Dll.Creature.Npc
                 return;
             }
             _npc = comp;
-            _npcData = _npc.m_data ?? new CreatureData();
 
             _stateMachine = CatUtils.FindChildNode<NpcStateMachine>(_npc);
             _movement = CatUtils.FindChildNode<NpcMovement>(_npc);
@@ -70,10 +68,10 @@ namespace 途畔归所.Dll.Creature.Npc
         /// <summary>注：视觉 </summary>
         private void See()
         {
-            if (_npc.m_eye.IsColliding() == false || m_huntTarget != null)
+            if (_npc.m_Eye.IsColliding() == false || m_huntTarget != null)
                 return;
 
-            var collider = _npc.m_eye.GetCollider();
+            var collider = _npc.m_Eye.GetCollider();
             if (collider is not Player pl)
                 return;
 
@@ -108,7 +106,7 @@ namespace 途畔归所.Dll.Creature.Npc
 
             if (_movement.m_navAgent.IsNavigationFinished())
             {
-                m_navStopTimer = _npcData.m_patrolStopTime;
+                m_navStopTimer = _npc.m_PatrolStopTime;
                 m_isWaiting = true;
             }
         }
@@ -147,7 +145,7 @@ namespace 途畔归所.Dll.Creature.Npc
             if (_movement.m_navAgent == null) return;
 
             Vector3 origin = _npc.GlobalPosition;
-            float radius = _npcData.m_patrolRadius;
+            float radius = _npc.m_PatrolRadius;
             int maxAttempts = 15;
 
             for (int i = 0; i < maxAttempts; i++)
@@ -160,14 +158,14 @@ namespace 途畔归所.Dll.Creature.Npc
                 Vector3 closest = NavigationServer3D.MapGetClosestPoint(map, candidate);
 
                 float d = closest.DistanceTo(origin);
-                if (d <= radius && d > _npcData.m_chaseTargetDistance * 1.5f)
+                if (d <= radius && d > _npc.m_ChaseTargetDistance * 1.5f)
                 {
                     _movement.SetNavigation(closest);
                     return;
                 }
             }
 
-            m_navStopTimer = _npcData.m_patrolStopTime;
+            m_navStopTimer = _npc.m_PatrolStopTime;
             m_isWaiting = true;
             CatLog.Warn("[NpcAI] 未找到合适巡逻点，原地停留");
         }
