@@ -29,6 +29,7 @@ namespace 途畔归所.Dll.Creature.Npc
 
         public bool Walk => m_npcAnimState == NpcAnimState.Walk;
         public bool Idle => m_npcAnimState == NpcAnimState.Idle;
+        public bool Stagger => m_npcAnimState == NpcAnimState.Stagger;
 
         private Npc _npc;
 
@@ -49,6 +50,7 @@ namespace 途畔归所.Dll.Creature.Npc
                 return;
             }
             _npc = npcComp;
+            _npc.OnHit += OnHit;
         }
 
 
@@ -63,14 +65,37 @@ namespace 途畔归所.Dll.Creature.Npc
             MoveState();
         }
 
+
+        private void OnHit(float damage, Node node) => SwitchMoveState(damage >= _npc.m_StaggerDamage ? NpcAnimState.Stagger : m_npcAnimState);
+
         private void MoveState()
         {
+            if (m_npcAnimState == NpcAnimState.Stagger) return;
 
-            if (!IsOnFloor) SwitchMoveState(_npc.Velocity.Y > 0 ? NpcAnimState.Jump : NpcAnimState.Fall);
-            if (Speed == 0f) SwitchMoveState(NpcAnimState.Idle);
-            if (Speed > 0.1f) SwitchMoveState(NpcAnimState.Walk);
+            if (!IsOnFloor)
+            {
+                SwitchMoveState(_npc.Velocity.Y > 0 ? NpcAnimState.Jump : NpcAnimState.Fall);
+            }
+            else if (Speed > 0.1f)
+            {
+                SwitchMoveState(NpcAnimState.Walk);
+            }
+            else
+            {
+                SwitchMoveState(NpcAnimState.Idle);
+            }
 
         }
+
+
+        /// <summary> 动画调用，结束攻击 </summary>
+        private void EndStagger()
+        {
+            if (m_npcAnimState != NpcAnimState.Stagger) return;
+
+            SwitchMoveState(NpcAnimState.Idle);
+        }
+
 
 
 

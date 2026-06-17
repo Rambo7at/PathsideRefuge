@@ -2,6 +2,8 @@ using Godot;
 using System.Xml.Linq;
 using 途畔归所.Dll.Base;
 using 途畔归所.Dll.Data;
+using 途畔归所.Dll.Utils;
+using static 途畔归所.Dll.Creature.Npc.NpcStateMachine;
 
 
 namespace 途畔归所.Dll.Creature.Npc
@@ -14,10 +16,19 @@ namespace 途畔归所.Dll.Creature.Npc
 		public float m_ChaseTargetDistance => m_CreatureData.ChaseTargetDistance;     // 追击时与目标保持的距离
 		public float m_RotationSpeed => m_CreatureData.RotationSpeed;              // 转身速度
 
-		public override void _Ready()
-		{ 
-		
-		
+
+		public NpcAnimState m_NpcAnimState => m_NpcStateMachine.m_npcAnimState;
+
+
+        private NpcStateMachine m_NpcStateMachine;
+
+
+        public override void _Ready()
+		{
+
+            m_NpcStateMachine = CatUtils.FindChildNode<NpcStateMachine>(this);
+
+			if (m_NpcStateMachine == null) return;
 		}
 	}
 
