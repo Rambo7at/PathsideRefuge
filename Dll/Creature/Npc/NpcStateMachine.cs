@@ -104,7 +104,7 @@ namespace 途畔归所.Dll.Creature.Npc
         {
             if (m_npcAnimState == newState) return;
             m_npcAnimState = newState;
-            // CatLog.Ok($"[Npc] MoveState → {newState}");
+            // CatLog.Ok($"[Npc] MoveState → {newState}");1
         }
 
         public int GetState() => (int)m_npcState;
