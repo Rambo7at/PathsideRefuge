@@ -1,122 +1,49 @@
 using Godot;
-using 维修公司.Dll.data;
+using 维修公司.Dll.Interface;
 using 途畔归所.Dll.Base;
-using 途畔归所.Dll.Comp;
 using 途畔归所.Dll.Creature;
 using 途畔归所.Dll.Data;
-using 途畔归所.Dll.NetWork;
 using 途畔归所.Dll.Utils;
+using static 途畔归所.Dll.Creature.StateMachine;
 
 public partial class Player : Humanoid
 {
+	[Export] public PlayerGUI m_PlayerGUI;
 	[Export] public Node3D m_PlayerModel;
-	[Export] public PlayerGUI m_playerGUI;
+
+	public PlayerState m_PlayerState { get => m_StateMachine.m_PlayerState; set => m_StateMachine.m_PlayerState = value; }
 
 
 
-	public bool m_OnUI = false;
-
-	public CreatureData m_data;
-	private NetSyncBase netSync;
-	public bool m_IsOwner => netSync != null && netSync.IsOwner;
-
-
-
-	public override void _EnterTree()
+	public bool m_IsOwner => m_NetSyncBase != null && m_NetSyncBase.IsOwner;
+	public override void _Ready()
 	{
-		netSync = CatUtils.FindChildNode<NetSyncBase>(this);
-
-		if (netSync == null)
+		base._Ready();
+		if (m_PlayerGUI == null || m_PlayerModel == null)
 		{
-			CatLog.Err($"[Player._EnterTree]：未找到NetSyncBase网络同步组件，已关闭运行逻辑");
-			SetProcess(false);
-			SetPhysicsProcess(false);
-			return;
+			string loga = m_PlayerGUI == null ? "m_PlayerGUI" : string.Empty;
+			string logb = m_PlayerModel == null ? "m_PlayerModel" : string.Empty;
+			CatLog.Net($"[Player._Ready]：{loga}/{logb} 字段为空");
+			CatUtils.StopAndExit(this);
 		}
 
 		if (!m_IsOwner)
 		{
-			CatLog.Net($"[Player._EnterTree]：当前并非本地玩家，已关闭运行逻辑");
+			CatLog.Net($"[Player._Ready]：当前并非本地玩家，已关闭运行逻辑");
 			SetProcess(false);
 			SetPhysicsProcess(false);
 		}
 	}
 
-	public override void _Ready()
-	{
-		if (!ValidateComponents()) return;
-	}
-
-
-
-
-
-	public override void _Process(double delta)
-	{
-
-	}
-
-	public override void _PhysicsProcess(double delta)
-	{
-		if (!IsInsideTree()) return;
-		CheckRaycastInteract();
-	}
-
-	public void Equip(ItemData itemData)
-	{
-		var drop = itemData.DataToDrop();
-		if (drop == null) return;
-
-		var item = drop as ItemComp;
-		m_HandR.AddChild(item);
-	}
+	public override void _PhysicsProcess(double delta) => CheckRaycastInteract();
 
 	/// <summary> 注：视线射线检测交互对象 </summary>
 	public void CheckRaycastInteract()
 	{
 		if (!m_Eye.IsColliding()) return;
 
-		var ojb = m_Eye.GetCollider();
+		if (m_Eye.GetCollider() is not IInteractable itemComp) return;
 
-		if (ojb == null) return;
-
-		if (ojb is ItemComp itemComp)
-		{
-			itemComp.PlayerInteract(Input.IsActionJustPressed("cat_E"), Input.IsActionJustPressed("cat_F"), this);
-		}
-		else if (ojb is ContainerComp containerComp)
-		{
-			containerComp.PlayerInteract(Input.IsActionJustPressed("cat_E"), Input.IsActionJustPressed("cat_F"), this);
-		}
-	}
-
-
-
-
-
-	/// <summary> 注：验证所有关键组件是否非空 </summary>
-	private bool ValidateComponents()
-	{
-		if (m_Eye == null)
-		{
-			GD.PrintErr("[Player.ValidateComponents]：m_eye 字段为空");
-			return false;
-		}
-		if (m_PlayerModel == null)
-		{
-			GD.PrintErr("[Player.ValidateComponents]：m_PlayerModel 字段为空");
-			return false;
-		}
-		if (m_playerGUI == null)
-		{
-			GD.PrintErr("[Player.ValidateComponents]：m_CanvasLayer 字段为空");
-			return false;
-		}
-		if (m_AnimationTree == null)
-		{
-			GD.PrintErr("[Player.ValidateComponents]：m_AnimationTree 字段为空");
-			return false;
-		}
-		return true;
+		itemComp.PlayerInteract(Input.IsActionJustPressed("cat_E"), Input.IsActionJustPressed("cat_F"), this);
 	}
 }

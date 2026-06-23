@@ -8,11 +8,10 @@
 [sub_resource type="Resource" id="Resource_n7s87"]
 resource_name = "7at_匕首"
 script = ExtResource("2_b3m6x")
-m_ID = "7at_匕首"
-m_Name = "匕首"
-m_Type = 2
-m_Description = "一把刀具"
-m_Damage = 30
+ID = "7at_匕首"
+Name = "匕首"
+Type = 3
+Description = "一把刀子"
 metadata/_custom_type_script = "uid://inh0sbmkkjuj"
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_fy1x4"]

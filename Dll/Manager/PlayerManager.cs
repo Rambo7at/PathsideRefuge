@@ -6,46 +6,46 @@ using 途畔归所.Dll.Utils;
 
 namespace 途畔归所.Dll.Manager
 {
-    public class PlayerManager
-    {
-        private static PlayerManager _instance;
-        public static PlayerManager Instance => _instance ??= new PlayerManager();
+	public class PlayerManager
+	{
+		private static PlayerManager _instance;
+		public static PlayerManager Instance => _instance ??= new PlayerManager();
 
-        public Dictionary<int, Player> ActivePlayers = [];
+		public Dictionary<int, Player> ActivePlayers = [];
 
-        public int m_playerHash;
+		public int m_playerHash;
 
-        public Player m_LocalPlayer;
-        public CreatureData m_LocalPlayerData { get ; set; }
+		public Player m_LocalPlayer;
+		public CreatureData m_LocalPlayerData { get ; set; }
 
-        public PlayerGUI m_CanvasLayer;
+		public PlayerGUI m_CanvasLayer;
 
-        private PlayerManager()
-        {
-            m_playerHash = CatUtils.GetStableHashCode("Player");
+		private PlayerManager()
+		{
+			m_playerHash = CatUtils.GetStableHashCode("Player");
 
-            if (NetObjectManager.Instance.GetPrefab(m_playerHash).Instantiate() is not Player pl) return;
+			if (NetObjectManager.Instance.GetPrefab(m_playerHash).Instantiate() is not Player pl) return;
 
-            m_LocalPlayer = pl;
+			m_LocalPlayer = pl;
 
-            m_CanvasLayer = m_LocalPlayer.m_playerGUI;
-        }
+			m_CanvasLayer = m_LocalPlayer.m_PlayerGUI;
+		}
 
-        public void SpawnLocalPlayer(Vector3 Pos, Vector3 rot)
-        {
-            if (m_LocalPlayerData == null)
-            {
-                CatLog.Err("[PlayerManager.SpawnLocalPlayer]：检测数据信息 m_LocalPlayerData 是空！");
-                return;
-            }
-            m_LocalPlayer.m_CreatureData = m_LocalPlayerData;
+		public void SpawnLocalPlayer(Vector3 Pos, Vector3 rot)
+		{
+			if (m_LocalPlayerData == null)
+			{
+				CatLog.Err("[PlayerManager.SpawnLocalPlayer]：检测数据信息 m_LocalPlayerData 是空！");
+				return;
+			}
+			m_LocalPlayer.m_CreatureData = m_LocalPlayerData;
 
-            NetObjectManager.Instance.SpawnObject(Pos, rot, default, m_LocalPlayer);
-        }
+			NetObjectManager.Instance.SpawnObject(Pos, rot, default, m_LocalPlayer);
+		}
 
-        public int GetActivePlayersIndex() => ActivePlayers.Count;
+		public int GetActivePlayersIndex() => ActivePlayers.Count;
 
-        public int GetPlayerID() => (m_LocalPlayerData?.PlayerID == default) ? 0 : m_LocalPlayerData.PlayerID;
+		public int GetPlayerID() => (m_LocalPlayerData?.PlayerID == default) ? 0 : m_LocalPlayerData.PlayerID;
 
-    }
+	}
 }

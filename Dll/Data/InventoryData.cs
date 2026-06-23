@@ -74,10 +74,10 @@ namespace 途畔归所.Dll.Data
         {
             foreach (var slotdata in m_itemArr)
             {
-                if (itemData.m_Stack <= 0) return true;
-                if (slotdata != null && slotdata.m_ID == itemData.m_ID && slotdata.m_IsStackable) slotdata.TryStack(itemData);
+                if (itemData.Stack <= 0) return true;
+                if (slotdata != null && slotdata.ID == itemData.ID && slotdata.m_IsStackable) slotdata.TryStack(itemData);
             }
-            return itemData.m_Stack < 1;
+            return itemData.Stack < 1;
         }
 
 

@@ -1,27 +1,33 @@
 using Godot;
+using Godot.Collections;
+using System;
 using 维修公司.Dll.data;
 using 途畔归所.Dll.Creature;
 using 途畔归所.Dll.Interface;
 using 途畔归所.Dll.Manager;
 using 途畔归所.Dll.Utils;
+using static 维修公司.Dll.data.ItemData;
 
 namespace 途畔归所.Dll.View
 {
     public partial class SlotView : Control
     {
         [ExportGroup("基础")]
+        [Export] public bool m_IsEquipSlot = false;
         [Export] public Button m_button;
         [Export] public TextureRect m_itemIcon;
         [Export] public Label m_itemInfo;
+        [ExportGroup("装备类型")]
+        [Export] public E_ItemType m_EquipType = E_ItemType.Weapon;
+
 
         public int m_slotIndex { get; set; }
-        public IInventoryHolder m_holder { get; set; }
-        private ItemData m_slotData
-        {
-            get => m_holder.InventoryData.m_itemArr[m_slotIndex];
-            set => m_holder.InventoryData.m_itemArr[m_slotIndex] = value;
-        }
+        public Array<ItemData> m_holder { get; set; }
+        private ItemData m_slotData { get => m_holder[m_slotIndex]; set => m_holder[m_slotIndex] = value; }
         public bool isNull => m_slotData == null;
+
+        public Func<Vector3> OnDropPos;
+        private Vector3 m_DropPos => OnDropPos?.Invoke() == null ? new Vector3() : OnDropPos.Invoke(); 
 
         public override void _Ready()
         {
@@ -32,7 +38,7 @@ namespace 途畔归所.Dll.View
                 return;
             }
 
-            m_button.GuiInput += OnSlotGuiInput;   
+            m_button.GuiInput += OnSlotGuiInput;
             Refresh();
         }
 
@@ -46,8 +52,8 @@ namespace 途畔归所.Dll.View
             }
             else
             {
-                m_itemInfo.Text = $"{m_slotData.m_Name} x{m_slotData.m_Stack}";
-                m_itemIcon.Texture = m_slotData.m_Icon;
+                m_itemInfo.Text = $"{m_slotData.Name} x{m_slotData.Stack}";
+                m_itemIcon.Texture = m_slotData.Icon;
             }
         }
 
@@ -115,7 +121,7 @@ namespace 途畔归所.Dll.View
             if (targetSlot == null)
             {
                 // 丢弃到世界
-                source.m_slotData?.TryDropItem(source.m_holder.DropPos);
+                source.m_slotData?.TryDropItem(source.m_DropPos);
                 source.m_slotData = null;
                 Refresh();
             }

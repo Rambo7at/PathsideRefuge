@@ -9,43 +9,18 @@ namespace 维修公司.Dll.data
     [GlobalClass]
     public partial class ItemData : Resource, ISerializable
     {
-        public enum ItemType
+        public enum E_ItemType
         {
-            消耗品 = 0,
-            工具 = 1,
-            武器 = 2
+            Consumable = 0,   // 消耗品
+            Prop = 1,         // 道具
+            Tool = 2,         // 工具
+            Weapon = 3        // 武器
         }
-
-        public enum WeaponType
+        public enum E_WeaponType
         {
-            刀 = 0
+            Knife = 0,        // 刀
+            Axe = 1           // 斧
         }
-        public enum AttackType
-        {
-            消耗品 = 0,
-            工具 = 1,
-            武器 = 2
-        }
-
-        [ExportGroup("基础")]
-        [Export] public string m_ID { get; set; }
-        [Export] public string m_Name { get; set; } = string.Empty;
-        [Export] public ItemType m_Type { get; set; }
-        [Export] public string m_Description { get; set; }
-        [Export] public Texture2D m_Icon { get; set; }
-        [Export] public int m_Stack { get; set; } = 1;
-        [Export] public int m_MaxStack { get; set; } = 1;
-        [Export] public float m_Weight { get; set; } = 1f;
-        [Export] public int m_Volume { get; set; } = 1;
-        [Export] public int m_Capacity { get; set; } = 1;
-        [Export] public int m_MaxCapacity { get; set; } = 1;
-
-
-
-        [ExportGroup("武器")]
-        [Export] public WeaponType m_WeaponType { get; set; }
-        [Export] public int m_Damage { get; set; }
-
         private struct ItemDataDto
         {
             public string _ID { get; set; }
@@ -63,35 +38,56 @@ namespace 维修公司.Dll.data
             public int _Damage { get; set; }
         }
 
+        [ExportGroup("基础")]
+        [Export] public string ID { get; set; }
+        [Export] public string Name { get; set; } = string.Empty;
+        [Export] public E_ItemType Type { get; set; } = E_ItemType.Prop;
+        [Export] public string Description { get; set; } = string.Empty;
+        [Export] public Texture2D Icon { get; set; }
+        [Export] public int Stack { get; set; } = 1;
+        [Export] public int MaxStack { get; set; } = 1;
+        [Export] public float Weight { get; set; } = 1f;
+        [Export] public int Volume { get; set; } = 1;
+        [Export] public int Capacity { get; set; } = 1;
+        [Export] public int MaxCapacity { get; set; } = 1;
 
 
-        public bool m_IsStackable => m_Stack < m_MaxStack;
+
+        [ExportGroup("武器")]
+        [Export] public E_WeaponType WeaponType { get; set; }
+        [Export] public int Damage { get; set; }
+         
+        public bool IsEquip => Type == E_ItemType.Weapon;
+
+
+
+        public bool m_IsStackable => Stack < MaxStack;
 
 
         public ItemData DeepCopy() => this.DuplicateDeep() as ItemData;
 
         public ItemComp DataToDrop()
         {
-            if (ItemManager.Instance.GetItemDrop(m_ID) is not ItemComp comp) return null;
+            if (ItemManager.Instance.GetItemDrop(ID) is not ItemComp comp) return null;
             comp.m_ItemData = DeepCopy();
             return comp;
         }
 
-        public int GetStackNum() => Mathf.Max(0, m_MaxStack - m_Stack);
+        public int GetStackNum() => Mathf.Max(0, MaxStack - Stack);
 
         public bool TryStack(ItemData outData)
         {
-            if (outData == null || outData.m_ID != m_ID) return false;
+            if (outData == null || outData.ID != ID) return false;
 
             if (!m_IsStackable) return false;
 
-            while (m_IsStackable && outData.m_Stack > 0)
+            while (m_IsStackable && outData.Stack > 0)
             {
-                m_Stack++;
-                outData.m_Stack--;
+                Stack++;
+                outData.Stack--;
             }
 
-            return outData.m_Stack <= 0;
+            return outData.Stack <= 0;
         }
 
         public void TryDropItem(Vector3 DropPos)
@@ -104,19 +100,19 @@ namespace 维修公司.Dll.data
         {
             var dto = new ItemDataDto
             {
-                _ID = m_ID ?? string.Empty,
-                _Name = m_Name ?? string.Empty,
-                _ItemType = (int)m_Type,
-                _Description = m_Description ?? string.Empty,
-                _Icon = m_Icon?.ResourcePath ?? string.Empty,
-                _Stack = m_Stack,
-                _MaxStack = m_MaxStack,
-                _Weight = m_Weight,
-                _Volume = m_Volume,
-                _Capacity = m_Capacity,
-                _MaxCapacity = m_MaxCapacity,
-                _WeaponType = (int)m_WeaponType,
-                _Damage = m_Damage
+                _ID = ID ?? string.Empty,
+                _Name = Name ?? string.Empty,
+                _ItemType = (int)Type,
+                _Description = Description ?? string.Empty,
+                _Icon = Icon?.ResourcePath ?? string.Empty,
+                _Stack = Stack,
+                _MaxStack = MaxStack,
+                _Weight = Weight,
+                _Volume = Volume,
+                _Capacity = Capacity,
+                _MaxCapacity = MaxCapacity,
+                _WeaponType = (int)WeaponType,
+                _Damage = Damage
             };
 
             return JsonSerializer.SerializeToUtf8Bytes(dto);
@@ -126,19 +122,19 @@ namespace 维修公司.Dll.data
         {
             var dto = JsonSerializer.Deserialize<ItemDataDto>(data);
 
-            m_ID = dto._ID;
-            m_Name = dto._Name ?? string.Empty;
-            m_Type = (ItemType)dto._ItemType;
-            m_Description = dto._Description ?? string.Empty;
-            m_Icon = string.IsNullOrEmpty(dto._Icon) ? null : GD.Load<Texture2D>(dto._Icon);
-            m_Stack = dto._Stack;
-            m_MaxStack = dto._MaxStack;
-            m_Weight = dto._Weight;
-            m_Volume = dto._Volume;
-            m_Capacity = dto._Capacity;
-            m_MaxCapacity = dto._MaxCapacity;
-            m_WeaponType = (WeaponType)dto._WeaponType;
-            m_Damage = dto._Damage;
+            ID = dto._ID;
+            Name = dto._Name ?? string.Empty;
+            Type = (E_ItemType)dto._ItemType;
+            Description = dto._Description ?? string.Empty;
+            Icon = string.IsNullOrEmpty(dto._Icon) ? null : GD.Load<Texture2D>(dto._Icon);
+            Stack = dto._Stack;
+            MaxStack = dto._MaxStack;
+            Weight = dto._Weight;
+            Volume = dto._Volume;
+            Capacity = dto._Capacity;
+            MaxCapacity = dto._MaxCapacity;
+            WeaponType = (E_WeaponType)dto._WeaponType;
+            Damage = dto._Damage;
         }
     }
 

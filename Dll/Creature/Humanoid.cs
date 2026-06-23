@@ -16,7 +16,22 @@ namespace 途畔归所.Dll.Base
 		[Export] public BoneAttachment3D m_HandR;
 
 
+		public override void _EnterTree()
+		{
+			base._EnterTree();
 
+
+
+		}
+
+
+		public override void _Ready()
+		{
+			base._Ready();
+
+
+
+		}
 
 
 

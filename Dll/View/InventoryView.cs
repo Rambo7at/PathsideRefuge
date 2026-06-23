@@ -54,7 +54,8 @@ namespace 途畔归所.Dll.View
                     return;
                 }
                 view.m_slotIndex = i;
-                view.m_holder = m_holder;
+                view.m_holder = m_holder.InventoryData.m_itemArr;
+                view.OnDropPos += GetDropPos;
                 m_slotViewArr.Add(view);
                 m_gridContainer.AddChild(view);
             }
@@ -70,6 +71,8 @@ namespace 途畔归所.Dll.View
             Visible = !Visible;
             if (Visible) RefreshAllSlots();
         }
+
+        private Vector3 GetDropPos() => m_holder.DropPos;
 
     }
 

@@ -1,33 +1,26 @@
 using Godot;
 using 途畔归所.Dll.Manager;
-using 途畔归所.Dll.NetWork;
 using 途畔归所.Dll.Utils;
-using static PlayerStateMachine;
+using static Godot.TextServer;
+using static 途畔归所.Dll.Creature.StateMachine;
 
 namespace 途畔归所.Dll.Creature
 {
     [GlobalClass]
     public partial class PlayerController : Node
     {
-        private Player m_player;
+        private Player m_Player;
         private Node3D m_PlayerMesh;
         private Camera3D m_Camera3D;
         private SpringArm3D m_springArm3D;
 
-
-
-        private PlayerStateMachine m_StateMachine;
-
-
         // 从 Player 中获取的固定数值
-        private float Speed;
-        private float JumpVelocity;
+        private float Speed => m_Player.m_Speed;
+        private float Jump => m_Player.m_Jump;
         private float targetAngle = Mathf.Pi;
 
         public override void _Ready()
         {
-           
-
             if (GetParent() is not Player pl)
             {
                 CatLog.Err($"[PlayerController._Ready]：检测挂载对象并非 player ，已销毁");
@@ -42,24 +35,19 @@ namespace 途畔归所.Dll.Creature
                 return;
             }
 
-            foreach (var comp in pl.GetChildren())
-            {
-                if (comp is PlayerStateMachine StateMachine) m_StateMachine = StateMachine;
-                if (comp is SpringArm3D springArm3D) m_springArm3D = springArm3D;
-            }
 
-            if (m_StateMachine == null || m_StateMachine == null)
+            m_springArm3D ??= CatUtils.FindChildNode<SpringArm3D>(pl);
+
+            if (m_springArm3D == null )
             {
-                CatLog.Warn($"[PlayerController._Ready]：检测部分未通过，已销毁");
+                CatLog.Warn($"[PlayerController._Ready]：未通找到 m_springArm3D ，已销毁");
                 CatUtils.StopAndExit(this);
                 return;
             }
 
-            m_player = pl;
+            m_Player = pl;
             m_PlayerMesh = pl.m_PlayerModel;
             m_Camera3D = WorldManager.Instance.GetCamera();
-            Speed = pl.m_Speed;
-            JumpVelocity = pl.m_Jump;
         }
 
 
@@ -72,51 +60,33 @@ namespace 途畔归所.Dll.Creature
 
         public override void _PhysicsProcess(double delta)
         {
-            m_player.ApplyGravity(delta);
+            Attack();
+            m_Player.ApplyGravity(delta);
             HandlePlayerMovement(delta);
+            m_Player.MoveAndSlide();
         }
 
         private void HandlePlayerMovement(double delta)
         {
-            Vector3 velocity = m_player.Velocity;
+            Vector3 velocity = m_Player.Velocity;
 
-            if (Input.IsActionJustPressed("ui_accept") && m_player.IsOnFloor() && m_StateMachine.m_playerAnimState != PlayerAnimState.Attack)
+            if (Input.IsActionJustPressed("ui_accept") && m_Player.IsOnFloor() && m_Player.m_AnimState != AnimState.Attack)
             {
-                velocity.Y = JumpVelocity;
+                velocity.Y = Jump;
             }
 
             Vector2 inputDir = Input.GetVector("cat_Left", "cat_Right", "cat_Forward", "cat_Backward");
             Vector3 direction = GetCameraRelativeDirection(inputDir);
 
-            if (m_player.IsOnFloor() && m_StateMachine.m_playerAnimState != PlayerAnimState.Attack)
+            if (m_Player.IsOnFloor() && m_Player.m_AnimState != AnimState.Attack)
             {
-                // 地面移动逻辑（保持原样）
-                if (direction != Vector3.Zero)
-                {
-                    velocity.X = direction.X * Speed;
-                    velocity.Z = direction.Z * Speed;
-                }
-                else
-                {
-                    velocity.X = Mathf.MoveToward(velocity.X, 0, Speed);
-                    velocity.Z = Mathf.MoveToward(velocity.Z, 0, Speed);
-                }
+
+                ApplyGroundMovement(direction, ref velocity, 1);
+
             }
-            else if ((m_player.IsOnFloor() && m_StateMachine.m_playerAnimState == PlayerAnimState.Attack))
+            else if (m_Player.IsOnFloor() && m_Player.m_AnimState == AnimState.Attack)
             {
-
-                // 地面移动逻辑（保持原样）
-                if (direction != Vector3.Zero)
-                {
-                    velocity.X = direction.X * (Speed * 0.1f);
-                    velocity.Z = direction.Z * (Speed * 0.1f);
-                }
-                else
-                {
-                    velocity.X = Mathf.MoveToward(velocity.X, 0, Speed);
-                    velocity.Z = Mathf.MoveToward(velocity.Z, 0, Speed);
-                }
-
+                ApplyGroundMovement(direction, ref velocity, 0.1f);
             }
             else
             {
@@ -124,8 +94,7 @@ namespace 途畔归所.Dll.Creature
                 velocity.Z *= 0.98f;
             }
 
-            m_player.Velocity = velocity;
-            m_player.MoveAndSlide();
+            m_Player.Velocity = velocity;
         }
 
         private void PlayerMoveAnimationDirection(double delta)
@@ -134,7 +103,7 @@ namespace 途畔归所.Dll.Creature
             Vector2 inputDir = Input.GetVector("cat_Left", "cat_Right", "cat_Forward", "cat_Backward");
 
             // ★ 只有在地面上且有输入时，才更新目标朝向
-            if (m_player.IsOnFloor() && inputDir != Vector2.Zero)
+            if (m_Player.IsOnFloor() && inputDir != Vector2.Zero)
             {
                 float inputAngle = Mathf.Atan2(inputDir.X, inputDir.Y);
                 targetAngle = cameraAngle + inputAngle;
@@ -143,17 +112,20 @@ namespace 途畔归所.Dll.Creature
             // 平滑旋转（无论地面还是空中，都会平滑到 targetAngle，空中保持不变）
             float rotationSpeed = 15f;
             float playerTargetY = targetAngle - Mathf.Pi;
-            float currentY = m_player.GlobalRotation.Y;
+            float currentY = m_Player.GlobalRotation.Y;
             float smoothedY = Mathf.LerpAngle(currentY, playerTargetY, (float)delta * rotationSpeed);
 
-            m_player.GlobalRotation = new Vector3(
-                m_player.GlobalRotation.X,
+            m_Player.GlobalRotation = new Vector3(
+                m_Player.GlobalRotation.X,
                 smoothedY,
-                m_player.GlobalRotation.Z
+                m_Player.GlobalRotation.Z
             );
         }
 
-
+        private void Attack()
+        {
+            m_Player.m_AnimState = Input.IsActionJustPressed("cat_Attack") ? AnimState.Attack : m_Player.m_AnimState;
+        }
 
 
         /// <summary>
@@ -175,6 +147,18 @@ namespace 途畔归所.Dll.Creature
         }
 
 
-
+        private void ApplyGroundMovement(Vector3 direction, ref Vector3 velocity, float speedMultiplier)
+        {
+            if (direction != Vector3.Zero)
+            {
+                velocity.X = direction.X * Speed * speedMultiplier;
+                velocity.Z = direction.Z * Speed * speedMultiplier;
+            }
+            else
+            {
+                velocity.X = Mathf.MoveToward(velocity.X, 0, Speed * speedMultiplier);
+                velocity.Z = Mathf.MoveToward(velocity.Z, 0, Speed * speedMultiplier);
+            }
+        }
     }
 }

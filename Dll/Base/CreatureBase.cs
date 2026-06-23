@@ -1,13 +1,14 @@
 using Godot;
 using Godot.Collections;
 using System;
-using System.Security.AccessControl;
 using 途畔归所.Dll.Core;
+using 途畔归所.Dll.Creature;
 using 途畔归所.Dll.Data;
 using 途畔归所.Dll.Interface;
 using 途畔归所.Dll.Manager;
 using 途畔归所.Dll.NetWork;
 using 途畔归所.Dll.Utils;
+using static 途畔归所.Dll.Creature.StateMachine;
 using static 途畔归所.Dll.Data.CreatureData;
 
 namespace 途畔归所.Dll.Base
@@ -15,7 +16,6 @@ namespace 途畔归所.Dll.Base
 	public partial class CreatureBase : CharacterBody3D, IDamageable
 	{
 		[Export] public CreatureData m_CreatureData { get; set; }
-		[Export] public AnimationTree m_AnimationTree { get; set; }
 		[Export] public RayCast3D m_Eye { get; set; }
 
 		public string m_Name => m_CreatureData.Name;
@@ -39,43 +39,47 @@ namespace 途畔归所.Dll.Base
 		public float m_MaxHealth => m_CreatureData.MaxHealth;
 		public float m_MaxStamina => m_CreatureData.MaxStamina;
 		public float m_MaxMana => m_CreatureData.MaxMana;
-		public float m_BaseAttack => m_CreatureData.BaseAttack +50;
+		public float m_BaseAttack => m_CreatureData.BaseAttack + 50;
 		public float m_CritChance => m_CreatureData.CritChance;
 		public float m_StaggerTime => m_CreatureData.StaggerTime;
 
 		public float m_StaggerDamage => m_CreatureData.StaggerDamage * m_MaxHealth;
 
 		public Array<DropBase> m_DropTable => m_CreatureData.DropTable;
+
+		public AnimState m_AnimState { get =>m_StateMachine.m_AnimState; set => m_StateMachine.m_AnimState = value; }
+
+
 		public Vector3 DropPos => GlobalPosition + Vector3.Up * 1f;
 		public bool IsDead => m_Health <= 0;
 
 		protected NetSyncBase m_NetSyncBase;
 		protected NetTransformSync m_NetTransformSync;
 		protected NetAnimationSync m_NetAnimationSync;
+		public StateMachine m_StateMachine;
 
 		/// <summary>注：受击事件</summary>
 		public event Action<float, Node> OnHit;
 
-
 		public override void _EnterTree()
 		{
-			if (m_AnimationTree == null || m_Eye == null)
-			{
-				CatLog.Err($"[CreatureBase._EnterTree]: {Name}-{m_Name} 缺少核心组件，请检查编译器");
-				CatUtils.StopAndExit(this);
-				return;
-			}
-
 			foreach (var node in GetChildren())
 			{
-				if (node is NetSyncBase netSync) m_NetSyncBase = netSync;
-				if (node is NetTransformSync netTransform) m_NetTransformSync = netTransform;
-				if (node is NetAnimationSync netAnimation) m_NetAnimationSync = netAnimation;
+				m_NetSyncBase ??= node is NetSyncBase netSync ? netSync : null;
+				m_NetTransformSync ??= node is NetTransformSync netTransform ? netTransform : null;
+				m_NetAnimationSync ??= node is NetAnimationSync netAnimation ? netAnimation : null;
+				m_StateMachine ??= node is StateMachine stateMachine ? stateMachine : null;
 			}
 
-			if (m_NetSyncBase == null || m_NetTransformSync == null || m_NetAnimationSync == null)
+			if (m_NetSyncBase == null || m_NetTransformSync == null || m_NetAnimationSync == null || m_StateMachine == null || m_Eye == null)
 			{
-				CatLog.Err($"[CreatureBase._EnterTree]: {Name}-{m_Name} 缺少网络组件，请检查编译器");
+				string loga = m_NetSyncBase == null ? "m_NetSyncBase/" : string.Empty;
+				string logb = m_NetTransformSync == null ? "m_NetTransformSync/" : string.Empty;
+				string logc = m_NetAnimationSync == null ? "m_NetAnimationSync/" : string.Empty;
+				string logd = m_StateMachine == null ? "m_StateMachine/" : string.Empty;
+				string logE = m_Eye == null ? "m_Eye" : string.Empty;
+
+				CatLog.Err($"[CreatureBase._EnterTree]: {Name}-{m_Name} 缺少核心组件：{loga + logb + logc + logd}，请检查编译器");
 				CatUtils.StopAndExit(this);
 				return;
 			}
@@ -159,6 +163,8 @@ namespace 途畔归所.Dll.Base
 		protected virtual void OnDeath()
 		{
 			if (!IsDead) return;
+
+			m_StateMachine?.SwitchAnimState(AnimState.Death);
 			foreach (var drop in m_DropTable)
 			{
 				if (drop == null) continue;
@@ -167,7 +173,6 @@ namespace 途畔归所.Dll.Base
 					NetObjectManager.Instance.SpawnObject(DropPos, Vector3.Zero, default, item);
 				}
 			}
-			CatUtils.StopAndExit(this);
 		}
 
 		/// <summary> 注：重力 </summary>
