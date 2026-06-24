@@ -36,6 +36,7 @@ namespace 途畔归所.Dll.Manager
             LoadAsset("res://Prefab/View/格子/slot_ui.tscn");
             LoadAsset("res://Prefab/View/Button/Button_A1.tscn");
             LoadAsset("res://Prefab/View/容器/ContainerUI.tscn");
+            LoadAsset("res://Prefab/View/装备栏/EquipUI.tscn");
 
 
             LoadAsset("res://Scenes/主菜单.tscn");

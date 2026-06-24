@@ -9,72 +9,76 @@ namespace 途畔归所.Dll.View
 {
 	public partial class EquipmentView : Control
 	{
-		[Export] private Array<SlotView> m_EquipSlots { get; set; } = [];
+		[Export] private Array<SlotView> m_EquipSlots { get; set; } 
 
 		private IEquipmentHolder m_Holder { get; set; }
 
-        public override void _EnterTree()
+		public override void _EnterTree()
 		{
-            if (m_EquipSlots == null || m_EquipSlots.Count == 0)
-            {
-                CatUtils.StopAndExit(this);
-                return;
-            }
+			if (m_EquipSlots == null || m_EquipSlots.Count == 0)
+			{
+				CatUtils.StopAndExit(this);
+				return;
+			}
 
-            for (int i = 0; i < m_EquipSlots.Count; i++)
-            {
-                if (m_EquipSlots[i].m_IsEquipSlot == false)
-                {
-                    CatUtils.StopAndExit(this);
-                    return;
-                }
-                m_EquipSlots[i].m_slotIndex = i;
-            }
+			for (int i = 0; i < m_EquipSlots.Count; i++)
+			{
+				if (!m_EquipSlots[i].m_IsEquipSlot)
+				{
+					CatLog.Warn($"[EquipmentView._EnterTree] m_EquipSlots[{i}] 的 m_IsEquipSlot 为 false，已自动修正");
+					m_EquipSlots[i].m_IsEquipSlot = true;
+				}
+			}
 
-            if (GetParent() is not IEquipmentHolder holder)
-            {
-                CatLog.Err($"[InventoryView._Ready]：父对象没有 IInventoryHolder 接口，已销毁");
-                CatUtils.StopAndExit(this);
-                return;
-            }
+			if (GetParent() is not IEquipmentHolder holder)
+			{
+				CatLog.Err($"[EquipmentView._EnterTree]：父对象没有 IEquipmentHolder 接口，已销毁");
+				CatUtils.StopAndExit(this);
+				return;
+			}
+			CatLog.Debug($"m_EquipSlots 数量: {m_EquipSlots.Count}");
 
-
-            m_Holder = holder;
-            Array<ItemData> EquipData = m_Holder.EquipData;
+			m_Holder = holder;
+			Array<ItemData> EquipData = m_Holder.EquipData;
 
 			while (EquipData.Count < m_EquipSlots.Count)
 			{
-                EquipData.Add(null);
+				EquipData.Add(null);
 			}
 
 			if (EquipData.Count > m_EquipSlots.Count)
 			{
-                for (int i = EquipData.Count - 1; i >= m_EquipSlots.Count; i--)
-                {
-                    EquipData[i]?.TryDropItem(m_Holder.DropPos);
-                    EquipData.Remove(EquipData[i]);
-                }
-            }
+				for (int i = EquipData.Count - 1; i >= m_EquipSlots.Count; i--)
+				{
+					EquipData[i]?.TryDropItem(m_Holder.DropPos);
+					EquipData.RemoveAt(i);
+				}
+			}
+
+			for (int i = 0; i < EquipData.Count; i++)
+			{
+				if (EquipData[i] != null && EquipData[i].Type != m_EquipSlots[i].m_EquipType)
+				{
+					EquipData[i]?.TryDropItem(m_Holder.DropPos);
+					EquipData[i] = null;
+				}
+
+				int index = i;
+
+				m_EquipSlots[i].OnDropPos = () => m_Holder.DropPos;
+				m_EquipSlots[i].OnGetItem += () => EquipData[index];
+				m_EquipSlots[i].OnSetItem += (newItemData) => EquipData[index] = newItemData;
+			}
+
+		}
 
 
-            for (int i = 0; i < EquipData.Count; i++)
-            {
-                if (EquipData[i].Type != m_EquipSlots[i].m_EquipType)
-                {
-                    EquipData[i]?.TryDropItem(m_Holder.DropPos);
-                    EquipData[i] = null;
-                }
-            }
+		public void ToggleUI()
+		{
+			Visible = !Visible;
+			if (Visible) RefreshAllSlots();
+		}
 
-            foreach (var item in m_EquipSlots)
-            {
-                item.m_holder = EquipData;
-            }
-
-
-
-        }
-
-
+		public void RefreshAllSlots() { foreach (var slot in m_EquipSlots) slot.Refresh(); }
 	}
 }

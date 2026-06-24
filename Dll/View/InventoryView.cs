@@ -45,6 +45,7 @@ namespace 途畔归所.Dll.View
                 }
             }
 
+
             for (int i = 0; i < slotDataArr.Count; i++)
             {
                 if (UIManager.Instance.GetUI(inventoryData.m_SlotUIName) is not SlotView view)
@@ -53,9 +54,13 @@ namespace 途畔归所.Dll.View
                     CatUtils.StopAndExit(this);
                     return;
                 }
-                view.m_slotIndex = i;
-                view.m_holder = m_holder.InventoryData.m_itemArr;
-                view.OnDropPos += GetDropPos;
+
+                int index = i; // 闭包捕获
+
+                view.OnDropPos = () => m_holder.DropPos;
+                view.OnGetItem = () => m_holder.InventoryData.m_itemArr[index];
+                view.OnSetItem = (newItemData) => m_holder.InventoryData.m_itemArr[index] = newItemData;
+
                 m_slotViewArr.Add(view);
                 m_gridContainer.AddChild(view);
             }

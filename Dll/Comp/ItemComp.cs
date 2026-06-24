@@ -1,6 +1,7 @@
 using Godot;
 using 维修公司.Dll.data;
 using 维修公司.Dll.Interface;
+using 途畔归所.Dll.NetWork;
 using 途畔归所.Dll.Utils;
 using static 维修公司.Dll.data.ItemData;
 
@@ -10,6 +11,7 @@ public partial class ItemComp : RigidBody3D, IInteractable
 {
 
 	[Export] public ItemData m_ItemData { get; set; }
+	[Export] public MeshInstance3D m_ItemMesh { get; set; }
 	[Export] public Area3D m_WeaponHitBox { get; set; }
 
 	public E_ItemType m_ItemType => m_ItemData.Type;
@@ -25,13 +27,21 @@ public partial class ItemComp : RigidBody3D, IInteractable
 		InitWeapon();
 	}
 
-	public override void _Process(double delta)
+	public void SetupForEquip()
 	{
+        Freeze = true;
+        SetCollisionLayerValue(1, false);
+        SetCollisionMaskValue(1, false);
+
+		if (CatUtils.FindChildNode<NetSyncBase>(this) is NetSyncBase netSync)
+		{
+            netSync.GetParent()?.RemoveChild(netSync);
+            netSync.QueueFree();
+        }
+    }
 
 
-	}
-
-	private void InitWeapon()
+    private void InitWeapon()
 	{
 		if (m_ItemType != E_ItemType.Weapon) return;
 		if (m_WeaponHitBox == null)

@@ -1,6 +1,7 @@
 using Godot;
 using Godot.Collections;
 using System;
+using 维修公司.Dll.data;
 using 途畔归所.Dll.Base;
 
 namespace 途畔归所.Dll.Data
@@ -55,7 +56,7 @@ namespace 途畔归所.Dll.Data
         [Export] public int SkillPersuasion { get; set; } = 1;            // 交涉（对话/交易）
 
         [ExportGroup("战斗")]
-        [Export] public float BaseAttack { get; set; } = 5f;              // 基础攻击力
+        [Export] public float BaseDamage { get; set; } = 5f;              // 基础攻击力
         [Export] public float CritChance { get; set; } = 5f;              // 基础暴击率(%)
 
         [Export] public float StaggerDamage { get; set; } = 0.2f;
@@ -64,6 +65,7 @@ namespace 途畔归所.Dll.Data
 
         [ExportGroup("物品与掉落")]
         [Export] public InventoryData InventoryData { get; set; } = new(); // 背包数据
+        [Export] public  Array<ItemData> EquipData { get; set; } = [];
         [Export] public Array<DropBase> DropTable { get; set; } = [];      // 死亡掉落表
 
         [ExportGroup("AI巡逻")]

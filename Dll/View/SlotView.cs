@@ -20,14 +20,13 @@ namespace 途畔归所.Dll.View
         [ExportGroup("装备类型")]
         [Export] public E_ItemType m_EquipType = E_ItemType.Weapon;
 
-
-        public int m_slotIndex { get; set; }
-        public Array<ItemData> m_holder { get; set; }
-        private ItemData m_slotData { get => m_holder[m_slotIndex]; set => m_holder[m_slotIndex] = value; }
+        private ItemData m_slotData { get => OnGetItem?.Invoke(); set => OnSetItem?.Invoke(value); }
+        private Vector3 m_DropPos => OnDropPos?.Invoke() == null ? new Vector3() : OnDropPos.Invoke();
         public bool isNull => m_slotData == null;
 
         public Func<Vector3> OnDropPos;
-        private Vector3 m_DropPos => OnDropPos?.Invoke() == null ? new Vector3() : OnDropPos.Invoke(); 
+        public Func<ItemData> OnGetItem;   
+        public Action<ItemData> OnSetItem; 
 
         public override void _Ready()
         {
@@ -36,6 +35,11 @@ namespace 途畔归所.Dll.View
                 CatLog.Err($"[SlotView._Ready]：检测需求字段 有空 已销毁");
                 CatUtils.StopAndExit(this);
                 return;
+            }
+
+            if (OnDropPos == null || OnGetItem == null || OnSetItem == null)
+            {
+                CatLog.Err($"[SlotView._Ready]：检测委托未有进行绑定，请检查父对象：{this.GetParent().Name}");
             }
 
             m_button.GuiInput += OnSlotGuiInput;
@@ -127,9 +131,26 @@ namespace 途畔归所.Dll.View
             }
             else if (targetSlot != source)
             {
-                // 交换（同容器或跨容器都直接交换数据引用）
-                var itemA = targetSlot.m_slotData;
-                var itemB = source.m_slotData;
+                // 获取双方物品
+                var itemA = targetSlot.m_slotData;  // 目标格子里的物品
+                var itemB = source.m_slotData;      // 拖过来的物品
+
+                // ★ 装备栏类型校验
+                // 检查拖过来的物品是否能放入目标格子
+                if (targetSlot.m_IsEquipSlot && itemB != null && itemB.Type != targetSlot.m_EquipType)
+                {
+                    gui.CurrentDragSource = null;
+                    return;
+                }
+
+                // 检查目标格子原有物品是否能放入源格子（当源格子也是装备槽时）
+                if (source.m_IsEquipSlot && itemA != null && itemA.Type != source.m_EquipType)
+                {
+                    gui.CurrentDragSource = null;
+                    return;
+                }
+
+                // 交换
                 targetSlot.m_slotData = itemB;
                 source.m_slotData = itemA;
 

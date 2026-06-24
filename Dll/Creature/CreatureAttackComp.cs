@@ -6,14 +6,16 @@ using 途畔归所.Dll.Utils;
 namespace 途畔归所.Dll.Creature
 {
     [GlobalClass]
-    public partial class CreatureHitbox : Node
+    public partial class CreatureAttackComp : Node
     {
         [Export] private Area3D m_emptyhanded;
-        public Area3D m_CustomHitBox;
+
+        public Area3D m_CustomHitBox => (m_Humanoid != null && m_Humanoid.m_EquipHitBox != null) ? m_Humanoid.m_EquipHitBox : null;
+
         private CreatureBase m_CreatureBase;
+        private Humanoid m_Humanoid;
 
         private Area3D m_hitBox => m_CustomHitBox == null ? m_emptyhanded : m_CustomHitBox;
-
 
         public override void _Ready()
         {
@@ -23,9 +25,8 @@ namespace 途畔归所.Dll.Creature
                 CatUtils.StopAndExit(this);
                 return;
             }
-
-
             m_CreatureBase = creature;
+            m_Humanoid = creature is Humanoid human ? human : null;
         }
 
         // 动画轨道调用：开启判定窗口
@@ -49,7 +50,7 @@ namespace 途畔归所.Dll.Creature
         {
             if (body == m_CreatureBase || body is not IDamageable node) return;
 
-            node.TakeDamage(m_CreatureBase.m_BaseAttack);
+            node.TakeDamage(m_CreatureBase.m_Damage);
 
             CatLog.Ok($"[PlayerAttack] 命中 {body.Name}");
         }

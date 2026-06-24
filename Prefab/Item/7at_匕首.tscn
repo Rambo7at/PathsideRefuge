@@ -12,6 +12,7 @@ ID = "7at_匕首"
 Name = "匕首"
 Type = 3
 Description = "一把刀子"
+Damage = 60
 metadata/_custom_type_script = "uid://inh0sbmkkjuj"
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_fy1x4"]
@@ -58,12 +59,13 @@ _surfaces = [{
 blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_wctwk")
 
-[node name="7at_匕首" type="RigidBody3D" unique_id=1274396886 node_paths=PackedStringArray("m_WeaponHitBox")]
+[node name="7at_匕首" type="RigidBody3D" unique_id=1274396886 node_paths=PackedStringArray("m_ItemMesh", "m_WeaponHitBox")]
 script = ExtResource("1_nbal6")
 m_ItemData = SubResource("Resource_n7s87")
+m_ItemMesh = NodePath("匕首/Knife")
 m_WeaponHitBox = NodePath("Area3D")
 
-[node name="NetSyncBase" type="Node" parent="." unique_id=22840253]
+[node name="NetSyncBase" type="Node" parent="." unique_id=380096290]
 script = ExtResource("4_b3m6x")
 metadata/_custom_type_script = "uid://bgndbmht2eucx"
 

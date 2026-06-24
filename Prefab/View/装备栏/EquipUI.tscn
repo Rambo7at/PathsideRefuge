@@ -16,7 +16,7 @@ corner_radius_bottom_right = 20
 corner_radius_bottom_left = 20
 shadow_size = 12
 
-[node name="EquipUI" type="Control" unique_id=1275478942 node_paths=PackedStringArray("slots")]
+[node name="EquipUI" type="Control" unique_id=1275478942 node_paths=PackedStringArray("m_EquipSlots")]
 top_level = true
 layout_mode = 3
 anchors_preset = 8
@@ -29,7 +29,7 @@ grow_vertical = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 script = ExtResource("1_adjn0")
-slots = [NodePath("Panel/SlotUi"), NodePath("Panel/SlotUi2")]
+m_EquipSlots = [NodePath("Panel/SlotUi"), NodePath("Panel/SlotUi2")]
 
 [node name="Panel" type="Panel" parent="." unique_id=666655981]
 layout_mode = 0

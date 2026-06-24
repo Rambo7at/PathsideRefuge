@@ -2099,6 +2099,21 @@ _subresources={
 "nodes": {
 "PATH:AnimationPlayer": {
 "import/skip_import": true
+},
+"PATH:Rig/Skeleton3D/handslot_l/Knife_Offhand": {
+"import/skip_import": true
+},
+"PATH:Rig/Skeleton3D/handslot_r/1H_Crossbow": {
+"import/skip_import": true
+},
+"PATH:Rig/Skeleton3D/handslot_r/2H_Crossbow": {
+"import/skip_import": true
+},
+"PATH:Rig/Skeleton3D/handslot_r/Knife": {
+"import/skip_import": true
+},
+"PATH:Rig/Skeleton3D/handslot_r/Throwable": {
+"import/skip_import": true
 }
 }
 }

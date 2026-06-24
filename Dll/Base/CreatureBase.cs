@@ -39,7 +39,10 @@ namespace 途畔归所.Dll.Base
 		public float m_MaxHealth => m_CreatureData.MaxHealth;
 		public float m_MaxStamina => m_CreatureData.MaxStamina;
 		public float m_MaxMana => m_CreatureData.MaxMana;
-		public float m_BaseAttack => m_CreatureData.BaseAttack + 50;
+		public float m_BaseDamage => m_CreatureData.BaseDamage;
+
+		public float m_Damage => FinalDamage();
+
 		public float m_CritChance => m_CreatureData.CritChance;
 		public float m_StaggerTime => m_CreatureData.StaggerTime;
 
@@ -174,6 +177,8 @@ namespace 途畔归所.Dll.Base
 				}
 			}
 		}
+
+		protected virtual float FinalDamage() => m_BaseDamage;
 
 		/// <summary> 注：重力 </summary>
 		public virtual void ApplyGravity(double delta)

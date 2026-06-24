@@ -1,4 +1,7 @@
 using Godot;
+using Godot.Collections;
+using System;
+using 维修公司.Dll.data;
 using 途畔归所.Dll.Data;
 using 途畔归所.Dll.Interface;
 using 途畔归所.Dll.Manager;
@@ -8,7 +11,7 @@ using 途畔归所.Dll.View;
 namespace 途畔归所.Dll.Creature
 {
     [GlobalClass]
-    public partial class PlayerGUI : CanvasLayer, IInventoryHolder
+    public partial class PlayerGUI : CanvasLayer, IInventoryHolder, IEquipmentHolder
     {
         [Export] private Node3D m_dropPos;
 
@@ -17,14 +20,12 @@ namespace 途畔归所.Dll.Creature
         private ConsoleView m_consoleView;
         private EscView m_escView;
         private HudView m_hudView;
+        private EquipmentView m_EquipmentView;
 
         public SlotView CurrentDragSource { get; set; }
         public TextureRect CurrentDragIcon { get; set; }
         public Vector3 m_DropPos => m_dropPos.GlobalPosition;
 
-
-        public InventoryData InventoryData { get => m_player.m_InventoryData ??= new InventoryData(); set => m_player.m_InventoryData = value; }
-        Vector3 IInventoryHolder.DropPos => m_DropPos;
         public override void _Ready()
         {
 
@@ -48,6 +49,7 @@ namespace 途畔归所.Dll.Creature
             InitConsole();
             InitEsc();
             InitPlayerHUD();
+            InitPlayerEquip();
         }
 
 
@@ -96,27 +98,36 @@ namespace 途畔归所.Dll.Creature
 
         private void InitPlayerHUD()
         {
-            if (m_hudView != null) return;
-            if (UIManager.Instance.GetUI("hud") is not HudView hud) return;
+            m_hudView ??= UIManager.Instance.GetUI("hud") is HudView hud ? hud : null;
+            if (m_hudView == null) return;
 
-            hud.m_maxHP = m_player.m_Health;
-            hud.Visible = true;
-            m_hudView = hud;
+            m_hudView.m_maxHP = m_player.m_Health;
+            m_hudView.Visible = true;
             AddChild(m_hudView);
         }
 
         private void InitPlayerEquip()
-        { 
-        
-        
-        
+        {
+            m_EquipmentView ??= UIManager.Instance.GetUI("EquipUI") is EquipmentView view ? view : null;
+            if (m_EquipmentView == null)
+            {
+                CatLog.Warn("这个信息是空的！");
+                return;
+            }
+
+            m_EquipmentView.Visible = false;
+            AddChild(m_EquipmentView);
         }
 
         /// <summary>注：处理与 UI 相关的按键输入。</summary>
         private void ProcessUIInputs()
         {
             if (Input.IsActionJustPressed("cat_Console")) m_consoleView.ToggleUI();
-            if (Input.IsActionJustPressed("cat_Tab")) m_inventoryView.ToggleUI();
+            if (Input.IsActionJustPressed("cat_Tab"))
+            {
+                m_inventoryView.ToggleUI();
+                m_EquipmentView.ToggleUI();
+            }
             if (Input.IsActionJustPressed("cat_Esc")) m_escView.ToggleUI();
         }
 
@@ -136,5 +147,14 @@ namespace 途畔归所.Dll.Creature
         }
 
 
+        #region 接口实现
+        public InventoryData InventoryData { get => m_player.m_InventoryData ??= new InventoryData(); set => m_player.m_InventoryData = value; }
+        Vector3 IInventoryHolder.DropPos => m_DropPos;
+
+        public Array<ItemData> EquipData { get => m_player.m_EquipData; set => m_player.m_EquipData = value; }
+
+        public Vector3 DropPos => m_DropPos;
+
+        #endregion
     }
 }
