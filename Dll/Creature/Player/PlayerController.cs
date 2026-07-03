@@ -1,7 +1,6 @@
 using Godot;
 using 途畔归所.Dll.Manager;
 using 途畔归所.Dll.Utils;
-using static Godot.TextServer;
 using static 途畔归所.Dll.Creature.StateMachine;
 
 namespace 途畔归所.Dll.Creature
@@ -38,7 +37,7 @@ namespace 途畔归所.Dll.Creature
 
             m_springArm3D ??= CatUtils.FindChildNode<SpringArm3D>(pl);
 
-            if (m_springArm3D == null )
+            if (m_springArm3D == null)
             {
                 CatLog.Warn($"[PlayerController._Ready]：未通找到 m_springArm3D ，已销毁");
                 CatUtils.StopAndExit(this);

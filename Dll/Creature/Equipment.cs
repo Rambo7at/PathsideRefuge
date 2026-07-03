@@ -41,7 +41,7 @@ namespace 途畔归所.Dll.Creature
 			if (m_Weapon != null && m_WeaponComp == null)
 			{
 				var DROP = m_Weapon.DataToDrop();
-				DROP.SetupForEquip();
+				DROP.SetEquip();
 				m_WeaponComp = DROP;
 				m_HandR.AddChild(m_WeaponComp);
 			}

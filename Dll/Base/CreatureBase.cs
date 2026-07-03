@@ -1,6 +1,7 @@
 using Godot;
 using Godot.Collections;
 using System;
+using 途畔归所.Dll.Comp;
 using 途畔归所.Dll.Core;
 using 途畔归所.Dll.Creature;
 using 途畔归所.Dll.Data;
@@ -17,6 +18,9 @@ namespace 途畔归所.Dll.Base
 	{
 		[Export] public CreatureData m_CreatureData { get; set; }
 		[Export] public RayCast3D m_Eye { get; set; }
+
+		[Export] public CreatureAnimComp m_AnimComp { get; set; }
+
 
 		public string m_Name => m_CreatureData.Name;
 		public E_CreatureType m_CreatureType => m_CreatureData.CreatureType;
@@ -59,13 +63,15 @@ namespace 途畔归所.Dll.Base
 		protected NetSyncBase m_NetSyncBase;
 		protected NetTransformSync m_NetTransformSync;
 		protected NetAnimationSync m_NetAnimationSync;
-		public StateMachine m_StateMachine;
+		protected StateMachine m_StateMachine;
+		protected Attack m_Attack;
 
 		/// <summary>注：受击事件</summary>
 		public event Action<float, Node> OnHit;
 
 		public override void _EnterTree()
 		{
+			// 寻找挂载组件
 			foreach (var node in GetChildren())
 			{
 				m_NetSyncBase ??= node is NetSyncBase netSync ? netSync : null;
@@ -74,15 +80,21 @@ namespace 途畔归所.Dll.Base
 				m_StateMachine ??= node is StateMachine stateMachine ? stateMachine : null;
 			}
 
-			if (m_NetSyncBase == null || m_NetTransformSync == null || m_NetAnimationSync == null || m_StateMachine == null || m_Eye == null)
+            // 生成组件
+            m_Attack ??= new Attack();
+
+
+
+            if (m_NetSyncBase == null || m_NetTransformSync == null || m_NetAnimationSync == null || m_StateMachine == null || m_Eye == null || m_AnimComp == null)
 			{
 				string loga = m_NetSyncBase == null ? "m_NetSyncBase/" : string.Empty;
 				string logb = m_NetTransformSync == null ? "m_NetTransformSync/" : string.Empty;
 				string logc = m_NetAnimationSync == null ? "m_NetAnimationSync/" : string.Empty;
 				string logd = m_StateMachine == null ? "m_StateMachine/" : string.Empty;
 				string logE = m_Eye == null ? "m_Eye" : string.Empty;
+				string logF = m_AnimComp == null ? "m_AnimComp" : string.Empty;
 
-				CatLog.Err($"[CreatureBase._EnterTree]: {Name}-{m_Name} 缺少核心组件：{loga + logb + logc + logd}，请检查编译器");
+				CatLog.Err($"[CreatureBase._EnterTree]: {Name}-{m_Name} 缺少核心组件：{loga + logb + logc + logd + logE + logF}，请检查编译器");
 				CatUtils.StopAndExit(this);
 				return;
 			}
@@ -178,6 +190,7 @@ namespace 途畔归所.Dll.Base
 			}
 		}
 
+		/// <summary>注：攻击力计算</summary>
 		protected virtual float FinalDamage() => m_BaseDamage;
 
 		/// <summary> 注：重力 </summary>

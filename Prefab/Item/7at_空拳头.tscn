@@ -1,0 +1,33 @@
+[gd_scene format=3 uid="uid://cjglb5e601enh"]
+
+[ext_resource type="Script" uid="uid://uquicwf3cleb" path="res://Dll/Comp/ItemComp.cs" id="1_65m1r"]
+[ext_resource type="Script" uid="uid://inh0sbmkkjuj" path="res://Dll/Data/ItemData.cs" id="2_mjbou"]
+
+[sub_resource type="Resource" id="Resource_cflxa"]
+script = ExtResource("2_mjbou")
+ID = "7at_空拳头"
+Name = "空拳头"
+Type = 3
+Description = "拳头咯"
+Damage = 5
+metadata/_custom_type_script = "uid://inh0sbmkkjuj"
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_mjbou"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_cflxa"]
+radius = 0.2
+
+[node name="7at_空拳头" type="RigidBody3D" unique_id=701347580 node_paths=PackedStringArray("m_WeaponHitBox")]
+script = ExtResource("1_65m1r")
+m_ItemData = SubResource("Resource_cflxa")
+m_WeaponHitBox = NodePath("Hitbox")
+metadata/_custom_type_script = "uid://uquicwf3cleb"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1770260614]
+visible = false
+shape = SubResource("SphereShape3D_mjbou")
+
+[node name="Hitbox" type="Area3D" parent="." unique_id=1808338644]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Hitbox" unique_id=1901234708]
+shape = SubResource("SphereShape3D_cflxa")

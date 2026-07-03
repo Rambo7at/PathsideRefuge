@@ -1,6 +1,0 @@
-[gd_scene format=3 uid="uid://woweigy3l2xi"]
-
-[ext_resource type="AnimationLibrary" uid="uid://bijqo1hm44iy" path="res://Prefab/Animat/人物动画.res" id="1_0wu0g"]
-
-[node name="AnimationPlayer" type="AnimationPlayer" unique_id=24846754]
-"libraries/人物动画" = ExtResource("1_0wu0g")

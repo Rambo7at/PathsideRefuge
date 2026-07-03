@@ -91,6 +91,9 @@ namespace 途畔归所.Dll.Creature
 			}
 
 			m_Creature.OnHit += OnHit;
+			m_Creature.m_AnimComp.OnEndStagger = EndStagger;
+			m_Creature.m_AnimComp.OnEndDeath = EndDeath;
+			m_Creature.m_AnimComp.OnEndAttack = EndAttack;
 
 		}
 

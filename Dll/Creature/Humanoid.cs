@@ -29,13 +29,7 @@ namespace 途畔归所.Dll.Base
 		}
 
 
-		public override void _Ready()
-		{
-			base._Ready();
-
-
-
-		}
+		public override void _Ready() => base._Ready();
 
 
 
