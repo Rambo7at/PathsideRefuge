@@ -55,13 +55,14 @@ namespace 途畔归所.Dll.Data
         [Export] public int SkillHandiness { get; set; } = 1;             // 巧手（开锁/陷阱/制造）
         [Export] public int SkillPersuasion { get; set; } = 1;            // 交涉（对话/交易）
 
-        [ExportGroup("战斗")]
-        [Export] public float BaseDamage { get; set; } = 5f;              // 基础攻击力
+        [ExportGroup("攻击")]
+        [Export] public float BaseDamage { get; set; } = 5f;              // 基础伤害
         [Export] public float CritChance { get; set; } = 5f;              // 基础暴击率(%)
 
-        [Export] public float StaggerDamage { get; set; } = 0.2f;
-        [Export] public float StaggerTime { get; set; } = 1;
-        
+        [ExportGroup("受击")]
+        [Export] public float StaggerDamage { get; set; } = 0.2f;       // 总生命值多少会眩晕
+        [Export] public float StaggerTime { get; set; } = 1;           // 眩晕多久时间
+
 
         [ExportGroup("物品与掉落")]
         [Export] public InventoryData InventoryData { get; set; } = new(); // 背包数据
@@ -82,14 +83,6 @@ namespace 途畔归所.Dll.Data
         public float Health { get; set; } 
         public float Stamina { get; set; }
         public float Mana { get; set; }
-
-
-
-
-
-
-
-
 
 
         public int LevelPoints => GetLevelPoints();

@@ -5,7 +5,9 @@
     <EnableDynamicLoading>true</EnableDynamicLoading>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="addons\**" />
     <Compile Remove="Prefab\**" />
+    <EmbeddedResource Remove="addons\**" />
     <EmbeddedResource Remove="Prefab\**" />
   </ItemGroup>
   <ItemGroup>

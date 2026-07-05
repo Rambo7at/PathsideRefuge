@@ -28,7 +28,7 @@ advance_expression = "not Attack"
 states/End/position = Vector2(779, 189)
 states/Start/position = Vector2(146, 189)
 "states/攻击包/node" = SubResource("AnimationNodeStateMachine_y2cp3")
-"states/攻击包/position" = Vector2(420, 189)
+"states/攻击包/position" = Vector2(428, 189)
 transitions = ["Start", "攻击包", SubResource("AnimationNodeStateMachineTransition_lpbl2"), "攻击包", "End", SubResource("AnimationNodeStateMachineTransition_oh8cm")]
 
 [sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_xa1of"]
@@ -101,7 +101,6 @@ graph_offset = Vector2(-156.8981, -136)
 
 [resource]
 resource_name = "人形动画树"
-graph_offset = Vector2(-986, -226.92773)
 nodes/output/position = Vector2(-560, -60)
 "nodes/移动状态机/node" = SubResource("AnimationNodeStateMachine_5kbma")
 "nodes/移动状态机/position" = Vector2(-1100, -220)

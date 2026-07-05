@@ -74,41 +74,27 @@ namespace 途畔归所.Dll.Base
 
 		public override void _EnterTree()
 		{
-			// 寻找挂载组件
-			foreach (var node in GetChildren())
-			{
-				m_NetSyncBase ??= node is NetSyncBase netSync ? netSync : null;
-				m_NetTransformSync ??= node is NetTransformSync netTransform ? netTransform : null;
-				m_NetAnimationSync ??= node is NetAnimationSync netAnimation ? netAnimation : null;
-				m_StateMachine ??= node is StateMachine stateMachine ? stateMachine : null;
-				m_AnimationTree ??= node is AnimationTree animationTree ? animationTree : null;
-			}
+            // 寻找挂载组件
+            foreach (var node in GetChildren())  
+            {
+				m_NetSyncBase ??= node as NetSyncBase;
 
-			// 组件检查
-			if (m_NetSyncBase == null || m_NetTransformSync == null || m_NetAnimationSync == null || m_StateMachine == null || m_Eye == null || m_AnimComp == null || m_AnimationTree == null)
-			{
-				string loga = m_NetSyncBase == null ? "m_NetSyncBase/" : string.Empty;
-				string logb = m_NetTransformSync == null ? "m_NetTransformSync/" : string.Empty;
-				string logc = m_NetAnimationSync == null ? "m_NetAnimationSync/" : string.Empty;
-				string logd = m_StateMachine == null ? "m_StateMachine/" : string.Empty;
-				string logE = m_Eye == null ? "m_Eye/" : string.Empty;
-				string logF = m_AnimComp == null ? "m_AnimComp/" : string.Empty;
-				string logg = m_AnimationTree == null ? "m_AnimationTree/" : string.Empty;
+				m_NetTransformSync ??= node as NetTransformSync;
 
+				m_NetAnimationSync ??= node as NetAnimationSync;
 
-				CatLog.Err($"[CreatureBase._EnterTree]: {Name}-{m_Name} 缺少核心组件：{loga + logb + logc + logd + logE + logF + logg}，请检查编译器");
-				CatUtils.StopAndExit(this);
-				return;
-			}
+				m_StateMachine ??= node as StateMachine;
 
-			// 生命值数据检测
-			m_Health = m_Health == default ? m_MaxHealth : m_Health;
+				m_AnimationTree ??= node as AnimationTree;
+            }
 
-			// RPC绑定
-			m_NetSyncBase.RegisterRpc<float>("RPC_RequestDamage", RPC_RequestDamage);
-			m_NetSyncBase.RegisterRpc<float>("RPC_SyncHealth", RPC_SyncHealth);
-			m_NetSyncBase.RegisterRpc("RPC_RequestHealth", RPC_RequestHealth);
-		}
+            if (ValCoreComp() == false) return;
+
+            // 初始化生命值
+            m_Health = m_Health == default ? m_MaxHealth : m_Health;
+
+            InitRpc();
+        }
 
 		public override void _Ready()
 		{
@@ -251,6 +237,37 @@ namespace 途畔归所.Dll.Base
 			float newY = Mathf.LerpAngle(GlobalRotation.Y, Mathf.Atan2(dir.X, dir.Z) - Mathf.Pi, rotationSpeed * delta);
 			GlobalRotation = new Vector3(GlobalRotation.X, newY, GlobalRotation.Z);
 		}
+
+        /// <summary> 辅助：检查关键成员完整性 </summary>
+        private bool ValCoreComp()
+		{
+            // 组件检查
+            if (m_NetSyncBase == null || m_NetTransformSync == null || m_NetAnimationSync == null || m_StateMachine == null || m_Eye == null || m_AnimComp == null || m_AnimationTree == null)
+            {
+                string loga = m_NetSyncBase == null ? "m_NetSyncBase/" : string.Empty;
+                string logb = m_NetTransformSync == null ? "m_NetTransformSync/" : string.Empty;
+                string logc = m_NetAnimationSync == null ? "m_NetAnimationSync/" : string.Empty;
+                string logd = m_StateMachine == null ? "m_StateMachine/" : string.Empty;
+                string logE = m_Eye == null ? "m_Eye/" : string.Empty;
+                string logF = m_AnimComp == null ? "m_AnimComp/" : string.Empty;
+                string logg = m_AnimationTree == null ? "m_AnimationTree/" : string.Empty;
+
+
+                CatLog.Err($"[CreatureBase.ValCoreComp]: {Name}-{m_Name} 缺少核心组件：{loga + logb + logc + logd + logE + logF + logg}，请检查编译器");
+                CatUtils.StopAndExit(this);
+                return false;
+            }
+
+			return true;
+        }
+
+        /// <summary> 辅助：初始化RPC </summary>
+        private void InitRpc()
+		{
+            m_NetSyncBase.RegisterRpc<float>("RPC_RequestDamage", RPC_RequestDamage);
+            m_NetSyncBase.RegisterRpc<float>("RPC_SyncHealth", RPC_SyncHealth);
+            m_NetSyncBase.RegisterRpc("RPC_RequestHealth", RPC_RequestHealth);
+        }
 	}
 
 }

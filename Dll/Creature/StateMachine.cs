@@ -46,7 +46,7 @@ namespace 途畔归所.Dll.Creature
 		public bool Stagger => m_AnimState == AnimState.Stagger;
 		public bool Death => m_AnimState == AnimState.Death;
 
-		public int AttackAnimIndex;
+		public int AttackAnimIndex { get; set; }
 		private bool IsOnFloor => m_Creature.IsOnFloor();
 
 
