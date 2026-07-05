@@ -1,0 +1,112 @@
+[gd_resource type="AnimationNodeBlendTree" format=3 uid="uid://dyyd4f7kmeq0i"]
+
+[sub_resource type="AnimationNodeOneShot" id="AnimationNodeOneShot_xsgoj"]
+fadein_time = 0.2
+fadeout_time = 0.2
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_k0fpu"]
+animation = &"人物动画/Dualwield_Melee_Attack_Chop"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_lgewi"]
+advance_mode = 2
+advance_expression = "AttackAnimIndex == 1"
+
+[sub_resource type="AnimationNodeStateMachine" id="AnimationNodeStateMachine_y2cp3"]
+"states/人物动画_Dualwield_Melee_Attack_Chop/node" = SubResource("AnimationNodeAnimation_k0fpu")
+"states/人物动画_Dualwield_Melee_Attack_Chop/position" = Vector2(483, 100)
+transitions = ["Start", "人物动画_Dualwield_Melee_Attack_Chop", SubResource("AnimationNodeStateMachineTransition_lgewi")]
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_lpbl2"]
+advance_mode = 2
+advance_expression = "Attack"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_oh8cm"]
+advance_mode = 2
+advance_expression = "not Attack"
+
+[sub_resource type="AnimationNodeStateMachine" id="AnimationNodeStateMachine_lpbl2"]
+states/End/position = Vector2(779, 189)
+states/Start/position = Vector2(146, 189)
+"states/攻击包/node" = SubResource("AnimationNodeStateMachine_y2cp3")
+"states/攻击包/position" = Vector2(420, 189)
+transitions = ["Start", "攻击包", SubResource("AnimationNodeStateMachineTransition_lpbl2"), "攻击包", "End", SubResource("AnimationNodeStateMachineTransition_oh8cm")]
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_xa1of"]
+animation = &"人物动画/Idle"
+advance_on_start = true
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_dvjye"]
+animation = &"人物动画/Jump_Idle"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_mn7ap"]
+animation = &"人物动画/Running_A"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_3y32g"]
+xfade_time = 0.2
+advance_mode = 2
+advance_expression = "Idle"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_pie34"]
+xfade_time = 0.2
+advance_mode = 2
+advance_expression = "Walk"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_wl248"]
+xfade_time = 0.2
+advance_mode = 2
+advance_expression = "Jump"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_whe34"]
+xfade_time = 0.2
+advance_mode = 2
+advance_expression = "Walk"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_vf8ei"]
+xfade_time = 0.2
+advance_mode = 2
+advance_expression = "Idle"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_uw02a"]
+xfade_time = 0.2
+advance_mode = 2
+advance_expression = "Jump"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_w30k4"]
+xfade_time = 0.2
+advance_mode = 2
+advance_expression = "Walk"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_6b8sg"]
+xfade_time = 0.2
+advance_mode = 2
+advance_expression = "Idle"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_3kwc3"]
+xfade_time = 0.2
+advance_mode = 2
+advance_expression = "Jump"
+
+[sub_resource type="AnimationNodeStateMachine" id="AnimationNodeStateMachine_5kbma"]
+resource_name = "移动状态机"
+states/End/position = Vector2(429, 60)
+states/Start/position = Vector2(-27, 60)
+"states/人物动画_Idle/node" = SubResource("AnimationNodeAnimation_xa1of")
+"states/人物动画_Idle/position" = Vector2(188, 60)
+"states/人物动画_Jump_Idle/node" = SubResource("AnimationNodeAnimation_dvjye")
+"states/人物动画_Jump_Idle/position" = Vector2(188, -49)
+"states/人物动画_Running_A/node" = SubResource("AnimationNodeAnimation_mn7ap")
+"states/人物动画_Running_A/position" = Vector2(188, 160)
+transitions = ["Start", "人物动画_Idle", SubResource("AnimationNodeStateMachineTransition_3y32g"), "Start", "人物动画_Running_A", SubResource("AnimationNodeStateMachineTransition_pie34"), "Start", "人物动画_Jump_Idle", SubResource("AnimationNodeStateMachineTransition_wl248"), "人物动画_Idle", "人物动画_Running_A", SubResource("AnimationNodeStateMachineTransition_whe34"), "人物动画_Running_A", "人物动画_Idle", SubResource("AnimationNodeStateMachineTransition_vf8ei"), "人物动画_Running_A", "人物动画_Jump_Idle", SubResource("AnimationNodeStateMachineTransition_uw02a"), "人物动画_Jump_Idle", "人物动画_Running_A", SubResource("AnimationNodeStateMachineTransition_w30k4"), "人物动画_Jump_Idle", "人物动画_Idle", SubResource("AnimationNodeStateMachineTransition_6b8sg"), "人物动画_Idle", "人物动画_Jump_Idle", SubResource("AnimationNodeStateMachineTransition_3kwc3")]
+graph_offset = Vector2(-156.8981, -136)
+
+[resource]
+resource_name = "人形动画树"
+graph_offset = Vector2(-986, -226.92773)
+nodes/output/position = Vector2(-560, -60)
+"nodes/移动状态机/node" = SubResource("AnimationNodeStateMachine_5kbma")
+"nodes/移动状态机/position" = Vector2(-1100, -220)
+nodes/OneShot/node = SubResource("AnimationNodeOneShot_xsgoj")
+nodes/OneShot/position = Vector2(-780, -140)
+"nodes/单次状态机/node" = SubResource("AnimationNodeStateMachine_lpbl2")
+"nodes/单次状态机/position" = Vector2(-1100, 80)
+node_connections = [&"output", 0, &"OneShot", &"OneShot", 0, &"移动状态机", &"OneShot", 1, &"单次状态机"]

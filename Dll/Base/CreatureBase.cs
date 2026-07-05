@@ -18,8 +18,9 @@ namespace 途畔归所.Dll.Base
 	{
 		[Export] public CreatureData m_CreatureData { get; set; }
 		[Export] public RayCast3D m_Eye { get; set; }
-
 		[Export] public CreatureAnimComp m_AnimComp { get; set; }
+
+		[Export] private Array<PackedScene> m_AttackList = [];
 
 
 		public string m_Name => m_CreatureData.Name;
@@ -54,7 +55,9 @@ namespace 途畔归所.Dll.Base
 
 		public Array<DropBase> m_DropTable => m_CreatureData.DropTable;
 
-		public AnimState m_AnimState { get =>m_StateMachine.m_AnimState; set => m_StateMachine.m_AnimState = value; }
+		public AnimState m_AnimState { get => m_StateMachine.m_AnimState; set => m_StateMachine.m_AnimState = value; }
+
+		public int m_AttackAnimIndex { get => m_StateMachine.AttackAnimIndex; set => m_StateMachine.AttackAnimIndex = value; }
 
 
 		public Vector3 DropPos => GlobalPosition + Vector3.Up * 1f;
@@ -64,7 +67,7 @@ namespace 途畔归所.Dll.Base
 		protected NetTransformSync m_NetTransformSync;
 		protected NetAnimationSync m_NetAnimationSync;
 		protected StateMachine m_StateMachine;
-		protected Attack m_Attack;
+		public AnimationTree m_AnimationTree;
 
 		/// <summary>注：受击事件</summary>
 		public event Action<float, Node> OnHit;
@@ -78,29 +81,30 @@ namespace 途畔归所.Dll.Base
 				m_NetTransformSync ??= node is NetTransformSync netTransform ? netTransform : null;
 				m_NetAnimationSync ??= node is NetAnimationSync netAnimation ? netAnimation : null;
 				m_StateMachine ??= node is StateMachine stateMachine ? stateMachine : null;
+				m_AnimationTree ??= node is AnimationTree animationTree ? animationTree : null;
 			}
 
-            // 生成组件
-            m_Attack ??= new Attack();
-
-
-
-            if (m_NetSyncBase == null || m_NetTransformSync == null || m_NetAnimationSync == null || m_StateMachine == null || m_Eye == null || m_AnimComp == null)
+			// 组件检查
+			if (m_NetSyncBase == null || m_NetTransformSync == null || m_NetAnimationSync == null || m_StateMachine == null || m_Eye == null || m_AnimComp == null || m_AnimationTree == null)
 			{
 				string loga = m_NetSyncBase == null ? "m_NetSyncBase/" : string.Empty;
 				string logb = m_NetTransformSync == null ? "m_NetTransformSync/" : string.Empty;
 				string logc = m_NetAnimationSync == null ? "m_NetAnimationSync/" : string.Empty;
 				string logd = m_StateMachine == null ? "m_StateMachine/" : string.Empty;
-				string logE = m_Eye == null ? "m_Eye" : string.Empty;
-				string logF = m_AnimComp == null ? "m_AnimComp" : string.Empty;
+				string logE = m_Eye == null ? "m_Eye/" : string.Empty;
+				string logF = m_AnimComp == null ? "m_AnimComp/" : string.Empty;
+				string logg = m_AnimationTree == null ? "m_AnimationTree/" : string.Empty;
 
-				CatLog.Err($"[CreatureBase._EnterTree]: {Name}-{m_Name} 缺少核心组件：{loga + logb + logc + logd + logE + logF}，请检查编译器");
+
+				CatLog.Err($"[CreatureBase._EnterTree]: {Name}-{m_Name} 缺少核心组件：{loga + logb + logc + logd + logE + logF + logg}，请检查编译器");
 				CatUtils.StopAndExit(this);
 				return;
 			}
 
+			// 生命值数据检测
 			m_Health = m_Health == default ? m_MaxHealth : m_Health;
 
+			// RPC绑定
 			m_NetSyncBase.RegisterRpc<float>("RPC_RequestDamage", RPC_RequestDamage);
 			m_NetSyncBase.RegisterRpc<float>("RPC_SyncHealth", RPC_SyncHealth);
 			m_NetSyncBase.RegisterRpc("RPC_RequestHealth", RPC_RequestHealth);

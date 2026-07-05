@@ -6,6 +6,7 @@
 [ext_resource type="Script" uid="uid://bgndbmht2eucx" path="res://Dll/NetWork/NetSyncBase.cs" id="4_kebwq"]
 [ext_resource type="Script" uid="uid://dm68k0mp1847x" path="res://Dll/Creature/Player/PlayerController.cs" id="6_1ubpg"]
 [ext_resource type="Script" uid="uid://c4r7u0wmf5aan" path="res://Dll/Creature/Player/PlayerCamera.cs" id="6_d1rk3"]
+[ext_resource type="AnimationNodeBlendTree" uid="uid://dyyd4f7kmeq0i" path="res://Prefab/Player/人形动画树.tres" id="7_ekvl8"]
 [ext_resource type="Script" uid="uid://bvy3gesnv4mn5" path="res://Dll/Creature/Player/PlayerGUI.cs" id="8_xa1of"]
 [ext_resource type="PackedScene" uid="uid://0e2fnb8lpt4v" path="res://Asset/kaykit_character_pack_adventures/Characters/gltf/Rogue.glb" id="9_xsgoj"]
 [ext_resource type="AnimationLibrary" uid="uid://bijqo1hm44iy" path="res://Prefab/Animat/人物动画.res" id="10_ekvl8"]
@@ -29,113 +30,6 @@ tracks/0/keys = PackedFloat32Array(0, 1, 0, 0, 0, 1)
 _data = {
 &"RESET": SubResource("Animation_xsgoj")
 }
-
-[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_xsgoj"]
-animation = &"人物动画/Dualwield_Melee_Attack_Chop"
-
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_ekvl8"]
-advance_mode = 2
-
-[sub_resource type="AnimationNodeStateMachine" id="AnimationNodeStateMachine_3y32g"]
-states/End/position = Vector2(753, 100)
-"states/人物动画_Dualwield_Melee_Attack_Chop/node" = SubResource("AnimationNodeAnimation_xsgoj")
-"states/人物动画_Dualwield_Melee_Attack_Chop/position" = Vector2(474, 100)
-transitions = ["Start", "人物动画_Dualwield_Melee_Attack_Chop", SubResource("AnimationNodeStateMachineTransition_ekvl8")]
-graph_offset = Vector2(55, -42)
-
-[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_xa1of"]
-animation = &"人物动画/Idle"
-
-[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_dvjye"]
-animation = &"人物动画/Jump_Idle"
-
-[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_mn7ap"]
-animation = &"人物动画/Running_A"
-
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_wl248"]
-xfade_time = 0.3
-advance_mode = 2
-advance_expression = "Idle"
-
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_whe34"]
-xfade_time = 0.3
-advance_mode = 2
-advance_expression = "Walk"
-
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_uw02a"]
-xfade_time = 0.3
-advance_mode = 2
-advance_expression = "Jump"
-
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_w30k4"]
-xfade_time = 0.3
-advance_mode = 2
-advance_expression = "Walk"
-
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_6b8sg"]
-xfade_time = 0.3
-advance_mode = 2
-advance_expression = "Idle"
-
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_3kwc3"]
-xfade_time = 0.3
-advance_mode = 2
-advance_expression = "Jump"
-
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_8xt3t"]
-advance_mode = 2
-advance_expression = "Walk"
-
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_y3r7c"]
-advance_mode = 2
-advance_expression = "Idle"
-
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_kypwk"]
-advance_mode = 2
-advance_expression = "Jump"
-
-[sub_resource type="AnimationNodeStateMachine" id="AnimationNodeStateMachine_mn7ap"]
-states/End/position = Vector2(816, 104)
-states/Start/position = Vector2(236, 104)
-"states/人物动画_Idle/node" = SubResource("AnimationNodeAnimation_xa1of")
-"states/人物动画_Idle/position" = Vector2(434.1648, 104)
-"states/人物动画_Jump_Idle/node" = SubResource("AnimationNodeAnimation_dvjye")
-"states/人物动画_Jump_Idle/position" = Vector2(434.1648, 199)
-"states/人物动画_Running_A/node" = SubResource("AnimationNodeAnimation_mn7ap")
-"states/人物动画_Running_A/position" = Vector2(434.1648, 32)
-transitions = ["人物动画_Running_A", "人物动画_Idle", SubResource("AnimationNodeStateMachineTransition_wl248"), "人物动画_Idle", "人物动画_Running_A", SubResource("AnimationNodeStateMachineTransition_whe34"), "人物动画_Running_A", "人物动画_Jump_Idle", SubResource("AnimationNodeStateMachineTransition_uw02a"), "人物动画_Jump_Idle", "人物动画_Running_A", SubResource("AnimationNodeStateMachineTransition_w30k4"), "人物动画_Jump_Idle", "人物动画_Idle", SubResource("AnimationNodeStateMachineTransition_6b8sg"), "人物动画_Idle", "人物动画_Jump_Idle", SubResource("AnimationNodeStateMachineTransition_3kwc3"), "Start", "人物动画_Running_A", SubResource("AnimationNodeStateMachineTransition_8xt3t"), "Start", "人物动画_Idle", SubResource("AnimationNodeStateMachineTransition_y3r7c"), "Start", "人物动画_Jump_Idle", SubResource("AnimationNodeStateMachineTransition_kypwk")]
-graph_offset = Vector2(26.164795, -75)
-
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_3y32g"]
-advance_mode = 2
-
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_pie34"]
-advance_mode = 2
-advance_expression = "Attack"
-
-[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_vf8ei"]
-xfade_time = 0.3
-advance_mode = 2
-advance_expression = "not Attack"
-
-[sub_resource type="AnimationNodeStateMachine" id="AnimationNodeStateMachine_5kbma"]
-resource_name = "移动状态机"
-states/End/position = Vector2(638, 5)
-states/Start/position = Vector2(179, -13)
-states/StateMachine/node = SubResource("AnimationNodeStateMachine_3y32g")
-states/StateMachine/position = Vector2(347.4668, 153)
-"states/移动状态/node" = SubResource("AnimationNodeStateMachine_mn7ap")
-"states/移动状态/position" = Vector2(347.4668, -13)
-transitions = ["Start", "移动状态", SubResource("AnimationNodeStateMachineTransition_3y32g"), "移动状态", "StateMachine", SubResource("AnimationNodeStateMachineTransition_pie34"), "StateMachine", "移动状态", SubResource("AnimationNodeStateMachineTransition_vf8ei")]
-graph_offset = Vector2(18.101898, -85)
-
-[sub_resource type="AnimationNodeBlendTree" id="AnimationNodeBlendTree_xsgoj"]
-resource_name = "角色状态"
-graph_offset = Vector2(-626.1416, -162.0924)
-nodes/output/position = Vector2(-320, -200)
-"nodes/移动状态机/node" = SubResource("AnimationNodeStateMachine_5kbma")
-"nodes/移动状态机/position" = Vector2(-620, -200)
-node_connections = [&"output", 0, &"移动状态机"]
 
 [node name="Player" type="CharacterBody3D" unique_id=67650192 node_paths=PackedStringArray("m_PlayerGUI", "m_PlayerModel", "m_HandL", "m_HandR", "m_Eye", "m_AnimComp")]
 script = ExtResource("1_3tphh")
@@ -162,91 +56,37 @@ metadata/_custom_type_script = "uid://bgndbmht2eucx"
 script = ExtResource("6_1ubpg")
 metadata/_custom_type_script = "uid://dm68k0mp1847x"
 
-[node name="PlayerGUI" type="CanvasLayer" parent="." unique_id=194241674 node_paths=PackedStringArray("m_dropPos")]
-script = ExtResource("8_xa1of")
-m_dropPos = NodePath("../spawnPos")
-metadata/_custom_type_script = "uid://bvy3gesnv4mn5"
-
 [node name="StateMachine" type="Node" parent="." unique_id=727296087]
 script = ExtResource("12_ekvl8")
 metadata/_custom_type_script = "uid://83rvy7sxs6nu"
 
 [node name="CreatureAttackComp" type="Node" parent="." unique_id=1767967400]
-metadata/_custom_type_script = "uid://bvt5m1ybb71xj"
+
+[node name="AnimationTree" type="AnimationTree" parent="." unique_id=1464636846]
+root_node = NodePath("../Rogue")
+tree_root = ExtResource("7_ekvl8")
+advance_expression_base_node = NodePath("../StateMachine")
+anim_player = NodePath("../Rogue/CreatureAnimComp")
+parameters/OneShot/active = false
+parameters/OneShot/internal_active = false
+parameters/OneShot/request = 0
+
+[node name="PlayerGUI" type="CanvasLayer" parent="." unique_id=194241674 node_paths=PackedStringArray("m_dropPos")]
+script = ExtResource("8_xa1of")
+m_dropPos = NodePath("../spawnPos")
+metadata/_custom_type_script = "uid://bvy3gesnv4mn5"
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=291526403]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9376958, 0)
 shape = SubResource("CapsuleShape3D_cq2md")
+debug_color = Color(0, 0.6, 0.69803923, 0)
+debug_fill = false
 
 [node name="Rogue" parent="." unique_id=1116522444 instance=ExtResource("9_xsgoj")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, 0)
 
 [node name="Skeleton3D" parent="Rogue/Rig" parent_id_path=PackedInt32Array(1116522444, 762095418) index="0" unique_id=1806396573]
-bones/0/rotation = Quaternion(-8.557133e-09, 1.2043154e-07, -2.0610973e-15, 1)
-bones/1/position = Vector3(-3.5051173e-08, 0.38027862, 0.16962887)
-bones/1/rotation = Quaternion(-1.7554902e-15, 0.013311926, -2.3095033e-17, 0.9999114)
-bones/2/rotation = Quaternion(0.044254392, -0.10309816, 0.041372, 0.9928247)
-bones/3/rotation = Quaternion(6.436157e-15, -8.913633e-15, 6.9605885e-17, 1)
-bones/4/position = Vector3(0.21198903, 0.13413222, -0.00027599517)
-bones/4/rotation = Quaternion(-0.69761467, -0.07136325, -0.6175475, 0.35619688)
-bones/5/rotation = Quaternion(2.3712684e-07, 7.03553e-08, -0.6107271, 0.7918412)
-bones/7/rotation = Quaternion(-0.22420405, -0.3047409, 0.39508468, 0.8371222)
-bones/8/position = Vector3(6.3307776e-10, 0.09612522, -0.057500016)
-bones/8/rotation = Quaternion(1.11718336e-07, -6.3439856e-08, -0.7071067, 0.7071068)
-bones/9/position = Vector3(-0.20679481, 0.12804624, -0.008634763)
-bones/9/rotation = Quaternion(-0.5435103, -0.17813684, 0.42327663, 0.70263845)
-bones/10/rotation = Quaternion(1.7146304e-07, -1.6291844e-07, 0.7105958, 0.70360047)
-bones/12/rotation = Quaternion(0.06343871, 0.36587316, -0.40577987, 0.8351378)
-bones/13/position = Vector3(-2.0643599e-08, 0.09612508, -0.057499968)
-bones/13/rotation = Quaternion(1.0656667e-07, 5.8054674e-08, 0.7071067, 0.7071068)
-bones/14/rotation = Quaternion(0.020236338, 0.1528218, -0.094249755, 0.983541)
-bones/15/position = Vector3(0.17094506, 0.11358722, 2.725792e-09)
-bones/15/rotation = Quaternion(0.9557888, 0.069909595, -0.0679627, -0.2774193)
-bones/16/rotation = Quaternion(0.0019702765, 8.0363996e-08, 5.6712524e-09, 0.99999815)
-bones/17/rotation = Quaternion(-0.54766905, -0.160923, 0.06372722, 0.81859714)
-bones/18/rotation = Quaternion(-9.115766e-09, 0.9203548, -0.3910845, 1.7712912e-07)
-bones/19/position = Vector3(-0.17094508, 0.11358726, 1.3304344e-09)
-bones/19/rotation = Quaternion(0.9469649, -0.01873917, 0.009480594, -0.32064995)
-bones/20/rotation = Quaternion(0.0019764903, -7.4168184e-08, 3.3691808e-10, 0.9999981)
-bones/21/rotation = Quaternion(-0.5702122, 0.12171404, -0.012730454, 0.8123311)
-bones/22/rotation = Quaternion(5.7989553e-08, 0.9203548, -0.3910845, 4.7164768e-08)
-bones/23/position = Vector3(0.25508997, 0.2923103, 0.57581246)
-bones/23/rotation = Quaternion(0.70710665, -2.253338e-07, -5.00237e-08, 0.7071069)
-bones/24/position = Vector3(0.19243142, 0.025990257, 0.2098275)
-bones/24/rotation = Quaternion(-0.70660293, 0.026686735, 0.026686747, 0.70660317)
-bones/25/position = Vector3(1.62132e-09, 0.36283255, 4.781118e-10)
-bones/25/rotation = Quaternion(-7.4271426e-08, 1.3961184e-08, 0.98571914, -0.1683977)
-bones/26/position = Vector3(2.1765317e-08, 0.213436, -4.06199e-09)
-bones/26/rotation = Quaternion(-1.4275318e-07, 0.3910844, 0.92035484, 1.6609558e-08)
-bones/27/position = Vector3(2.210642e-08, 0.16564995, -1.826586e-09)
-bones/28/rotation = Quaternion(1, -2.3065234e-09, 1.8503266e-07, -1.2107193e-07)
-bones/30/position = Vector3(-0.1709452, 0.29231027, 0.5758123)
-bones/30/rotation = Quaternion(0.70710665, -3.4269963e-08, 1.4104015e-07, 0.7071069)
-bones/31/position = Vector3(-0.17094503, 0.025990272, 0.17251724)
-bones/31/rotation = Quaternion(-0.7071067, -7.2600365e-08, -7.2600336e-08, 0.7071068)
-bones/32/position = Vector3(1.2623846e-08, 0.36283255, -7.9680074e-10)
-bones/32/rotation = Quaternion(-9.365151e-08, -8.436199e-09, 0.9948094, 0.10175613)
-bones/33/position = Vector3(-3.5931937e-09, 0.21343602, -1.6278202e-08)
-bones/33/rotation = Quaternion(-1.4702178e-07, 0.3910844, 0.92035484, 2.4146747e-08)
-bones/34/position = Vector3(-9.039587e-09, 0.16564997, 1.7031626e-08)
 bones/35/rotation = Quaternion(0, 0, 0, 1)
-bones/37/position = Vector3(0.49337548, 0.99961567, -0.6262355)
-bones/37/rotation = Quaternion(-0.7071068, -7.0124045e-08, -7.012407e-08, 0.7071068)
-bones/38/position = Vector3(0.3901378, 0.78961873, 0.3662724)
-bones/38/rotation = Quaternion(0.76642656, 0.007877191, 0.6420811, -0.016135262)
-bones/39/position = Vector3(-0.45350716, 1.1067609, -0.5888597)
-bones/39/rotation = Quaternion(-0.7071068, -7.0124045e-08, -7.012407e-08, 0.7071068)
-bones/40/position = Vector3(-0.44041374, 0.86551976, -0.0562997)
-bones/40/rotation = Quaternion(-0.81894666, 0.036770448, 0.3212294, 0.47411615)
-
-[node name="handslot_l" parent="Rogue/Rig/Skeleton3D" index="0" unique_id=1739213892]
-transform = Transform3D(-0.033633713, 0.17540583, 0.98392093, 0.99933004, -0.008249229, 0.035631217, 0.014366798, 0.98446095, -0.17501107, 0.35936663, 0.6479049, 0.4306421)
-
-[node name="handslot_r" parent="Rogue/Rig/Skeleton3D" index="1" unique_id=320594543]
-transform = Transform3D(-0.36022416, -0.7944022, -0.48904216, -0.5505603, -0.24215737, 0.79889995, -0.75307375, 0.5570311, -0.3501358, -0.48831344, 0.7029047, -0.10984372)
-
-[node name="chest" parent="Rogue/Rig/Skeleton3D" index="2" unique_id=1221767367]
-transform = Transform3D(0.98052, -0.08913077, -0.17503221, 0.07302519, 0.99265975, -0.09640443, 0.18234004, 0.08174471, 0.97983164, -0.033422958, 0.94449157, 0.20028216)
 
 [node name="CreatureAnimComp" type="AnimationPlayer" parent="Rogue" unique_id=2039857118]
 libraries/ = SubResource("AnimationLibrary_ekvl8")
@@ -263,12 +103,6 @@ top_level = true
 spring_length = 3.0
 script = ExtResource("6_d1rk3")
 m_RayCast3D = NodePath("../RayCast3D")
-
-[node name="AnimationTree" type="AnimationTree" parent="." unique_id=1464636846]
-root_node = NodePath("../Rogue")
-tree_root = SubResource("AnimationNodeBlendTree_xsgoj")
-advance_expression_base_node = NodePath("../StateMachine")
-anim_player = NodePath("../Rogue/CreatureAnimComp")
 
 [node name="RayCast3D" type="RayCast3D" parent="." unique_id=1748864769]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.439, 0)

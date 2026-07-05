@@ -2,8 +2,8 @@ using Godot;
 using Godot.Collections;
 using 维修公司.Dll.data;
 using 途畔归所.Dll.Base;
+using 途畔归所.Dll.Manager;
 using 途畔归所.Dll.Utils;
-using static 维修公司.Dll.data.ItemData;
 
 namespace 途畔归所.Dll.Creature
 {
@@ -16,13 +16,19 @@ namespace 途畔归所.Dll.Creature
 		private BoneAttachment3D m_HandR => m_Humanoid.m_HandR;
 
 
-		public ItemData m_Weapon => m_EquipData.Count > 0 ? m_EquipData[0] : null;
+		private ItemComp Unarmed;
+
+
+
+		public ItemData m_WeaponData => m_EquipData.Count > 0 ? m_EquipData[0] : null;
+
 		public ItemComp m_WeaponComp;
 
 
 
 		public override void _Ready()
 		{
+			// 初始化
 			if (GetParent() is not Humanoid humanoid)
 			{
 				CatUtils.StopAndExit(this);
@@ -30,26 +36,46 @@ namespace 途畔归所.Dll.Creature
 			}
 
 			m_Humanoid = humanoid;
+
+			Unarmed ??= ItemManager.Instance.GetItemDrop("7at_空拳头");
+			Unarmed.SetEquip();
+
+			// 自检
+			if (Unarmed == null) CatLog.Err("[Equipment._Ready] 人形生物 的拳头item 未有加载成功");
+
 		}
 
 		public override void _Process(double delta)
 		{
-			// 预留注释 -> 如果换上了 同ID 不同属性的武器如何区别
-			// 初步构想 全部面板值 + 武器哈希
-			if (m_Weapon?.ID == m_WeaponComp?.m_ItemData.ID) return;
-
-			if (m_Weapon != null && m_WeaponComp == null)
+			if (m_WeaponData == null && m_WeaponComp == null)
 			{
-				var DROP = m_Weapon.DataToDrop();
+				m_WeaponComp = Unarmed;
+				m_HandR.AddChild(m_WeaponComp);
+				m_WeaponComp.BindAnim(m_Humanoid.m_AnimComp);
+				m_Humanoid.m_AttackAnimIndex = m_WeaponComp.m_ItemData.AttackAnimIndex;
+
+				return; 
+			}
+
+			if (m_WeaponData == null && m_WeaponComp != null) return;
+			if (m_WeaponData?.ID == m_WeaponComp?.m_ItemData.ID) return;
+
+			if (m_WeaponData != null && m_WeaponComp == null)
+			{
+				var DROP = m_WeaponData.DataToDrop();
 				DROP.SetEquip();
 				m_WeaponComp = DROP;
 				m_HandR.AddChild(m_WeaponComp);
+				m_WeaponComp.BindAnim(m_Humanoid.m_AnimComp); 
+				return;
 			}
 
-			if (m_Weapon == null && m_WeaponComp != null)
+			if (m_WeaponData == null && m_WeaponComp != null)
 			{
+				m_WeaponComp.UnbindAnim(m_Humanoid.m_AnimComp); 
 				m_WeaponComp.QueueFree();
 				m_WeaponComp = null;
+				return;
 			}
 		}
 

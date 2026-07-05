@@ -9,13 +9,14 @@ ID = "7at_空拳头"
 Name = "空拳头"
 Type = 3
 Description = "拳头咯"
+AttackAnimIndex = 1
 Damage = 5
 metadata/_custom_type_script = "uid://inh0sbmkkjuj"
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_mjbou"]
 
-[sub_resource type="SphereShape3D" id="SphereShape3D_cflxa"]
-radius = 0.2
+[sub_resource type="BoxShape3D" id="BoxShape3D_mjbou"]
+size = Vector3(0.2, 0.2, 0.2)
 
 [node name="7at_空拳头" type="RigidBody3D" unique_id=701347580 node_paths=PackedStringArray("m_WeaponHitBox")]
 script = ExtResource("1_65m1r")
@@ -26,8 +27,11 @@ metadata/_custom_type_script = "uid://uquicwf3cleb"
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1770260614]
 visible = false
 shape = SubResource("SphereShape3D_mjbou")
+debug_color = Color(0.93142635, 0.2699328, 0.6173459, 0.41960785)
 
 [node name="Hitbox" type="Area3D" parent="." unique_id=1808338644]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.017457724, 0, 0.051888928)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Hitbox" unique_id=1901234708]
-shape = SubResource("SphereShape3D_cflxa")
+shape = SubResource("BoxShape3D_mjbou")
+debug_color = Color(0.8156863, 0.23921569, 0.8156863, 1)

@@ -121,11 +121,19 @@ namespace 途畔归所.Dll.Creature
             );
         }
 
+
         private void Attack()
         {
+            // 1. 状态锁定
             m_Player.m_AnimState = Input.IsActionJustPressed("cat_Attack") ? AnimState.Attack : m_Player.m_AnimState;
-        }
 
+            // 2. 触发 OneShot 攻击动画
+            if (Input.IsActionJustPressed("cat_Attack"))
+            {
+                // 设置 request 参数为 Fire，触发名为 "AttackOneShot" 的 OneShot 节点
+                m_Player.m_AnimationTree.Set("parameters/OneShot/request", (int)AnimationNodeOneShot.OneShotRequest.Fire);
+            }
+        }
 
         /// <summary>
         /// 根据摄像机方向，将玩家输入（WASD）转换为世界移动方向（水平）。

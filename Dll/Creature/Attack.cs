@@ -1,30 +1,23 @@
 using Godot;
-using Godot.Collections;
 using System;
-using 维修公司.Dll.data;
 using 途畔归所.Dll.Base;
 using 途畔归所.Dll.Interface;
-using 途畔归所.Dll.Manager;
 using 途畔归所.Dll.Utils;
 
 namespace 途畔归所.Dll.Creature
 {
     public partial class Attack : Node
     {
+
         private CreatureBase m_CreatureBase;
-        private Area3D m_HitBox => OnGetHitbox.Invoke();
+        private Area3D m_HitBox;
 
-        private Humanoid m_Humanoid;
-
-        private ItemComp m_HumanDefaultWeapon;
-        private Array<ItemData> m_EquipData => m_Humanoid.m_EquipData;
-
-        Func<Area3D> OnGetHitbox;
 
 
 
         public override void _Ready()
         {
+            // 自检
             if (GetParent() is not CreatureBase creature)
             {
                 CatLog.Err("[CreatureAttack._Ready] 挂载节点不是 CreatureBase，已销毁");
@@ -32,15 +25,6 @@ namespace 途畔归所.Dll.Creature
                 return;
             }
             m_CreatureBase = creature;
-            m_Humanoid = creature as Humanoid;
-
-            if (ItemManager.Instance.GetItemDrop("7at_空拳头") is ItemComp item && m_Humanoid != null)
-            {
-                m_HumanDefaultWeapon = item;
-                m_HumanDefaultWeapon.SetEquip();
-
-                OnGetHitbox += () => m_HumanDefaultWeapon.GetHitBox();
-            }
 
             m_CreatureBase.m_AnimComp.OnEnableHitbox = EnableHitbox;
             m_CreatureBase.m_AnimComp.OnEndDeath = DisableHitbox;

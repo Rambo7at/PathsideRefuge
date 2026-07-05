@@ -2,7 +2,6 @@ using Godot;
 using 维修公司.Dll.Interface;
 using 途畔归所.Dll.Base;
 using 途畔归所.Dll.Creature;
-using 途畔归所.Dll.Data;
 using 途畔归所.Dll.Utils;
 using static 途畔归所.Dll.Creature.StateMachine;
 
@@ -12,13 +11,14 @@ public partial class Player : Humanoid
 	[Export] public Node3D m_PlayerModel;
 
 	public PlayerState m_PlayerState { get => m_StateMachine.m_PlayerState; set => m_StateMachine.m_PlayerState = value; }
-
-
-
 	public bool m_IsOwner => m_NetSyncBase != null && m_NetSyncBase.IsOwner;
+
+
+
 	public override void _Ready()
 	{
-		base._Ready();
+		base._Ready(); // 执行父类 ready
+
 		if (m_PlayerGUI == null || m_PlayerModel == null)
 		{
 			string loga = m_PlayerGUI == null ? "m_PlayerGUI" : string.Empty;

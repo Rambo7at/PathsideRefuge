@@ -1,6 +1,9 @@
 using Godot;
 using 维修公司.Dll.data;
 using 维修公司.Dll.Interface;
+using 途畔归所.Dll.Comp;
+using 途畔归所.Dll.Interface;
+using 途畔归所.Dll.Manager;
 using 途畔归所.Dll.NetWork;
 using 途畔归所.Dll.Utils;
 using static 维修公司.Dll.data.ItemData;
@@ -12,6 +15,9 @@ public partial class ItemComp : RigidBody3D, IInteractable
 
 	[Export] public ItemData m_ItemData { get; set; }
 	[Export] public Area3D m_WeaponHitBox { get; set; }
+
+	private Node3D m_LastHitTarget;
+
 
 	public E_ItemType m_ItemType => m_ItemData.Type;
 
@@ -64,4 +70,42 @@ public partial class ItemComp : RigidBody3D, IInteractable
 		QueueFree();
 	}
 
+
+	public void BindAnim(CreatureAnimComp comp)
+	{
+		comp.OnEnableHitbox += EnableHitbox;
+		comp.OnDisableHitbox += DisableHitbox;
+	}
+
+	public void UnbindAnim(CreatureAnimComp comp)
+	{
+		comp.OnEnableHitbox -= EnableHitbox;
+		comp.OnDisableHitbox -= DisableHitbox;
+	}
+
+	// 动画轨道调用：开启判定窗口
+	public void EnableHitbox()
+	{
+		if (m_WeaponHitBox == null) return;
+		m_LastHitTarget = null;
+		m_WeaponHitBox.Monitoring = true;
+		m_WeaponHitBox.BodyEntered += OnHit;
+	}
+
+	// 动画轨道调用：关闭判定窗口
+	public void DisableHitbox()
+	{
+		if (m_WeaponHitBox == null) return;
+		m_WeaponHitBox.BodyEntered -= OnHit;
+		m_WeaponHitBox.Monitoring = false;
+	}
+
+	/// <summary>注 Area3D回调函数 </summary>
+	private void OnHit(Node3D body)
+	{
+		if (body is not IDamageable node || body == PlayerManager.Instance.m_LocalPlayer || body == m_LastHitTarget) return;
+		node.TakeDamage(m_ItemData.Damage);
+		m_LastHitTarget = body;
+		CatLog.Ok($"[PlayerAttack] 命中 {body.Name}");
+	}
 }

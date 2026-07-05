@@ -55,6 +55,7 @@ namespace 维修公司.Dll.data
 
         [ExportGroup("武器")]
         [Export] public E_WeaponType WeaponType { get; set; }
+        [Export] public int AttackAnimIndex { get; set; }
         [Export] public int Damage { get; set; }
          
         public bool IsEquip => Type == E_ItemType.Weapon;

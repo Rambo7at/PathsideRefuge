@@ -46,8 +46,10 @@ namespace 途畔归所.Dll.Creature
 		public bool Stagger => m_AnimState == AnimState.Stagger;
 		public bool Death => m_AnimState == AnimState.Death;
 
-
+		public int AttackAnimIndex;
 		private bool IsOnFloor => m_Creature.IsOnFloor();
+
+
 		private float Speed => new Vector3(m_Creature.Velocity.X, 0, m_Creature.Velocity.Z).Length();
 
 		private CreatureBase m_Creature;
@@ -59,7 +61,7 @@ namespace 途畔归所.Dll.Creature
 
 		private Action<int> OnSetState;
 
-
+		
 		public override void _Ready()
 		{
 			
@@ -149,6 +151,7 @@ namespace 途畔归所.Dll.Creature
 
 		public void EndAttack()
 		{
+			//CatLog.Ok($"[State] 执行 EndAttack");
 			if (m_AnimState != AnimState.Attack) return;
 			SwitchAnimState(Speed > 0.1f ? AnimState.Walk : AnimState.Idle);
 		}
