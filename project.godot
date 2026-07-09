@@ -42,7 +42,7 @@ project/assembly_name="途畔归所"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/ambientcg/plugin.cfg", "res://addons/terrain_3d/plugin.cfg")
+enabled=PackedStringArray("res://addons/ambientcg/plugin.cfg", "res://addons/cat_snapicon/plugin.cfg", "res://addons/terrain_3d/plugin.cfg")
 
 [input]
 

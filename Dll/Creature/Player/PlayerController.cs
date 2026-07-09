@@ -8,15 +8,18 @@ namespace 途畔归所.Dll.Creature
     [GlobalClass]
     public partial class PlayerController : Node
     {
+        // 组件
         private Player m_Player;
-        private Node3D m_PlayerMesh;
         private Camera3D m_Camera3D;
         private SpringArm3D m_springArm3D;
 
-        // 从 Player 中获取的固定数值
+
+        // 常用值
         private float Speed => m_Player.m_Speed;
         private float Jump => m_Player.m_Jump;
         private float targetAngle = Mathf.Pi;
+
+
 
         public override void _Ready()
         {
@@ -34,8 +37,9 @@ namespace 途畔归所.Dll.Creature
                 return;
             }
 
-
             m_springArm3D ??= CatUtils.FindChildNode<SpringArm3D>(pl);
+            m_Player = pl;
+            m_Camera3D = WorldManager.Instance.GetCamera();
 
             if (m_springArm3D == null)
             {
@@ -44,100 +48,76 @@ namespace 途畔归所.Dll.Creature
                 return;
             }
 
-            m_Player = pl;
-            m_PlayerMesh = pl.m_PlayerModel;
-            m_Camera3D = WorldManager.Instance.GetCamera();
         }
 
 
 
         public override void _Process(double delta)
         {
-            PlayerMoveAnimationDirection(delta);
+            UpdateRotation(delta);
+            TryAttack();
         }
 
 
         public override void _PhysicsProcess(double delta)
         {
-            Attack();
+
             m_Player.ApplyGravity(delta);
-            HandlePlayerMovement(delta);
+            UpdateMovement(delta);
             m_Player.MoveAndSlide();
         }
 
-        private void HandlePlayerMovement(double delta)
+
+        /// <summary>注：移动逻辑总控，整合跳跃与多状态移动速度计算</summary>
+        private void UpdateMovement(double delta)
         {
             Vector3 velocity = m_Player.Velocity;
 
-            if (Input.IsActionJustPressed("ui_accept") && m_Player.IsOnFloor() && m_Player.m_AnimState != AnimState.Attack)
-            {
-                velocity.Y = Jump;
-            }
+            ApplyJump(ref velocity);
 
-            Vector2 inputDir = Input.GetVector("cat_Left", "cat_Right", "cat_Forward", "cat_Backward");
-            Vector3 direction = GetCameraRelativeDirection(inputDir);
-
-            if (m_Player.IsOnFloor() && m_Player.m_AnimState != AnimState.Attack)
-            {
-
-                ApplyGroundMovement(direction, ref velocity, 1);
-
-            }
-            else if (m_Player.IsOnFloor() && m_Player.m_AnimState == AnimState.Attack)
-            {
-                ApplyGroundMovement(direction, ref velocity, 0.1f);
-            }
-            else
-            {
-                velocity.X *= 0.98f;
-                velocity.Z *= 0.98f;
-            }
+            var direction = GetCameraRelativeDirection(Input.GetVector("cat_Left", "cat_Right", "cat_Forward", "cat_Backward"));
+            ApplyMovement(direction, ref velocity);
 
             m_Player.Velocity = velocity;
         }
 
-        private void PlayerMoveAnimationDirection(double delta)
+
+        /// <summary>注：处理跳跃输入，仅地面非攻击状态下生效</summary>
+        private void ApplyJump(ref Vector3 vector)
         {
-            float cameraAngle = m_Camera3D.GlobalRotation.Y;
-            Vector2 inputDir = Input.GetVector("cat_Left", "cat_Right", "cat_Forward", "cat_Backward");
+            if (m_Player.m_AnimState == AnimState.Attack) return;
 
-            // ★ 只有在地面上且有输入时，才更新目标朝向
-            if (m_Player.IsOnFloor() && inputDir != Vector2.Zero)
+            if (Input.IsActionJustPressed("ui_accept") && m_Player.IsOnFloor())
             {
-                float inputAngle = Mathf.Atan2(inputDir.X, inputDir.Y);
-                targetAngle = cameraAngle + inputAngle;
-            }
-
-            // 平滑旋转（无论地面还是空中，都会平滑到 targetAngle，空中保持不变）
-            float rotationSpeed = 15f;
-            float playerTargetY = targetAngle - Mathf.Pi;
-            float currentY = m_Player.GlobalRotation.Y;
-            float smoothedY = Mathf.LerpAngle(currentY, playerTargetY, (float)delta * rotationSpeed);
-
-            m_Player.GlobalRotation = new Vector3(
-                m_Player.GlobalRotation.X,
-                smoothedY,
-                m_Player.GlobalRotation.Z
-            );
-        }
-
-
-        private void Attack()
-        {
-            // 1. 状态锁定
-            m_Player.m_AnimState = Input.IsActionJustPressed("cat_Attack") ? AnimState.Attack : m_Player.m_AnimState;
-
-            // 2. 触发 OneShot 攻击动画
-            if (Input.IsActionJustPressed("cat_Attack"))
-            {
-                // 设置 request 参数为 Fire，触发名为 "AttackOneShot" 的 OneShot 节点
-                m_Player.m_AnimationTree.Set("parameters/OneShot/request", (int)AnimationNodeOneShot.OneShotRequest.Fire);
+                vector.Y = Jump;
             }
         }
 
-        /// <summary>
-        /// 根据摄像机方向，将玩家输入（WASD）转换为世界移动方向（水平）。
-        /// </summary>
+
+        /// <summary>注：根据状态应用移动速度，区分正常地面、攻击地面、空中三种情况</summary>
+        private void ApplyMovement(Vector3 direction, ref Vector3 velocity)
+        {
+
+            if (m_Player.IsOnFloor() && m_Player.m_AnimState != AnimState.Attack)
+            {
+                // 正常地面移动
+                ApplyGroundMovement(direction, ref velocity, 1f);
+            }
+            else if (m_Player.IsOnFloor() && m_Player.m_AnimState == AnimState.Attack)
+            {
+                // 攻击状态地面移动减速
+                ApplyGroundMovement(direction, ref velocity, 0.1f);
+            }
+            else
+            {
+                // 空中水平速度阻尼衰减
+                velocity.X *= 0.98f;
+                velocity.Z *= 0.98f;
+            }
+        }
+
+
+        /// <summary>注：根据摄像机方向，将二维输入转换为世界空间水平移动方向</summary>
         private Vector3 GetCameraRelativeDirection(Vector2 inputDir)
         {
             Vector3 forward = -m_Camera3D.GlobalTransform.Basis.Z;
@@ -148,12 +128,13 @@ namespace 途畔归所.Dll.Creature
             forward = forward.Normalized();
             right = right.Normalized();
 
-            // 注意：-inputDir.Y 是为了匹配你当前的输入映射
+            // -inputDir.Y 适配当前输入映射的前后方向
             Vector3 direction = forward * (-inputDir.Y) + right * inputDir.X;
             return direction.LengthSquared() > 0.001f ? direction.Normalized() : Vector3.Zero;
         }
 
 
+        /// <summary>辅助：应用地面移动速度，支持倍率控制，无输入时平滑减速至0</summary>
         private void ApplyGroundMovement(Vector3 direction, ref Vector3 velocity, float speedMultiplier)
         {
             if (direction != Vector3.Zero)
@@ -166,6 +147,52 @@ namespace 途畔归所.Dll.Creature
                 velocity.X = Mathf.MoveToward(velocity.X, 0, Speed * speedMultiplier);
                 velocity.Z = Mathf.MoveToward(velocity.Z, 0, Speed * speedMultiplier);
             }
+        }
+
+
+        /// <summary>注：攻击输入检测，切换动画状态并触发攻击OneShot动画</summary>
+        private void TryAttack()
+        {
+            if (!Input.IsActionJustPressed("cat_Attack")) return;
+            if (m_Player.m_AnimState == AnimState.Attack)
+            {
+
+                m_Player.m_StateMachine.IsCombo = true;
+
+                return;
+            }
+
+            // 切换至攻击状态
+            m_Player.m_AnimState =  AnimState.Attack;
+
+            m_Player.m_AnimationTree.Set("parameters/OneShot/request", (int)AnimationNodeOneShot.OneShotRequest.Fire);
+        }
+
+
+        /// <summary>注：平滑更新玩家朝向，地面随输入更新目标角度，空中保持朝向</summary>
+        private void UpdateRotation(double delta)
+        {
+            float cameraAngle = m_Camera3D.GlobalRotation.Y;
+            Vector2 inputDir = Input.GetVector("cat_Left", "cat_Right", "cat_Forward", "cat_Backward");
+
+            // 仅地面有输入时更新目标朝向，空中维持当前朝向
+            if (m_Player.IsOnFloor() && inputDir != Vector2.Zero)
+            {
+                float inputAngle = Mathf.Atan2(inputDir.X, inputDir.Y);
+                targetAngle = cameraAngle + inputAngle;
+            }
+
+            // 全状态平滑插值旋转
+            float rotationSpeed = 15f;
+            float playerTargetY = targetAngle - Mathf.Pi;
+            float currentY = m_Player.GlobalRotation.Y;
+            float smoothedY = Mathf.LerpAngle(currentY, playerTargetY, (float)delta * rotationSpeed);
+
+            m_Player.GlobalRotation = new Vector3(
+                m_Player.GlobalRotation.X,
+                smoothedY,
+                m_Player.GlobalRotation.Z
+            );
         }
     }
 }

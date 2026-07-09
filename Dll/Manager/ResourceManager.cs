@@ -1,6 +1,7 @@
 using Godot;
 using Godot.Collections;
 using 途畔归所.Dll.Base;
+using 途畔归所.Dll.NetWork;
 using 途畔归所.Dll.Utils;
 using static Godot.WebSocketPeer;
 
@@ -83,10 +84,10 @@ namespace 途畔归所.Dll.Manager
 
                 if (node is ItemComp item)
                 {
-                    ItemManager.Instance.RegisterItem(prefab, item.m_ItemData);
+                    ItemManager.Instance.RegisterItem(prefabHash,prefab, item.m_ItemData);
                 }
 
-                if (!NetObjectManager.Instance.m_PrefabDict.ContainsKey(prefabHash))
+                if (!NetObjectManager.Instance.m_PrefabDict.ContainsKey(prefabHash) && CatUtils.FindChildNode<NetSyncBase>(node) != null)
                 {
                     NetObjectManager.Instance.m_PrefabDict.Add(prefabHash, prefab);
                 }
@@ -100,7 +101,17 @@ namespace 途畔归所.Dll.Manager
 
 
 
-        /// <summary> 注: 从指定路径加载资源 </summary>
+
+
+
+
+
+
+
+
+
+
+        /// <summary> 辅助: 从指定路径加载资源 </summary>
         private void LoadAsset(string res)
         {
             var ps = ResourceLoader.Load<PackedScene>(res);

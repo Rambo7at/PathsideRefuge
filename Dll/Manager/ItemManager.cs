@@ -14,34 +14,57 @@ namespace 途畔归所.Dll.Manager
 
         private ItemManager() { }
 
+        public Dictionary<int, PackedScene> m_ItemCompDict = [];
+
         public Dictionary<PackedScene, ItemData> m_ItemDataDict = [];
 
-        /// <summary>注：加载资源</summary>
+        /// <summary>注：注册资源</summary>
         /// <param name="packedScene">预制件列表</param>
-        public void RegisterItem(PackedScene packedScene, ItemData item)
+        public void RegisterItem(int hash ,PackedScene packedScene, ItemData item)
 		{
 			if (packedScene == null || item == null) return;
 
-			if (m_ItemDataDict.ContainsKey(packedScene)) return;
+            if (!m_ItemCompDict.ContainsKey(hash)) m_ItemCompDict[hash] = packedScene;
 
-			m_ItemDataDict[packedScene] = item.DeepCopy();
+            if (!m_ItemDataDict.ContainsKey(packedScene)) m_ItemDataDict[packedScene] = item.DeepCopy();
         }
-        /// <summary>注：获取物品</summary>
-        public ItemComp GetItemDrop(string itemName)
+
+        /// <summary>注：使用哈希，获取ItemComp</summary>
+        public ItemComp GetItemComp(int hash)
         {
-            var prefab = NetObjectManager.Instance.GetPrefab(itemName);
-            if (prefab?.Instantiate() is not ItemComp item)
+            if (!m_ItemCompDict.TryGetValue(hash, out PackedScene packedScene))
             {
-                string err = prefab == null ? "预制件不存在" : "目标预制件不是 ItemComp 类型";
-                GD.PrintErr($"[GetItemDrop] {itemName} {err}");
+                GD.PrintErr($"[GetItemComp] 获取itemcomp 哈希未有目标对象 {hash}");
                 return null;
             }
+
+            if (packedScene.Instantiate() is not ItemComp item)
+            {
+                GD.PrintErr($"[GetItemComp] 获取的目标对象并不是 itemcomp 类型 {hash}");
+                return null;
+            }
+
             return item;
         }
-		/// <summary>注：加载物品数据</summary>
-		/// <param name="itemName">预制件名称</param>
-		/// <returns>ItemData副本，失败返回null</returns>
-		public ItemData GetItemData(string itemName) => GetItemData(NetObjectManager.Instance.GetPrefab(itemName));
+
+        /// <summary>注：获取物品</summary>
+        public ItemComp GetItemDrop(string itemName) => GetItemComp(CatUtils.GetStableHashCode(itemName));
+
+        public PackedScene GetItemPackedScene(int hash)
+        {
+            if (!m_ItemCompDict.TryGetValue(hash, out PackedScene packedScene))
+            {
+                GD.PrintErr($"[GetItemPackedScene] 获取item PackedScene 失败 哈希未有目标对象 {hash}");
+                return null;
+            }
+
+            return packedScene;
+        }
+
+        public PackedScene GetItemPackedScene(string itemName) => GetItemPackedScene(CatUtils.GetStableHashCode(itemName));
+
+        public ItemData GetItemData(string itemName) => GetItemData(GetItemPackedScene(itemName));
+        /// <summary>注：获取item 数据</summary>
         public ItemData GetItemData(PackedScene prefab)
         {
             if (m_ItemDataDict.TryGetValue(prefab, out var data)) return data.DeepCopy(); 

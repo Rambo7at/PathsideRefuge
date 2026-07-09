@@ -14,13 +14,17 @@ namespace 维修公司.Dll.data
             Consumable = 0,   // 消耗品
             Prop = 1,         // 道具
             Tool = 2,         // 工具
-            Weapon = 3        // 武器
+            Weapon = 3       // 武器
         }
+
         public enum E_WeaponType
         {
             Knife = 0,        // 刀
             Axe = 1           // 斧
         }
+
+
+
         private struct ItemDataDto
         {
             public string _ID { get; set; }

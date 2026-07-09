@@ -47,7 +47,15 @@ namespace 途畔归所.Dll.Creature
 		public bool Death => m_AnimState == AnimState.Death;
 
 		public int AttackAnimIndex { get; set; }
-		private bool IsOnFloor => m_Creature.IsOnFloor();
+
+
+        public bool IsCombo { get; set; }
+
+        public bool GoCombo { get; set; }
+
+
+
+        private bool IsOnFloor => m_Creature.IsOnFloor();
 
 
 		private float Speed => new Vector3(m_Creature.Velocity.X, 0, m_Creature.Velocity.Z).Length();
@@ -93,11 +101,12 @@ namespace 途畔归所.Dll.Creature
 			}
 
 			m_Creature.OnHit += OnHit;
-			m_Creature.m_AnimComp.OnEndStagger = EndStagger;
-			m_Creature.m_AnimComp.OnEndDeath = EndDeath;
-			m_Creature.m_AnimComp.OnEndAttack = EndAttack;
-
-		}
+			m_Creature.m_AnimComp.OnEndStagger += EndStagger;
+			m_Creature.m_AnimComp.OnEndDeath += EndDeath;
+			m_Creature.m_AnimComp.OnEndAttack += EndAttack;
+            m_Creature.m_AnimComp.OnEndCombo += EndCombo;
+			m_Creature.m_AnimComp.OnCombo += Combo;
+        }
 
 		public override void _PhysicsProcess(double delta)
 		{
@@ -149,12 +158,44 @@ namespace 途畔归所.Dll.Creature
 			//CatLog.Ok($"[State] Changed to: {newState}");
 		}
 
-		public void EndAttack()
+
+
+
+		public void Combo()
 		{
-			//CatLog.Ok($"[State] 执行 EndAttack");
+
+            IsCombo = false;
+            GoCombo = false;
+
+
+        }
+
+
+
+
+        public void EndCombo()
+        {
+            CatLog.Ok($"[EndCombo] 执行 EndAttack {IsCombo} {GoCombo}");
+            if (IsCombo) 
+			{
+                GoCombo = true;
+            }
+
+
+        }
+
+
+
+
+
+        public void EndAttack()
+		{
+
 			if (m_AnimState != AnimState.Attack) return;
-			SwitchAnimState(Speed > 0.1f ? AnimState.Walk : AnimState.Idle);
-		}
+			IsCombo = false;
+            GoCombo = false;
+            SwitchAnimState(Speed > 0.1f ? AnimState.Walk : AnimState.Idle);
+        }
 
 		private void EndStagger()
 		{

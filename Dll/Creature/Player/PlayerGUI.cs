@@ -151,9 +151,9 @@ namespace 途畔归所.Dll.Creature
         public InventoryData InventoryData { get => m_player.m_InventoryData ??= new InventoryData(); set => m_player.m_InventoryData = value; }
         Vector3 IInventoryHolder.DropPos => m_DropPos;
 
-        public Array<ItemData> EquipData { get => m_player.m_EquipData; set => m_player.m_EquipData = value; }
-
         public Vector3 DropPos => m_DropPos;
+
+        public Equipment Equipment { get => m_player.m_Equipment; set => m_player.m_Equipment = value; }
 
         #endregion
     }

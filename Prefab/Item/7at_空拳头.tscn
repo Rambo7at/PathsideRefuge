@@ -9,7 +9,6 @@ ID = "7at_空拳头"
 Name = "空拳头"
 Type = 3
 Description = "拳头咯"
-AttackAnimIndex = 1
 Damage = 5
 metadata/_custom_type_script = "uid://inh0sbmkkjuj"
 

@@ -10,16 +10,51 @@ public partial class Player : Humanoid
 	[Export] public PlayerGUI m_PlayerGUI;
 	[Export] public Node3D m_PlayerModel;
 
+
+
 	public PlayerState m_PlayerState { get => m_StateMachine.m_PlayerState; set => m_StateMachine.m_PlayerState = value; }
 	public bool m_IsOwner => m_NetSyncBase != null && m_NetSyncBase.IsOwner;
+
+
+	private PlayerController m_PlayerController;
+
+
+
+
+    public override void _EnterTree()
+    {
+        // 执行父类 _EnterTree
+        base._EnterTree();
+
+
+
+
+
+
+
+
+
+    }
+
+
+
 
 
 
 	public override void _Ready()
 	{
-		base._Ready(); // 执行父类 ready
+        // 执行父类 _Ready
+        base._Ready();
 
-		if (m_PlayerGUI == null || m_PlayerModel == null)
+
+        if (m_IsOwner == true)
+        {
+			//InitPlayerController();
+
+
+        }
+
+        if (m_PlayerGUI == null || m_PlayerModel == null)
 		{
 			string loga = m_PlayerGUI == null ? "m_PlayerGUI" : string.Empty;
 			string logb = m_PlayerModel == null ? "m_PlayerModel" : string.Empty;
@@ -37,6 +72,9 @@ public partial class Player : Humanoid
 
 	public override void _PhysicsProcess(double delta) => CheckRaycastInteract();
 
+
+
+
 	/// <summary> 注：视线射线检测交互对象 </summary>
 	public void CheckRaycastInteract()
 	{
@@ -46,4 +84,21 @@ public partial class Player : Humanoid
 
 		itemComp.PlayerInteract(Input.IsActionJustPressed("cat_E"), Input.IsActionJustPressed("cat_F"), this);
 	}
+
+
+
+	private void InitPlayerController()
+	{
+        m_PlayerController??= new PlayerController();
+
+		//m_PlayerController.Init(this);
+
+		AddChild(m_PlayerController);
+    }
+
+
+
+
+
+
 }

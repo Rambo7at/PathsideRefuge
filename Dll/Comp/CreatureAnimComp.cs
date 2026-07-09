@@ -11,9 +11,11 @@ namespace 途畔归所.Dll.Comp
 		// ── 攻击相关 ──
 		public Action OnEnableHitbox;
 		public Action OnDisableHitbox;
+		public Action OnCombo;
+        public Action OnEndCombo;
 
-		// ── 状态机相关 ──
-		public Action OnEndAttack;
+        // ── 状态机相关 ──
+        public Action OnEndAttack;
 		public Action OnEndStagger;
 		public Action OnEndDeath;
 
@@ -22,7 +24,10 @@ namespace 途畔归所.Dll.Comp
 		public Action OnLand;           // 落地
 
 		private void EnableHitbox() => OnEnableHitbox?.Invoke();
-		private void DisableHitbox() => OnDisableHitbox?.Invoke();
+		private void Combo() => OnCombo?.Invoke();
+
+        private void EndCombo() => OnEndCombo?.Invoke();
+        private void DisableHitbox() => OnDisableHitbox?.Invoke();
 		private void EndAttack() => OnEndAttack?.Invoke();
 		private void EndStagger() => OnEndStagger?.Invoke();
 		private void EndDeath() => OnEndDeath?.Invoke();

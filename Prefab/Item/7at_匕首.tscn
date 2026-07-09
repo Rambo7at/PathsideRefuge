@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://uquicwf3cleb" path="res://Dll/Comp/ItemComp.cs" id="1_nbal6"]
 [ext_resource type="Script" uid="uid://inh0sbmkkjuj" path="res://Dll/Data/ItemData.cs" id="2_b3m6x"]
+[ext_resource type="Texture2D" uid="uid://cw6qyruetknsl" path="res://cat_icon/icon_20260705_110317.png" id="2_n7s87"]
 [ext_resource type="Texture2D" uid="uid://bd4ep2lljwap3" path="res://Asset/Character/Player_rogue_texture.png" id="2_nbal6"]
 [ext_resource type="Script" uid="uid://bgndbmht2eucx" path="res://Dll/NetWork/NetSyncBase.cs" id="4_b3m6x"]
 
@@ -12,7 +13,9 @@ ID = "7at_匕首"
 Name = "匕首"
 Type = 3
 Description = "一把刀子"
-Damage = 60
+Icon = ExtResource("2_n7s87")
+AttackAnimIndex = 1
+Damage = 40
 metadata/_custom_type_script = "uid://inh0sbmkkjuj"
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_fy1x4"]
@@ -59,10 +62,9 @@ _surfaces = [{
 blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_wctwk")
 
-[node name="7at_匕首" type="RigidBody3D" unique_id=1274396886 node_paths=PackedStringArray("m_ItemMesh", "m_WeaponHitBox")]
+[node name="7at_匕首" type="RigidBody3D" unique_id=1274396886 node_paths=PackedStringArray("m_WeaponHitBox")]
 script = ExtResource("1_nbal6")
 m_ItemData = SubResource("Resource_n7s87")
-m_ItemMesh = NodePath("匕首/Knife")
 m_WeaponHitBox = NodePath("Area3D")
 
 [node name="NetSyncBase" type="Node" parent="." unique_id=380096290]
