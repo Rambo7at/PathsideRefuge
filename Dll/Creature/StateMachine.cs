@@ -23,7 +23,8 @@ namespace 途畔归所.Dll.Creature
 			Idle = 0,
 			Interact = 1,
 			Build = 2,
-		}
+            Menu = 3
+        }
 
 		public enum AnimState
 		{
@@ -36,35 +37,36 @@ namespace 途畔归所.Dll.Creature
 			Stagger = 6,
 			Death = 7,
 		}
-		public AnimState m_AnimState { get; set; } = AnimState.Idle;
-		public NpcState m_NpcState { get; set; } = NpcState.Patrol;
-		public PlayerState m_PlayerState { get; set; } = PlayerState.Idle;
+
+		// 状态属性
+		public AnimState m_AnimState { get; private set; } = AnimState.Idle;
+		public NpcState m_NpcState { get; private set; } = NpcState.Patrol;
+		public PlayerState m_PlayerState { get; private set; } = PlayerState.Idle;
+
+        // 动画表达式
 		public bool Walk => m_AnimState == AnimState.Walk;
 		public bool Jump => m_AnimState == AnimState.Jump;
 		public bool Idle => m_AnimState == AnimState.Idle;
 		public bool Attack => m_AnimState == AnimState.Attack;
 		public bool Stagger => m_AnimState == AnimState.Stagger;
 		public bool Death => m_AnimState == AnimState.Death;
-
-		public int AttackAnimIndex { get; set; }
-
-
+		public int AttackAnimIndex { get; private set; }
         public bool IsCombo { get; set; }
-
         public bool GoCombo { get; set; }
 
 
-
+		// 便捷属性
         private bool IsOnFloor => m_Creature.IsOnFloor();
-
-
 		private float Speed => new Vector3(m_Creature.Velocity.X, 0, m_Creature.Velocity.Z).Length();
 
+
+		// 私有字段
 		private CreatureBase m_Creature;
 		private Humanoid m_Humanoid => m_Creature is Humanoid human ? human : null;
 		private Player m_Player => m_Humanoid is Player pl ? pl : null;
 		private Creature.Npc.Npc m_Npc => m_Humanoid is Creature.Npc.Npc npc ? npc : null;
 
+		// RPC委托
 		private Func<int> OnGetState;
 
 		private Action<int> OnSetState;
@@ -100,7 +102,12 @@ namespace 途畔归所.Dll.Creature
 				return;
 			}
 
-			m_Creature.OnHit += OnHit;
+            if (m_Player != null && !m_Player.m_IsOwner)
+            {
+                SetPhysicsProcess(false);
+            }
+
+            m_Creature.OnHit += OnHit;
 			m_Creature.m_AnimComp.OnEndStagger += EndStagger;
 			m_Creature.m_AnimComp.OnEndDeath += EndDeath;
 			m_Creature.m_AnimComp.OnEndAttack += EndAttack;
@@ -133,16 +140,16 @@ namespace 途畔归所.Dll.Creature
 		}
 
 
-		/// <summary> 切换移动状态，状态不变则不执行 </summary>
+		/// <summary> 注：切换动画状态，状态不变则不执行 </summary>
 		public void SwitchAnimState(AnimState newState)
 		{
 			if (m_AnimState == newState) return;
-
 			m_AnimState = newState;
 			//CatLog.Ok($"[State] Changed to: {newState}");
 		}
 
-		public void SwitchPlayerState(PlayerState newState)
+        /// <summary> 注：切换玩家状态，状态不变则不执行 </summary>
+        public void SwitchPlayerState(PlayerState newState)
 		{
 			if (m_PlayerState == newState) return;
 
@@ -150,7 +157,8 @@ namespace 途畔归所.Dll.Creature
 			//CatLog.Ok($"[State] Changed to: {newState}");
 		}
 
-		public void SwitchNpcState(NpcState newState)
+        /// <summary> 注：切换NPC状态，状态不变则不执行 </summary>
+        public void SwitchNpcState(NpcState newState)
 		{
 			if (m_NpcState == newState) return;
 
@@ -158,10 +166,11 @@ namespace 途畔归所.Dll.Creature
 			//CatLog.Ok($"[State] Changed to: {newState}");
 		}
 
+        /// <summary> 注：切换切换攻击动作索引 </summary>
+        public void SwitchAttackAnimIndex(int index) => AttackAnimIndex = index;
 
-
-
-		public void Combo()
+        /// <summary>注：初始化连段检测</summary>
+        public void Combo()
 		{
 
             IsCombo = false;
@@ -170,9 +179,7 @@ namespace 途畔归所.Dll.Creature
 
         }
 
-
-
-
+        /// <summary>注：让动画使用表达式，跳转衍生连段</summary>
         public void EndCombo()
         {
             CatLog.Ok($"[EndCombo] 执行 EndAttack {IsCombo} {GoCombo}");
@@ -180,14 +187,9 @@ namespace 途畔归所.Dll.Creature
 			{
                 GoCombo = true;
             }
-
-
         }
 
-
-
-
-
+        /// <summary>注：结束攻击</summary>
         public void EndAttack()
 		{
 
@@ -196,8 +198,8 @@ namespace 途畔归所.Dll.Creature
             GoCombo = false;
             SwitchAnimState(Speed > 0.1f ? AnimState.Walk : AnimState.Idle);
         }
-
-		private void EndStagger()
+        /// <summary>注：结束眩晕</summary>
+        private void EndStagger()
 		{
 			if (m_AnimState != AnimState.Stagger) return;
 
@@ -210,13 +212,14 @@ namespace 途畔归所.Dll.Creature
 			CatUtils.StopAndExit(m_Creature);
 		}
 
-
-		public int GetAnimState() => (int)m_AnimState;
+        #region RPC实现接口
+        public int GetAnimState() => (int)m_AnimState;
 
 		public int GetState() => OnGetState.Invoke();
 
 		public void SetAnimState(int State) => m_AnimState = (AnimState)State;
 
 		public void SetState(int State) => OnSetState.Invoke(State);
-	}
+        #endregion
+    }
 }

@@ -16,7 +16,7 @@ namespace 途畔归所.Dll.Comp
 		public override void _Ready()
 		{
 
-
+			base._Ready();
 
 
 
@@ -24,7 +24,7 @@ namespace 途畔归所.Dll.Comp
 
 		public override void _ExitTree()
 		{
-
+            base._ExitTree();
         }
 
 		public override void _PhysicsProcess(double delta)

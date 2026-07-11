@@ -15,13 +15,18 @@ namespace 途畔归所.Dll.Creature
     {
         [Export] private Node3D m_dropPos;
 
+        // 组件
         private Player m_player;
+        private StateMachine m_StateMachine;
+
+        // UI 组件
         private InventoryView m_inventoryView;
         private ConsoleView m_consoleView;
         private EscView m_escView;
         private HudView m_hudView;
         private EquipmentView m_EquipmentView;
 
+        // 属性
         public SlotView CurrentDragSource { get; set; }
         public TextureRect CurrentDragIcon { get; set; }
         public Vector3 m_DropPos => m_dropPos.GlobalPosition;
@@ -37,6 +42,7 @@ namespace 途畔归所.Dll.Creature
             }
 
             m_player = pl;
+            m_StateMachine = pl.m_StateMachine;
 
             if (pl.m_IsOwner == false)
             {
@@ -139,10 +145,12 @@ namespace 途畔归所.Dll.Creature
             if (m_consoleView.Visible || m_escView.Visible || m_inventoryView.Visible)
             {
                 Input.MouseMode = Input.MouseModeEnum.Visible;
+                m_StateMachine.SwitchPlayerState(StateMachine.PlayerState.Menu);
             }
             else
             {
                 Input.MouseMode = Input.MouseModeEnum.Captured;
+                m_StateMachine.SwitchPlayerState(StateMachine.PlayerState.Idle);
             }
         }
 

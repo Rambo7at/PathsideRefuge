@@ -12,6 +12,7 @@ namespace 途畔归所.Dll.Creature.Npc
     {
         private Npc m_Npc;
         private NpcMovement m_Movement;
+        private StateMachine m_StateMachine;
 
         public CreatureBase m_huntTarget;
 
@@ -19,6 +20,7 @@ namespace 途畔归所.Dll.Creature.Npc
         private float m_StopTimer;
         private bool m_isWaiting = false;
         private Vector3 _lastChaseTarget = Vector3.Zero;
+
         public override void _Ready()
         {
             if (NetCore.Instance.IsClient)
@@ -34,10 +36,11 @@ namespace 途畔归所.Dll.Creature.Npc
                 return;
             }
             m_Npc = comp;
+            m_StateMachine = comp.m_StateMachine;
 
             m_Movement = CatUtils.FindChildNode<NpcMovement>(m_Npc);
 
-            if ( m_Movement == null)
+            if (m_Movement == null)
             {
                 CatLog.Err("[NpcAI._Ready] 未挂载重要组件");
                 CatUtils.StopAndExit(this);
@@ -50,12 +53,12 @@ namespace 途畔归所.Dll.Creature.Npc
 
             See();
 
-            switch (m_Npc.m_NpcState)
+            switch (m_StateMachine.m_NpcState)
             {
-                case NpcState.Patrol:
+                case StateMachine.NpcState.Patrol:
                     UpdatePatrol(dt);
                     break;
-                case NpcState.Chase:
+                case StateMachine.NpcState.Chase:
                     UpdateChase();
                     break;
             }
@@ -67,13 +70,11 @@ namespace 途畔归所.Dll.Creature.Npc
         {
             if (m_Npc.m_Eye.IsColliding() == false || m_huntTarget != null) return;
 
-
             var collider = m_Npc.m_Eye.GetCollider();
             if (collider is not CreatureBase creature) return;
 
-
             m_huntTarget = creature;
-            m_Npc.m_NpcState = NpcState.Chase;
+            m_StateMachine.SwitchNpcState(StateMachine.NpcState.Chase);
             GD.Print("测试:发现玩家辣！");
         }
 
@@ -81,8 +82,7 @@ namespace 途畔归所.Dll.Creature.Npc
         /// <summary>注：巡逻决策 </summary>
         private void UpdatePatrol(float delta)
         {
-            // 状态自检
-            if (m_Npc.m_NpcState != NpcState.Patrol)
+            if (m_StateMachine.m_NpcState != StateMachine.NpcState.Patrol)
             {
                 m_isWaiting = false;
                 m_StopTimer = 0f;
@@ -112,23 +112,20 @@ namespace 途畔归所.Dll.Creature.Npc
         /// <summary>注：追击导航模式 </summary>
         private void UpdateChase()
         {
-            if (m_Npc.m_NpcState != NpcState.Chase) return;
-
+            if (m_StateMachine.m_NpcState != StateMachine.NpcState.Chase) return;
 
             if (m_huntTarget == null || !IsInstanceValid(m_huntTarget))
             {
                 m_huntTarget = null;
-                m_Npc.m_NpcState = NpcState.Patrol;
+                m_StateMachine.SwitchNpcState(StateMachine.NpcState.Patrol);
                 m_Movement.ClearNavigation();
                 _lastChaseTarget = Vector3.Zero;
                 return;
             }
 
-            // 1. 将玩家位置吸附到导航网格，避免路径抖动
             Rid map = m_Movement.m_navAgent.GetNavigationMap();
             Vector3 targetOnNav = NavigationServer3D.MapGetClosestPoint(map, m_huntTarget.GlobalPosition);
 
-            // 2. 距离阈值判断（第一次追击或玩家移动超过 0.5m 才更新）
             if (_lastChaseTarget == Vector3.Zero || targetOnNav.DistanceSquaredTo(_lastChaseTarget) > 0.25f)
             {
                 m_Movement.SetNavigation(targetOnNav);

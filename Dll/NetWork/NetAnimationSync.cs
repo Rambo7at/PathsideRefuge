@@ -11,9 +11,8 @@ namespace 途畔归所.Dll.NetWork
     [GlobalClass]
     public partial class NetAnimationSync : Node
     {
-
+        // 私有字段
         private ISyncStateMachine _stateMachine;
-
         private NetSyncBase _netSync;
 
         public override void _Ready()
@@ -42,7 +41,6 @@ namespace 途畔归所.Dll.NetWork
 
         public override void _Process(double delta)
         {
-
             if (NetCore.Instance.IsHost)
             {
                 Rpc(nameof(Rpc_SyncAnimationState), _stateMachine.GetAnimState() , -1);
@@ -60,13 +58,15 @@ namespace 途畔归所.Dll.NetWork
             if (NetCore.Instance.IsClient) return;
 
             Rpc(nameof(Rpc_SyncAnimationState), state, ignoreID);
+            _stateMachine.SetAnimState(state);
         }
 
 
         [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.Unreliable)]
         private void Rpc_SyncAnimationState(int state, long ignoreID = -1)
         {
-            if (NetCore.Instance.IsHost || NetCore.Instance.LocalPeerID == ignoreID) return;
+            if (NetCore.Instance.LocalPeerID == ignoreID) return;  // 跳过自己上报的回声
+            if (_netSync.IsOwner) return;                           // 本地玩家不受网络同步
 
             _stateMachine.SetAnimState(state);
         }

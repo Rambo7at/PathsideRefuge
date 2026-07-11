@@ -1,5 +1,6 @@
 using Godot;
 using 途畔归所.Dll.Core;
+using 途畔归所.Dll.Creature;
 using 途畔归所.Dll.Creature.Npc;
 using 途畔归所.Dll.Data;
 using 途畔归所.Dll.Utils;
@@ -11,6 +12,15 @@ public partial class NpcMovement : Node3D
     [Export] public NavigationAgent3D m_navAgent;
 
     private Npc m_Npc;
+    private StateMachine m_StateMachine;
+
+
+    // 便捷属性
+    private AnimState AnimState => m_StateMachine.m_AnimState;
+    private NpcState NpcState => m_StateMachine.m_NpcState;
+    private bool IsStaggerState => AnimState == AnimState.Stagger;
+    private bool IsDeathState => AnimState == AnimState.Death;
+
     private Vector3 _safeVelocity = Vector3.Zero;  // 存储 avoidance 后的安全速度
 
     public override void _Ready()
@@ -36,7 +46,7 @@ public partial class NpcMovement : Node3D
         }
 
         m_Npc = node;
-
+        m_StateMachine = node.m_StateMachine;
         // 连接 avoidance 计算结果信号
         m_navAgent.VelocityComputed += OnVelocityComputed;
     }
@@ -59,7 +69,7 @@ public partial class NpcMovement : Node3D
             return;
         }
 
-        if (m_Npc.IsDead || m_Npc.m_AnimState == AnimState.Stagger || m_Npc.m_AnimState == AnimState.Death)
+        if (m_Npc.IsDead || IsStaggerState || IsDeathState)
         {
             m_Npc.Velocity = new Vector3(0, m_Npc.Velocity.Y, 0);
             return;

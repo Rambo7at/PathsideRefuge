@@ -47,7 +47,7 @@ namespace 途畔归所.Dll.Base
 
         public override void _Ready()
         {
-            if (NetCore.Instance.IsClient) m_netSyncBase.CallRpc("RPC_RequestHealth");
+            if (NetCore.Instance.IsClient && m_netSyncBase.IsInit) m_netSyncBase.CallRpc("RPC_RequestHealth");
         }
 
         /// <summary>实际伤害结算（仅主机调用）</summary>

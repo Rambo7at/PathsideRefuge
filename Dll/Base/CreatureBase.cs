@@ -24,15 +24,15 @@ namespace 途畔归所.Dll.Base
 		[Export] private Array<PackedScene> m_AttackPrefabs = [];
 
 		// 组合类
-        public NetSyncBase m_NetSyncBase;
-        public NetTransformSync m_NetTransformSync;
-        public NetAnimationSync m_NetAnimationSync;
-        public StateMachine m_StateMachine;
-        public AnimationTree m_AnimationTree;
+		public NetSyncBase m_NetSyncBase;
+		public NetTransformSync m_NetTransformSync;
+		public NetAnimationSync m_NetAnimationSync;
+		public StateMachine m_StateMachine;
+		public AnimationTree m_AnimationTree;
 
 
-        // 字段属性
-        public string m_Name => m_CreatureData.Name;
+		// 字段属性
+		public string m_Name => m_CreatureData.Name;
 		public E_CreatureType m_CreatureType => m_CreatureData.CreatureType;
 		public E_Faction m_Faction => m_CreatureData.Faction;
 
@@ -66,11 +66,9 @@ namespace 途畔归所.Dll.Base
 
 		public Array<ItemComp> m_AttackItems = []; 
 
-		public AnimState m_AnimState { get => m_StateMachine.m_AnimState; set => m_StateMachine.m_AnimState = value; }
 
-		public int m_AttackAnimIndex { get => m_StateMachine.AttackAnimIndex; set => m_StateMachine.AttackAnimIndex = value; }
 		public bool IsDead => m_Health <= 0;
-        public Vector3 DropPos => GlobalPosition + Vector3.Up * 1f;
+		public Vector3 DropPos => GlobalPosition + Vector3.Up * 1f;
 
 
 		/// <summary>注：受击事件</summary>
@@ -98,21 +96,17 @@ namespace 途畔归所.Dll.Base
 			m_Health = m_Health == default ? m_MaxHealth : m_Health;
 
 			InitRpc();
-            LoadAttackItems();
+			LoadAttackItems();
 
-        }
+		}
 
 		public override void _Ready()
 		{
-			if (NetCore.Instance.IsHost)
-			{
-				m_NetSyncBase.CallAllRpc("RPC_SyncHealth", m_Health);
-			}
-			else
-			{
-				m_NetSyncBase.CallRpc("RPC_RequestHealth");
-			}
-		}
+            if (NetCore.Instance.IsClient && m_NetSyncBase.IsInit)
+            {
+                m_NetSyncBase.CallRpc("RPC_RequestHealth");
+            }
+        }
 
 		/// <summary>客户端请求主机结算伤害</summary>
 		protected virtual void RPC_RequestDamage(long senderId, float amount)
@@ -270,23 +264,24 @@ namespace 途畔归所.Dll.Base
 		/// <summary> 辅助：初始化RPC </summary>
 		private void InitRpc()
 		{
-			m_NetSyncBase.RegisterRpc<float>("RPC_RequestDamage", RPC_RequestDamage);
+            if (!m_NetSyncBase.IsInit) return;
+            m_NetSyncBase.RegisterRpc<float>("RPC_RequestDamage", RPC_RequestDamage);
 			m_NetSyncBase.RegisterRpc<float>("RPC_SyncHealth", RPC_SyncHealth);
 			m_NetSyncBase.RegisterRpc("RPC_RequestHealth", RPC_RequestHealth);
 		}
 
-        /// <summary> 辅助：获取攻击列表中的PackedScene 转换为 itemComp </summary>
-        private void LoadAttackItems()
+		/// <summary> 辅助：获取攻击列表中的PackedScene 转换为 itemComp </summary>
+		private void LoadAttackItems()
 		{
 			if (m_AttackPrefabs.Count == 0) return;
 
 			foreach (var item in m_AttackPrefabs)
-            {
+			{
 				var itemcomp = ItemManager.Instance.GetItemDrop(ItemManager.Instance.GetItemData(item).ID);
 				if (itemcomp == null) continue;
-                m_AttackItems.Add(itemcomp);
+				m_AttackItems.Add(itemcomp);
 			}
-        }
+		}
 	}
 
 }

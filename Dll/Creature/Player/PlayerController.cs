@@ -12,6 +12,13 @@ namespace 途畔归所.Dll.Creature
         private Player m_Player;
         private Camera3D m_Camera3D;
         private SpringArm3D m_springArm3D;
+        private StateMachine m_StateMachine;
+
+        // 便捷属性
+        private AnimState AnimState => m_StateMachine.m_AnimState;
+        private PlayerState PlayerState => m_StateMachine.m_PlayerState;
+        private bool IsAttackState => AnimState == AnimState.Attack;
+        private bool IsMenuState => PlayerState == PlayerState.Menu;
 
 
         // 常用值
@@ -40,6 +47,7 @@ namespace 途畔归所.Dll.Creature
             m_springArm3D ??= CatUtils.FindChildNode<SpringArm3D>(pl);
             m_Player = pl;
             m_Camera3D = WorldManager.Instance.GetCamera();
+            m_StateMachine = pl.m_StateMachine;
 
             if (m_springArm3D == null)
             {
@@ -54,6 +62,7 @@ namespace 途畔归所.Dll.Creature
 
         public override void _Process(double delta)
         {
+            if (IsMenuState) return;
             UpdateRotation(delta);
             TryAttack();
         }
@@ -73,10 +82,17 @@ namespace 途畔归所.Dll.Creature
         {
             Vector3 velocity = m_Player.Velocity;
 
-            ApplyJump(ref velocity);
+            // Menu状态下阻断移动输入，速度清零
+            if (IsMenuState)
+            {
+                velocity.X = 0;
+                velocity.Z = 0;
+                m_Player.Velocity = velocity;
+                return;
+            }
 
-            var direction = GetCameraRelativeDirection(Input.GetVector("cat_Left", "cat_Right", "cat_Forward", "cat_Backward"));
-            ApplyMovement(direction, ref velocity);
+            ApplyJump(ref velocity);
+            ApplyMovement(ref velocity);
 
             m_Player.Velocity = velocity;
         }
@@ -85,7 +101,7 @@ namespace 途畔归所.Dll.Creature
         /// <summary>注：处理跳跃输入，仅地面非攻击状态下生效</summary>
         private void ApplyJump(ref Vector3 vector)
         {
-            if (m_Player.m_AnimState == AnimState.Attack) return;
+            if (IsAttackState) return;
 
             if (Input.IsActionJustPressed("ui_accept") && m_Player.IsOnFloor())
             {
@@ -95,15 +111,15 @@ namespace 途畔归所.Dll.Creature
 
 
         /// <summary>注：根据状态应用移动速度，区分正常地面、攻击地面、空中三种情况</summary>
-        private void ApplyMovement(Vector3 direction, ref Vector3 velocity)
+        private void ApplyMovement(ref Vector3 velocity)
         {
-
-            if (m_Player.IsOnFloor() && m_Player.m_AnimState != AnimState.Attack)
+            var direction = GetCameraRelativeDirection(Input.GetVector("cat_Left", "cat_Right", "cat_Forward", "cat_Backward"));
+            if (m_Player.IsOnFloor() && !IsAttackState)
             {
                 // 正常地面移动
                 ApplyGroundMovement(direction, ref velocity, 1f);
             }
-            else if (m_Player.IsOnFloor() && m_Player.m_AnimState == AnimState.Attack)
+            else if (m_Player.IsOnFloor() && IsAttackState)
             {
                 // 攻击状态地面移动减速
                 ApplyGroundMovement(direction, ref velocity, 0.1f);
@@ -154,17 +170,14 @@ namespace 途畔归所.Dll.Creature
         private void TryAttack()
         {
             if (!Input.IsActionJustPressed("cat_Attack")) return;
-            if (m_Player.m_AnimState == AnimState.Attack)
+            if (IsAttackState)
             {
-
                 m_Player.m_StateMachine.IsCombo = true;
-
                 return;
             }
 
             // 切换至攻击状态
-            m_Player.m_AnimState =  AnimState.Attack;
-
+            m_StateMachine.SwitchAnimState(AnimState.Attack);
             m_Player.m_AnimationTree.Set("parameters/OneShot/request", (int)AnimationNodeOneShot.OneShotRequest.Fire);
         }
 

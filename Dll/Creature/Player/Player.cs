@@ -12,7 +12,6 @@ public partial class Player : Humanoid
 
 
 
-	public PlayerState m_PlayerState { get => m_StateMachine.m_PlayerState; set => m_StateMachine.m_PlayerState = value; }
 	public bool m_IsOwner => m_NetSyncBase != null && m_NetSyncBase.IsOwner;
 
 

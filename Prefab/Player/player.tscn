@@ -1,9 +1,13 @@
 [gd_scene format=3 uid="uid://52kwilu1inp"]
 
 [ext_resource type="Script" uid="uid://b45ntly2c7yxx" path="res://Dll/Creature/Player/Player.cs" id="1_3tphh"]
+[ext_resource type="Script" uid="uid://co7nevja8c62g" path="res://Dll/Base/DropBase.cs" id="2_3y32g"]
 [ext_resource type="Script" uid="uid://cp3diqw3a15uw" path="res://Dll/NetWork/NetTransformSync.cs" id="2_y265s"]
 [ext_resource type="Script" uid="uid://dxlthtmktoiul" path="res://Dll/NetWork/NetAnimationSync.cs" id="3_jevs1"]
+[ext_resource type="Script" uid="uid://inh0sbmkkjuj" path="res://Dll/Data/ItemData.cs" id="3_pie34"]
 [ext_resource type="Script" uid="uid://bgndbmht2eucx" path="res://Dll/NetWork/NetSyncBase.cs" id="4_kebwq"]
+[ext_resource type="Script" uid="uid://bl12j36xetca" path="res://Dll/Data/InventoryData.cs" id="4_wl248"]
+[ext_resource type="Script" uid="uid://2mvmaouqgvid" path="res://Dll/Data/CreatureData.cs" id="5_whe34"]
 [ext_resource type="Script" uid="uid://dm68k0mp1847x" path="res://Dll/Creature/Player/PlayerController.cs" id="6_1ubpg"]
 [ext_resource type="Script" uid="uid://c4r7u0wmf5aan" path="res://Dll/Creature/Player/PlayerCamera.cs" id="6_d1rk3"]
 [ext_resource type="AnimationNodeBlendTree" uid="uid://dyyd4f7kmeq0i" path="res://Prefab/Player/人形动画树.tres" id="7_ekvl8"]
@@ -12,6 +16,14 @@
 [ext_resource type="AnimationLibrary" uid="uid://bijqo1hm44iy" path="res://Prefab/Animat/人物动画.res" id="10_ekvl8"]
 [ext_resource type="Script" uid="uid://3ajoa4vts75s" path="res://Dll/Comp/CreatureAnimComp.cs" id="10_xsgoj"]
 [ext_resource type="Script" uid="uid://83rvy7sxs6nu" path="res://Dll/Creature/StateMachine.cs" id="12_ekvl8"]
+
+[sub_resource type="Resource" id="Resource_vf8ei"]
+script = ExtResource("4_wl248")
+
+[sub_resource type="Resource" id="Resource_uw02a"]
+script = ExtResource("5_whe34")
+m_data = null
+metadata/_custom_type_script = "uid://2mvmaouqgvid"
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_cq2md"]
 height = 1.875
@@ -37,6 +49,7 @@ m_PlayerGUI = NodePath("PlayerGUI")
 m_PlayerModel = NodePath("Rogue")
 m_HandL = NodePath("Rogue/Rig/Skeleton3D/handslot_l")
 m_HandR = NodePath("Rogue/Rig/Skeleton3D/handslot_r")
+m_CreatureData = SubResource("Resource_uw02a")
 m_Eye = NodePath("RayCast3D")
 m_AnimComp = NodePath("Rogue/CreatureAnimComp")
 

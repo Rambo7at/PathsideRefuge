@@ -16,7 +16,6 @@ namespace 途畔归所.Dll.Creature.Npc
         public float m_ChaseTargetDistance => m_CreatureData.ChaseTargetDistance;     // 追击时与目标保持的距离
         public float m_RotationSpeed => m_CreatureData.RotationSpeed;              // 转身速度
 
-        public NpcState m_NpcState { get => m_StateMachine.m_NpcState; set => m_StateMachine.m_NpcState = value; }
         public override void _Ready()
         {
             base._Ready();

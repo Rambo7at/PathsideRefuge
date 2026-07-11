@@ -182,4 +182,4 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.276643, 0, -12.308217)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.474703, 0, 0)
 
 [node name="Npc" parent="." unique_id=1650011338 instance=ExtResource("8_qutry")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5151515, 0, 28.884823)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.14144182, 0, 32.986637)
