@@ -74,6 +74,19 @@ namespace 途畔归所.Dll.Utils
             node.QueueFree();
         }
 
+
+        public static void StopAndExit(Node node, string err)
+        {
+            CatLog.Err(err);
+            node.SetProcess(false);
+            node.SetPhysicsProcess(false);
+            node.QueueFree();
+        }
+
+
+
+
+
         /// <summary>注：在子节点中查找指定类型的子节点并返回</summary>
         public static T FindChildNode<T>(Node node) where T : Node
         {

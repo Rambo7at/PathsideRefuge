@@ -1,8 +1,10 @@
 using Godot;
 using System;
+using System.Xml.Linq;
 using 途畔归所.Dll.Base;
 using 途畔归所.Dll.Creature.Npc;
 using 途畔归所.Dll.Interface;
+using 途畔归所.Dll.NetWork;
 using 途畔归所.Dll.Utils;
 using static 途畔归所.Dll.Creature.StateMachine;
 
@@ -66,46 +68,30 @@ namespace 途畔归所.Dll.Creature
 		private Player m_Player => m_Humanoid is Player pl ? pl : null;
 		private Creature.Npc.Npc m_Npc => m_Humanoid is Creature.Npc.Npc npc ? npc : null;
 
+		// 私有委托
+		private Action OnComboRequested;
+
+
 		// RPC委托
 		private Func<int> OnGetState;
 
 		private Action<int> OnSetState;
 
+		private Action OnOneShot;
+
 		
 		public override void _Ready()
 		{
-			
 			if (GetParent() is not CreatureBase cr)
 			{
-				CatLog.Err($"[StateMachine._Ready]：检测挂载对象并非 CreatureBase ，已销毁");
-				CatUtils.StopAndExit(this);
+				CatUtils.StopAndExit(this, $"[StateMachine._Ready]：检测挂载对象并非 CreatureBase ，已销毁");
 				return;
 			}
 
 			m_Creature = cr;
 
-			if (m_Player != null)
-			{
-				OnGetState = () => (int)m_PlayerState;
-				OnSetState = (index) => m_PlayerState = (PlayerState)index;
-			}
-			else if (m_Npc != null)
-			{
-				OnGetState = () => (int)m_NpcState;
-				OnSetState = (index) => m_NpcState = (NpcState)index;
-			}
-
-			if (OnGetState == null || OnSetState == null)
-			{
-				CatLog.Err($"[StateMachine._Ready]：检测挂载对象并非 Player/Npc ，已销毁");
-				CatUtils.StopAndExit(this);
-				return;
-			}
-
-            if (m_Player != null && !m_Player.m_IsOwner)
-            {
-                SetPhysicsProcess(false);
-            }
+			InitPlayerStateMachine();
+			InitNpcStateMachine();
 
             m_Creature.OnHit += OnHit;
 			m_Creature.m_AnimComp.OnEndStagger += EndStagger;
@@ -169,6 +155,16 @@ namespace 途畔归所.Dll.Creature
         /// <summary> 注：切换切换攻击动作索引 </summary>
         public void SwitchAttackAnimIndex(int index) => AttackAnimIndex = index;
 
+		public void RequestAttack()
+		{
+			SwitchAnimState(AnimState.Attack);
+			OnOneShot?.Invoke();
+        }
+
+		public void RequestCombo() => OnComboRequested?.Invoke();
+
+
+        #region  委托实现
         /// <summary>注：初始化连段检测</summary>
         public void Combo()
 		{
@@ -211,6 +207,10 @@ namespace 途畔归所.Dll.Creature
 			if (m_AnimState != AnimState.Death) return;
 			CatUtils.StopAndExit(m_Creature);
 		}
+		private void OneShot() => m_Creature.m_AnimationTree.Set("parameters/OneShot/request", (int)AnimationNodeOneShot.OneShotRequest.Fire);
+
+        #endregion
+
 
         #region RPC实现接口
         public int GetAnimState() => (int)m_AnimState;
@@ -220,6 +220,36 @@ namespace 途畔归所.Dll.Creature
 		public void SetAnimState(int State) => m_AnimState = (AnimState)State;
 
 		public void SetState(int State) => OnSetState.Invoke(State);
-        #endregion
+		#endregion
+
+
+		private void InitPlayerStateMachine()
+		{
+			if (m_Player == null) return;
+
+            OnGetState += () => (int)m_PlayerState;
+            OnSetState += (index) => m_PlayerState = (PlayerState)index;
+            OnOneShot += () => OneShot();
+            OnComboRequested += () => IsCombo = true;
+
+            if (m_Player != null && !m_Player.m_IsOwner)
+            {
+                SetPhysicsProcess(false);
+            }
+        }
+
+		private void InitNpcStateMachine()
+		{
+			if (m_Npc == null) return;
+			OnGetState += () => (int)m_NpcState;
+			OnSetState += (index) => m_NpcState = (NpcState)index;
+
+            if (m_Npc != null && !m_Npc.m_IsOwner)
+            {
+                SetPhysicsProcess(false);
+            }
+        }
+
+
     }
 }

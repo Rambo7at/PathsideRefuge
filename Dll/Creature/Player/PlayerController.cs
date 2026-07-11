@@ -172,13 +172,11 @@ namespace 途畔归所.Dll.Creature
             if (!Input.IsActionJustPressed("cat_Attack")) return;
             if (IsAttackState)
             {
-                m_Player.m_StateMachine.IsCombo = true;
+                m_StateMachine.RequestCombo();
                 return;
             }
-
             // 切换至攻击状态
-            m_StateMachine.SwitchAnimState(AnimState.Attack);
-            m_Player.m_AnimationTree.Set("parameters/OneShot/request", (int)AnimationNodeOneShot.OneShotRequest.Fire);
+            m_StateMachine.RequestAttack();
         }
 
 
