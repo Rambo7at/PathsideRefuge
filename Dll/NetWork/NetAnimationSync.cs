@@ -11,13 +11,11 @@ namespace 途畔归所.Dll.NetWork
     [GlobalClass]
     public partial class NetAnimationSync : Node
     {
-        // 私有字段
         private ISyncStateMachine _stateMachine;
         private NetSyncBase _netSync;
 
         public override void _Ready()
         {
-
             if (GetParent() is not Node3D parent)
             {
                 CatUtils.StopAndExit(this);
@@ -36,39 +34,89 @@ namespace 途畔归所.Dll.NetWork
                 return;
             }
 
-            if (_netSync.IsOwner == false) SetProcess(false);
+            if (!_netSync.IsOwner) return;
+
+            _stateMachine.OnAnimStateChanged += OnStateChanged;
+            _stateMachine.OnOneShotChanged += OnOneShotTriggered;
+            _stateMachine.OnComboRequested += OnComboTriggered;  // 新增
         }
 
-        public override void _Process(double delta)
+        private void OnStateChanged()
+        {
+            int state = _stateMachine.GetAnimState();
+            if (NetCore.Instance.IsHost)
+                Rpc(nameof(Rpc_SyncAnimationState), state, -1);
+            else
+                RpcId(1, nameof(Rpc_ClientAnimReport), state, NetCore.Instance.LocalPeerID);
+        }
+
+        private void OnOneShotTriggered()
         {
             if (NetCore.Instance.IsHost)
-            {
-                Rpc(nameof(Rpc_SyncAnimationState), _stateMachine.GetAnimState() , -1);
-            }
+                Rpc(nameof(Rpc_SyncOneShot), -1);
             else
-            {
-                RpcId(1, nameof(Rpc_ClientAnimReport), _stateMachine.GetAnimState(), NetCore.Instance.LocalPeerID);
-            }
+                RpcId(1, nameof(Rpc_ClientOneShotReport), NetCore.Instance.LocalPeerID);
+        }
+
+        private void OnComboTriggered()
+        {
+            if (NetCore.Instance.IsHost)
+                Rpc(nameof(Rpc_SyncCombo), -1);
+            else
+                RpcId(1, nameof(Rpc_ClientComboReport), NetCore.Instance.LocalPeerID);
         }
 
 
+
+        // 移动状态同步
         [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.Unreliable)]
         private void Rpc_ClientAnimReport(int state, long ignoreID)
         {
             if (NetCore.Instance.IsClient) return;
-
             Rpc(nameof(Rpc_SyncAnimationState), state, ignoreID);
             _stateMachine.SetAnimState(state);
         }
 
-
         [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.Unreliable)]
         private void Rpc_SyncAnimationState(int state, long ignoreID = -1)
         {
-            if (NetCore.Instance.LocalPeerID == ignoreID) return;  // 跳过自己上报的回声
-            if (_netSync.IsOwner) return;                           // 本地玩家不受网络同步
-
+            if (NetCore.Instance.LocalPeerID == ignoreID) return;
+            if (_netSync.IsOwner) return;
             _stateMachine.SetAnimState(state);
+        }
+
+        // OneShot 同步
+        [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+        private void Rpc_ClientOneShotReport(long ignoreID)
+        {
+            if (NetCore.Instance.IsClient) return;
+            Rpc(nameof(Rpc_SyncOneShot), ignoreID);
+            _stateMachine.TriggerOneShot();   // 直接触发
+        }
+
+        [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+        private void Rpc_SyncOneShot(long ignoreID = -1)
+        {
+            if (NetCore.Instance.LocalPeerID == ignoreID) return;
+            if (_netSync.IsOwner) return;
+            _stateMachine.TriggerOneShot();
+        }
+
+        // 连段同步 RPC
+        [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+        private void Rpc_ClientComboReport(long ignoreID)
+        {
+            if (NetCore.Instance.IsClient) return;
+            Rpc(nameof(Rpc_SyncCombo), ignoreID);
+            _stateMachine.TriggerCombo();
+        }
+
+        [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.Reliable)]
+        private void Rpc_SyncCombo(long ignoreID = -1)
+        {
+            if (NetCore.Instance.LocalPeerID == ignoreID) return;
+            if (_netSync.IsOwner) return;
+            _stateMachine.TriggerCombo();
         }
     }
 }
