@@ -26,7 +26,6 @@ namespace 途畔归所.Dll.Base
 		// 组合类
 		public NetSyncBase m_NetSyncBase;
 		public NetTransformSync m_NetTransformSync;
-		public NetAnimationSync m_NetAnimationSync;
 		public StateMachine m_StateMachine;
 		public AnimationTree m_AnimationTree;
 
@@ -64,7 +63,9 @@ namespace 途畔归所.Dll.Base
 
 		public Array<DropBase> m_DropTable => m_CreatureData.DropTable;
 
-		public Array<ItemComp> m_AttackItems = []; 
+        public bool m_IsOwner => m_NetSyncBase != null && m_NetSyncBase.IsOwner;
+
+        public Array<ItemComp> m_AttackItems = []; 
 
 
 		public bool IsDead => m_Health <= 0;
@@ -83,8 +84,6 @@ namespace 途畔归所.Dll.Base
 
 				m_NetTransformSync ??= node as NetTransformSync;
 
-				m_NetAnimationSync ??= node as NetAnimationSync;
-
 				m_StateMachine ??= node as StateMachine;
 
 				m_AnimationTree ??= node as AnimationTree;
@@ -95,7 +94,7 @@ namespace 途畔归所.Dll.Base
 			// 初始化生命值
 			m_Health = m_Health == default ? m_MaxHealth : m_Health;
 
-			InitRpc();
+            InitRegisterRpc();
 			LoadAttackItems();
 
 		}
@@ -242,18 +241,17 @@ namespace 途畔归所.Dll.Base
 		private bool ValCoreComp()
 		{
 			// 组件检查
-			if (m_NetSyncBase == null || m_NetTransformSync == null || m_NetAnimationSync == null || m_StateMachine == null || m_Eye == null || m_AnimComp == null || m_AnimationTree == null)
+			if (m_NetSyncBase == null || m_NetTransformSync == null || m_StateMachine == null || m_Eye == null || m_AnimComp == null || m_AnimationTree == null)
 			{
 				string loga = m_NetSyncBase == null ? "m_NetSyncBase/" : string.Empty;
 				string logb = m_NetTransformSync == null ? "m_NetTransformSync/" : string.Empty;
-				string logc = m_NetAnimationSync == null ? "m_NetAnimationSync/" : string.Empty;
 				string logd = m_StateMachine == null ? "m_StateMachine/" : string.Empty;
 				string logE = m_Eye == null ? "m_Eye/" : string.Empty;
 				string logF = m_AnimComp == null ? "m_AnimComp/" : string.Empty;
 				string logg = m_AnimationTree == null ? "m_AnimationTree/" : string.Empty;
 
 
-				CatLog.Err($"[CreatureBase.ValCoreComp]: {Name}-{m_Name} 缺少核心组件：{loga + logb + logc + logd + logE + logF + logg}，请检查编译器");
+				CatLog.Err($"[CreatureBase.ValCoreComp]: {Name}-{m_Name} 缺少核心组件：{loga + logb + logd + logE + logF + logg}，请检查编译器");
 				CatUtils.StopAndExit(this);
 				return false;
 			}
@@ -262,7 +260,7 @@ namespace 途畔归所.Dll.Base
 		}
 
 		/// <summary> 辅助：初始化RPC </summary>
-		private void InitRpc()
+		private void InitRegisterRpc()
 		{
             if (!m_NetSyncBase.IsInit) return;
             m_NetSyncBase.RegisterRpc<float>("RPC_RequestDamage", RPC_RequestDamage);

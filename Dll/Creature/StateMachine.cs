@@ -2,17 +2,18 @@ using Godot;
 using System;
 using System.Xml.Linq;
 using 途畔归所.Dll.Base;
+using 途畔归所.Dll.Core;
 using 途畔归所.Dll.Creature.Npc;
 using 途畔归所.Dll.Interface;
 using 途畔归所.Dll.NetWork;
 using 途畔归所.Dll.Utils;
+using static Godot.WebSocketPeer;
 using static 途畔归所.Dll.Creature.StateMachine;
 
 namespace 途畔归所.Dll.Creature
 {
-
 	[GlobalClass]
-	public partial class StateMachine : Node, ISyncStateMachine
+	public partial class StateMachine : Node
 	{
 		public enum NpcState
 		{
@@ -59,6 +60,7 @@ namespace 途畔归所.Dll.Creature
 
 		// 便捷属性
 		private bool IsOnFloor => m_Creature.IsOnFloor();
+		private NetSyncBase m_NetSyncBase => m_Creature?.m_NetSyncBase;
 		private float Speed => new Vector3(m_Creature.Velocity.X, 0, m_Creature.Velocity.Z).Length();
 
 
@@ -69,15 +71,8 @@ namespace 途畔归所.Dll.Creature
 		private Creature.Npc.Npc m_Npc => m_Humanoid is Creature.Npc.Npc npc ? npc : null;
 
 
-		// RPC委托
-		private Func<int> OnGetState;
-		private Action<int> OnSetState;
-
 		// 接口事件
-		public event Action OnComboRequested;
 		public event Action OnAnimStateChanged;
-		public event Action<int> OnAttackAnimIndexChanged;
-		public event Action OnOneShotChanged;
 
 		public override void _Ready()
 		{
@@ -89,8 +84,26 @@ namespace 途畔归所.Dll.Creature
 
 			m_Creature = cr;
 
-			InitPlayerStateMachine();
-			InitNpcStateMachine();
+
+            if (!m_Creature.m_IsOwner) SetPhysicsProcess(false);
+
+
+            // 动画状态同步
+            m_NetSyncBase.RegisterRpc<int>("RPC_SyncAnimState", RPC_SyncAnimState);
+			m_NetSyncBase.RegisterRpc<int>("RPC_RequestAnimState", RPC_RequestAnimState);
+
+			// OneShot 同步
+			m_NetSyncBase.RegisterRpc("RPC_SyncOneShot", RPC_SyncOneShot);
+			m_NetSyncBase.RegisterRpc("RPC_RequestOneShot", RPC_RequestOneShot);
+
+			// 攻击动画索引同步
+			m_NetSyncBase.RegisterRpc<int>("RPC_SyncAttackAnimIndex", RPC_SyncAttackAnimIndex);
+			m_NetSyncBase.RegisterRpc<int>("RPC_RequestAttackAnimIndex", RPC_RequestAttackAnimIndex);
+
+			// 连段标记同步
+			m_NetSyncBase.RegisterRpc("RPC_SyncCombo", RPC_SyncCombo);
+			m_NetSyncBase.RegisterRpc("RPC_RequestCombo", RPC_RequestCombo);
+
 
 			m_Creature.OnHit += OnHit;
 			m_Creature.m_AnimComp.OnEndStagger += EndStagger;
@@ -98,8 +111,6 @@ namespace 途畔归所.Dll.Creature
 			m_Creature.m_AnimComp.OnEndAttack += EndAttack;
 			m_Creature.m_AnimComp.OnEndCombo += EndCombo;
 			m_Creature.m_AnimComp.OnCombo += Combo;
-
-			
 		}
 
 		public override void _PhysicsProcess(double delta)
@@ -108,7 +119,6 @@ namespace 途畔归所.Dll.Creature
 		}
 
 		private void OnHit(float damage, Node node) => SwitchAnimState(damage >= m_Creature.m_StaggerDamage ? AnimState.Stagger : m_AnimState);
-
 
 		private void MoveState()
 		{
@@ -126,13 +136,20 @@ namespace 途畔归所.Dll.Creature
 			}
 		}
 
-
 		/// <summary> 注：切换动画状态，状态不变则不执行 </summary>
 		public void SwitchAnimState(AnimState newState)
 		{
 			if (m_AnimState == newState) return;
-			m_AnimState = newState;
-			OnAnimStateChanged?.Invoke();
+			if (NetCore.Instance.IsHost)
+			{
+				m_AnimState = newState;
+				m_NetSyncBase.CallAllRpc("RPC_SyncAnimState", (int)newState);
+			}
+			else
+			{
+				m_AnimState = newState;
+				m_NetSyncBase.CallRpc("RPC_RequestAnimState", (int)newState);
+			}
 			//CatLog.Ok($"[State] Changed to: {newState}");
 		}
 
@@ -154,26 +171,150 @@ namespace 途畔归所.Dll.Creature
 			//CatLog.Ok($"[State] Changed to: {newState}");
 		}
 
-		/// <summary> 注：切换切换攻击动作索引 </summary>
-		public void SwitchAttackAnimIndex(int index) => AttackAnimIndex = index;
+		/// <summary> 注：切换攻击动作索引 </summary>
+		public void SwitchAttackAnimIndex(int index)
+		{
+			if (AttackAnimIndex == index) return;
+
+			if (NetCore.Instance.IsHost)
+			{
+				AttackAnimIndex = index;
+				m_NetSyncBase.CallAllRpc("RPC_SyncAttackAnimIndex", index);
+			}
+			else
+			{
+				AttackAnimIndex = index;
+				m_NetSyncBase.CallRpc("RPC_RequestAttackAnimIndex", index, 1);
+			}
+		}
 
 		public void RequestAttack()
 		{
 			SwitchAnimState(AnimState.Attack);
-			OnOneShotChanged?.Invoke();
+			OneShot();
 		}
 
-		public void RequestCombo() => TriggerCombo();
+		public void RequestCombo()
+		{
+			if (IsCombo) return;
 
-		/// <summary>注：初始化连段检测</summary>
-		public void Combo()
+			if (NetCore.Instance.IsHost)
+			{
+				IsCombo = true;
+				m_NetSyncBase.CallAllRpc("RPC_SyncCombo");
+			}
+			else
+			{
+				IsCombo = true;
+				// 用你新增的无参重载，默认发给主机
+				m_NetSyncBase.CallRpc("RPC_RequestCombo");
+			}
+		}
+
+		private void OneShot()
+		{
+			if (NetCore.Instance.IsHost)
+			{
+				// 主机：本地直接触发 + 广播所有客户端同步
+				FireOneShotLocal();
+				m_NetSyncBase.CallAllRpc("RPC_SyncOneShot");
+			}
+			else
+			{
+				// 客户端：本地预测触发 + 向主机发请求
+				FireOneShotLocal();
+				m_NetSyncBase.CallRpc("RPC_RequestOneShot", 1);
+			}
+		}
+
+		/// <summary>辅助：触发 OneShot </summary>
+		private void FireOneShotLocal()
+		{
+			m_Creature.m_AnimationTree.Set("parameters/OneShot/request", (int)AnimationNodeOneShot.OneShotRequest.Fire);
+		}
+
+
+        #region RPC
+        private void RPC_SyncOneShot()
+		{
+			// 主机不执行自己的同步消息
+			if (NetCore.Instance.IsHost) return;
+			FireOneShotLocal();
+		}
+
+		private void RPC_RequestOneShot()
+		{
+			// 客户端不处理请求
+			if (NetCore.Instance.IsClient) return;
+			FireOneShotLocal();
+			m_NetSyncBase.CallAllRpc("SyncOneShot");
+		}
+
+
+		private void RPC_SyncAnimState(int state)
+		{
+			if (NetCore.Instance.IsHost) return;
+			m_AnimState = (AnimState)state;
+		}
+
+		private void RPC_RequestAnimState(int state)
+		{
+			if (NetCore.Instance.IsClient) return;
+
+			var newState = (AnimState)state;
+
+			if (m_AnimState == newState) return;
+			m_AnimState = newState;
+			m_NetSyncBase.CallAllRpc("RPC_RequestAnimState", state);
+		}
+
+		/// <summary> 客户端接收：主机同步的攻击动画索引 </summary>
+		private void RPC_SyncAttackAnimIndex(int index)
+		{
+			if (NetCore.Instance.IsHost) return;
+			AttackAnimIndex = index;
+		}
+
+		/// <summary> 主机接收：客户端发来的攻击索引变更请求 </summary>
+		private void RPC_RequestAttackAnimIndex(int index)
+		{
+			if (NetCore.Instance.IsClient) return;
+			if (AttackAnimIndex == index) return;
+
+			AttackAnimIndex = index;
+			m_NetSyncBase.CallAllRpc("RPC_SyncAttackAnimIndex", index);
+		}
+
+        /// <summary> 客户端接收：主机同步的连段标记 </summary>
+        private void RPC_SyncCombo()
+        {
+            if (NetCore.Instance.IsHost) return;
+            IsCombo = true;
+        }
+
+        /// <summary> 主机接收：客户端发来的连段请求 </summary>
+        private void RPC_RequestCombo()
+        {
+            if (NetCore.Instance.IsClient) return;
+            if (IsCombo) return;
+
+            IsCombo = true;
+            m_NetSyncBase.CallAllRpc("RPC_SyncCombo");
+        }
+        #endregion
+
+
+        #region 动画函数
+
+        /// <summary>注：初始化连段检测</summary>
+        private void Combo()
 		{
 			IsCombo = false;
 			GoCombo = false;
 		}
 
-		/// <summary>注：让动画使用表达式，跳转衍生连段</summary>
-		public void EndCombo()
+        /// <summary>注：让动画使用表达式，跳转衍生连段</summary>
+        private void EndCombo()
 		{
 			CatLog.Ok($"[EndCombo] 执行 EndAttack {IsCombo} {GoCombo}");
 			if (IsCombo)
@@ -182,8 +323,8 @@ namespace 途畔归所.Dll.Creature
 			}
 		}
 
-		/// <summary>注：结束攻击</summary>
-		public void EndAttack()
+        /// <summary>注：结束攻击</summary>
+        private void EndAttack()
 		{
 
 			if (m_AnimState != AnimState.Attack) return;
@@ -205,49 +346,7 @@ namespace 途畔归所.Dll.Creature
 			CatUtils.StopAndExit(m_Creature);
 		}
 
+		#endregion
 
-		public int GetAnimState() => (int)m_AnimState;
-
-		public int GetState() => OnGetState.Invoke();
-
-		public void SetAnimState(int State) => m_AnimState = (AnimState)State;
-
-		public void SetState(int State) => OnSetState.Invoke(State);
-
-		public void TriggerOneShot() => m_Creature.m_AnimationTree.Set("parameters/OneShot/request", (int)AnimationNodeOneShot.OneShotRequest.Fire);
-
-        public void TriggerCombo() => OnComboRequested?.Invoke();
-
-        public void TriggerAttackAnimIndex(int index) => OnAttackAnimIndexChanged.Invoke(index);
-
-        private void InitPlayerStateMachine()
-		{
-			if (m_Player == null) return;
-
-			OnGetState += () => (int)m_PlayerState;
-			OnSetState += (index) => m_PlayerState = (PlayerState)index;
-            OnAttackAnimIndexChanged += (index) => AttackAnimIndex = index;
-            OnOneShotChanged += TriggerOneShot;
-			OnComboRequested += () => IsCombo = true;
-
-			if (m_Player != null && !m_Player.m_IsOwner)
-			{
-				SetPhysicsProcess(false);
-			}
-		}
-
-		private void InitNpcStateMachine()
-		{
-			if (m_Npc == null) return;
-			OnGetState += () => (int)m_NpcState;
-			OnSetState += (index) => m_NpcState = (NpcState)index;
-            OnAttackAnimIndexChanged += (index) => AttackAnimIndex = index;
-
-            if (m_Npc != null && !m_Npc.m_IsOwner)
-			{
-				SetPhysicsProcess(false);
-			}
-		}
-
-    }
+	}
 }

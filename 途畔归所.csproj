@@ -32,7 +32,6 @@
     <None Include="addons\cat_snapicon\README.md" />
     <None Include="addons\cat_snapicon\Theme.tres" />
     <None Include="README.md" />
-    <None Include="优先级.md" />
     <None Include="开发计划.md" />
     <None Include="日志信息.md" />
   </ItemGroup>

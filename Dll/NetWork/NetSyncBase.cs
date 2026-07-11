@@ -10,7 +10,6 @@ using static System.Collections.Specialized.BitVector32;
 
 namespace 途畔归所.Dll.NetWork
 {
-
 	[GlobalClass]
 	public partial class NetSyncBase : Node
 	{
@@ -99,7 +98,7 @@ namespace 途畔归所.Dll.NetWork
 			};
 		}
 
-		public void CallRpc(string name, long Id = 1) => RpcId(Id, nameof(Rpc_Anypeer), name, default); 
+		public void CallRpc(string name) => RpcId(1, nameof(Rpc_Anypeer), name, default); 
 
 		public void CallRpc(string name,  Variant value, long Id = 1) => RpcId(Id, nameof(Rpc_Anypeer), name, value);
 
@@ -116,9 +115,8 @@ namespace 途畔归所.Dll.NetWork
 		public void Rpc_Anypeer(string name, Variant variant)
 		{
 			long senderId = Multiplayer.GetRemoteSenderId();
-			if (RpcDict.TryGetValue(name, out var action))
-				action?.Invoke(senderId, variant);
-		}
+			if (RpcDict.TryGetValue(name, out var action)) action?.Invoke(senderId, variant);
+        }
 
 
 	}

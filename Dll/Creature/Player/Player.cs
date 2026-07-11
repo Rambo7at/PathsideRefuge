@@ -12,7 +12,7 @@ public partial class Player : Humanoid
 
 
 
-	public bool m_IsOwner => m_NetSyncBase != null && m_NetSyncBase.IsOwner;
+
 
 
 	private PlayerController m_PlayerController;
