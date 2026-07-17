@@ -1,14 +1,9 @@
 using Godot;
 using System;
-using System.Xml.Linq;
 using 途畔归所.Dll.Base;
 using 途畔归所.Dll.Core;
-using 途畔归所.Dll.Creature.Npc;
-using 途畔归所.Dll.Interface;
 using 途畔归所.Dll.NetWork;
 using 途畔归所.Dll.Utils;
-using static Godot.WebSocketPeer;
-using static 途畔归所.Dll.Creature.StateMachine;
 
 namespace 途畔归所.Dll.Creature
 {
@@ -54,6 +49,9 @@ namespace 途畔归所.Dll.Creature
 		public bool Stagger => m_AnimState == AnimState.Stagger;
 		public bool Death => m_AnimState == AnimState.Death;
 		public int AttackAnimIndex { get; private set; }
+
+		public bool TwoHandedIdle { get; private set; } = false;
+
 		public bool IsCombo { get; set; }
 		public bool GoCombo { get; set; }
 
@@ -70,10 +68,6 @@ namespace 途畔归所.Dll.Creature
 		private Player m_Player => m_Humanoid is Player pl ? pl : null;
 		private Creature.Npc.Npc m_Npc => m_Humanoid is Creature.Npc.Npc npc ? npc : null;
 
-
-		// 接口事件
-		public event Action OnAnimStateChanged;
-
 		public override void _Ready()
 		{
 			if (GetParent() is not CreatureBase cr)
@@ -85,11 +79,11 @@ namespace 途畔归所.Dll.Creature
 			m_Creature = cr;
 
 
-            if (!m_Creature.m_IsOwner) SetPhysicsProcess(false);
+			if (!m_Creature.m_IsOwner) SetPhysicsProcess(false);
 
 
-            // 动画状态同步
-            m_NetSyncBase.RegisterRpc<int>("RPC_SyncAnimState", RPC_SyncAnimState);
+			// 动画状态同步
+			m_NetSyncBase.RegisterRpc<int>("RPC_SyncAnimState", RPC_SyncAnimState);
 			m_NetSyncBase.RegisterRpc<int>("RPC_RequestAnimState", RPC_RequestAnimState);
 
 			// OneShot 同步
@@ -104,8 +98,6 @@ namespace 途畔归所.Dll.Creature
 			m_NetSyncBase.RegisterRpc("RPC_SyncCombo", RPC_SyncCombo);
 			m_NetSyncBase.RegisterRpc("RPC_RequestCombo", RPC_RequestCombo);
 
-
-			m_Creature.OnHit += OnHit;
 			m_Creature.m_AnimComp.OnEndStagger += EndStagger;
 			m_Creature.m_AnimComp.OnEndDeath += EndDeath;
 			m_Creature.m_AnimComp.OnEndAttack += EndAttack;
@@ -117,8 +109,6 @@ namespace 途畔归所.Dll.Creature
 		{
 			MoveState();
 		}
-
-		private void OnHit(float damage, Node node) => SwitchAnimState(damage >= m_Creature.m_StaggerDamage ? AnimState.Stagger : m_AnimState);
 
 		private void MoveState()
 		{
@@ -188,9 +178,23 @@ namespace 途畔归所.Dll.Creature
 			}
 		}
 
+		/// <summary> 注：切换闲置动作动作 </summary>
+		public void SwitchTwoHandedIdle(bool isTwoHanded)
+		{
+			TwoHandedIdle = isTwoHanded;
+			if (TwoHandedIdle) Blend(1f);
+			else Blend(0f);
+		}
+
 		public void RequestAttack()
 		{
 			SwitchAnimState(AnimState.Attack);
+			OneShot();
+		}
+
+		public void RequestStagger()
+		{
+			SwitchAnimState(AnimState.Stagger);
 			OneShot();
 		}
 
@@ -227,15 +231,14 @@ namespace 途畔归所.Dll.Creature
 			}
 		}
 
+		private void Blend(float v) => m_Creature.m_AnimationTree.Set("parameters/Blend2/blend_amount", v);
+
 		/// <summary>辅助：触发 OneShot </summary>
-		private void FireOneShotLocal()
-		{
-			m_Creature.m_AnimationTree.Set("parameters/OneShot/request", (int)AnimationNodeOneShot.OneShotRequest.Fire);
-		}
+		private void FireOneShotLocal() => m_Creature.m_AnimationTree.Set("parameters/OneShot/request", (int)AnimationNodeOneShot.OneShotRequest.Fire);
 
 
-        #region RPC
-        private void RPC_SyncOneShot()
+		#region RPC
+		private void RPC_SyncOneShot()
 		{
 			// 主机不执行自己的同步消息
 			if (NetCore.Instance.IsHost) return;
@@ -285,36 +288,36 @@ namespace 途畔归所.Dll.Creature
 			m_NetSyncBase.CallAllRpc("RPC_SyncAttackAnimIndex", index);
 		}
 
-        /// <summary> 客户端接收：主机同步的连段标记 </summary>
-        private void RPC_SyncCombo()
-        {
-            if (NetCore.Instance.IsHost) return;
-            IsCombo = true;
-        }
+		/// <summary> 客户端接收：主机同步的连段标记 </summary>
+		private void RPC_SyncCombo()
+		{
+			if (NetCore.Instance.IsHost) return;
+			IsCombo = true;
+		}
 
-        /// <summary> 主机接收：客户端发来的连段请求 </summary>
-        private void RPC_RequestCombo()
-        {
-            if (NetCore.Instance.IsClient) return;
-            if (IsCombo) return;
+		/// <summary> 主机接收：客户端发来的连段请求 </summary>
+		private void RPC_RequestCombo()
+		{
+			if (NetCore.Instance.IsClient) return;
+			if (IsCombo) return;
 
-            IsCombo = true;
-            m_NetSyncBase.CallAllRpc("RPC_SyncCombo");
-        }
-        #endregion
+			IsCombo = true;
+			m_NetSyncBase.CallAllRpc("RPC_SyncCombo");
+		}
+		#endregion
 
 
-        #region 动画函数
+		#region 动画函数
 
-        /// <summary>注：初始化连段检测</summary>
-        private void Combo()
+		/// <summary>注：初始化连段检测</summary>
+		private void Combo()
 		{
 			IsCombo = false;
 			GoCombo = false;
 		}
 
-        /// <summary>注：让动画使用表达式，跳转衍生连段</summary>
-        private void EndCombo()
+		/// <summary>注：让动画使用表达式，跳转衍生连段</summary>
+		private void EndCombo()
 		{
 			CatLog.Ok($"[EndCombo] 执行 EndAttack {IsCombo} {GoCombo}");
 			if (IsCombo)
@@ -323,10 +326,9 @@ namespace 途畔归所.Dll.Creature
 			}
 		}
 
-        /// <summary>注：结束攻击</summary>
-        private void EndAttack()
+		/// <summary>注：结束攻击</summary>
+		private void EndAttack()
 		{
-
 			if (m_AnimState != AnimState.Attack) return;
 			IsCombo = false;
 			GoCombo = false;

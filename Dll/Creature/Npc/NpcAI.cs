@@ -1,5 +1,6 @@
 using Godot;
 using 途畔归所.Dll.Base;
+using 途畔归所.Dll.Comp;
 using 途畔归所.Dll.Core;
 using 途畔归所.Dll.Data;
 using 途畔归所.Dll.Utils;
@@ -7,161 +8,162 @@ using static 途畔归所.Dll.Creature.StateMachine;
 
 namespace 途畔归所.Dll.Creature.Npc
 {
-    [GlobalClass]
-    public partial class NpcAI : Node
-    {
-        private Npc m_Npc;
-        private NpcMovement m_Movement;
-        private StateMachine m_StateMachine;
-
-        public CreatureBase m_huntTarget;
-
-        // 巡逻停留计时
-        private float m_StopTimer;
-        private bool m_isWaiting = false;
-        private Vector3 _lastChaseTarget = Vector3.Zero;
-
-        public override void _Ready()
-        {
-            if (NetCore.Instance.IsClient)
-            {
-                CatUtils.StopAndExit(this);
-                return;
-            }
-
-            if (GetParent() is not Npc comp)
-            {
-                CatLog.Warn("[NpcAI._Ready] 挂载的对象不是 Npc");
-                CatUtils.StopAndExit(this);
-                return;
-            }
-            m_Npc = comp;
-            m_StateMachine = comp.m_StateMachine;
-
-            m_Movement = CatUtils.FindChildNode<NpcMovement>(m_Npc);
-
-            if (m_Movement == null)
-            {
-                CatLog.Err("[NpcAI._Ready] 未挂载重要组件");
-                CatUtils.StopAndExit(this);
-            }
-        }
-
-        public override void _PhysicsProcess(double delta)
-        {
-            float dt = (float)delta;
-
-            See();
-
-            switch (m_StateMachine.m_NpcState)
-            {
-                case StateMachine.NpcState.Patrol:
-                    UpdatePatrol(dt);
-                    break;
-                case StateMachine.NpcState.Chase:
-                    UpdateChase();
-                    break;
-            }
-        }
+	public partial class NpcAI : Node
+	{
+		// 组件
+		private Npc m_Npc;
+		private NpcMovement m_Movement;
+		private StateMachine m_StateMachine;
+		private SenseComp m_SenseComp;
+		private Equipment m_Equipment;
+		private NpcBattle m_NpcBattle;
 
 
-        /// <summary>注：视觉 </summary>
-        private void See()
-        {
-            if (m_Npc.m_Eye.IsColliding() == false || m_huntTarget != null) return;
 
-            var collider = m_Npc.m_Eye.GetCollider();
-            if (collider is not CreatureBase creature) return;
+		public CreatureBase m_huntTarget;
 
-            m_huntTarget = creature;
-            m_StateMachine.SwitchNpcState(StateMachine.NpcState.Chase);
-            GD.Print("测试:发现玩家辣！");
-        }
+		// 巡逻停留计时
+		private float m_StopTimer;
+		private bool m_IsWaiting = false;
+		private Vector3 _lastChaseTarget = Vector3.Zero;
 
 
-        /// <summary>注：巡逻决策 </summary>
-        private void UpdatePatrol(float delta)
-        {
-            if (m_StateMachine.m_NpcState != StateMachine.NpcState.Patrol)
-            {
-                m_isWaiting = false;
-                m_StopTimer = 0f;
-                m_Movement.ClearNavigation();
-                return;
-            }
+		// 便捷属性
+		private float PatrolStopTime => m_Npc.m_CreatureData.PatrolStopTime;
+		private float PatrolRadius => m_Npc.m_CreatureData.PatrolRadius;
 
-            if (m_isWaiting)
-            {
-                m_StopTimer -= delta;
-                if (m_StopTimer <= 0f)
-                {
-                    m_isWaiting = false;
-                    GenerateNavPatrolTarget();
-                }
-                return;
-            }
+		private bool IsPatrol => m_StateMachine.m_NpcState == NpcState.Patrol;
+		private bool IsChase => m_StateMachine.m_NpcState == NpcState.Chase;
 
-            if (m_Movement.m_navAgent.IsNavigationFinished())
-            {
-                m_StopTimer = m_Npc.m_PatrolStopTime;
-                m_isWaiting = true;
-            }
-        }
+		public override void _Ready()
+		{
+			if (NetCore.Instance.IsClient)
+			{
+				CatUtils.StopAndExit(this);
+				return;
+			}
+
+			if (GetParent() is not Npc comp)
+			{
+				CatLog.Warn("[NpcAI._Ready] 挂载的对象不是 Npc");
+				CatUtils.StopAndExit(this);
+				return;
+			}
+
+			m_Npc = comp;
+			m_StateMachine = comp.m_StateMachine;
+			m_Movement = comp.m_NpcMovement;
+			m_SenseComp = comp.m_SenseComp;
+			m_NpcBattle = comp.m_NpcBattle;
+
+			if (m_Movement == null)
+			{
+				CatLog.Err("[NpcAI._Ready] 未挂载重要组件");
+				CatUtils.StopAndExit(this);
+			}
+		}
+
+		public override void _PhysicsProcess(double delta)
+		{
+			float dt = (float)delta;
+
+			SenseAI();
+
+			switch (m_StateMachine.m_NpcState)
+			{
+				case StateMachine.NpcState.Patrol:
+					UpdatePatrol(dt);
+					break;
+				case StateMachine.NpcState.Chase:
+					UpdateChase();
+					break;
+			}
+		}
 
 
-        /// <summary>注：追击导航模式 </summary>
-        private void UpdateChase()
-        {
-            if (m_StateMachine.m_NpcState != StateMachine.NpcState.Chase) return;
+		/// <summary>注：感知 </summary>
+		private void SenseAI()
+		{
+			if (m_SenseComp.m_DetectedCreaturesList.Count == 0) return;
+			if (IsChase) return;
 
-            if (m_huntTarget == null || !IsInstanceValid(m_huntTarget))
-            {
-                m_huntTarget = null;
-                m_StateMachine.SwitchNpcState(StateMachine.NpcState.Patrol);
-                m_Movement.ClearNavigation();
-                _lastChaseTarget = Vector3.Zero;
-                return;
-            }
+			foreach (var target in m_SenseComp.m_DetectedCreaturesList)
+			{
+				if (target == null) continue;
 
-            Rid map = m_Movement.m_navAgent.GetNavigationMap();
-            Vector3 targetOnNav = NavigationServer3D.MapGetClosestPoint(map, m_huntTarget.GlobalPosition);
+				m_huntTarget = target;
+				m_StateMachine.SwitchNpcState(NpcState.Chase);
+			}
 
-            if (_lastChaseTarget == Vector3.Zero || targetOnNav.DistanceSquaredTo(_lastChaseTarget) > 0.25f)
-            {
-                m_Movement.SetNavigation(targetOnNav);
-                _lastChaseTarget = targetOnNav;
-            }
-        }
+			if (m_huntTarget != null) GD.Print("测试:发现玩家辣！");
+		}
 
-        /// <summary>注：生成巡逻导航点 </summary>
-        private void GenerateNavPatrolTarget()
-        {
-            if (m_Movement.m_navAgent == null) return;
 
-            Vector3 origin = m_Npc.GlobalPosition;
-            float radius = m_Npc.m_PatrolRadius;
-            int maxAttempts = 15;
+		/// <summary>注：巡逻决策 </summary>
+		private void UpdatePatrol(float delta)
+		{
+			if (m_StateMachine.m_NpcState != NpcState.Patrol)
+			{
+				m_IsWaiting = false;
+				m_StopTimer = 0f;
+				m_Movement.ClearNavigation();
+				return;
+			}
 
-            for (int i = 0; i < maxAttempts; i++)
-            {
-                float angle = (float)GD.RandRange(0, Mathf.Pi * 2);
-                float dist = (float)GD.RandRange(1.0f, radius);
-                Vector3 candidate = origin + new Vector3(Mathf.Cos(angle), 0, Mathf.Sin(angle)) * dist;
+			if (m_IsWaiting)
+			{
+				m_StopTimer -= delta;
+				if (m_StopTimer <= 0f)
+				{
+					m_IsWaiting = false;
+					m_Movement.SetRandomPatrolTarget(m_Npc.m_PatrolRadius, m_Npc.m_ChaseTargetDistance * 1.5f);
+				}
+				return;
+			}
 
-                Rid map = m_Movement.m_navAgent.GetNavigationMap();
-                Vector3 closest = NavigationServer3D.MapGetClosestPoint(map, candidate);
+			if (m_Movement.IsNavigationFinished())
+			{
+				m_StopTimer = PatrolStopTime;
+				m_IsWaiting = true;
+			}
+		}
 
-                float d = closest.DistanceTo(origin);
-                if (d <= radius && d > m_Npc.m_ChaseTargetDistance * 1.5f)
-                {
-                    m_Movement.SetNavigation(closest);
-                    return;
-                }
-            }
 
-            m_StopTimer = m_Npc.m_PatrolStopTime;
-            m_isWaiting = true;
-            CatLog.Warn("[NpcAI] 未找到合适巡逻点，原地停留");
-        }
-    }
+		/// <summary>注：追击导航模式 </summary>
+		private void UpdateChase()
+		{
+			if (!IsChase) return;
+
+			if (m_huntTarget == null || !IsInstanceValid(m_huntTarget))
+			{
+				StopChase();
+				return;
+			}
+
+			float dist = m_Npc.GlobalPosition.DistanceTo(m_huntTarget.GlobalPosition);
+
+			if (dist <= 2 && m_StateMachine.m_AnimState != StateMachine.AnimState.Attack)
+			{
+				if (m_NpcBattle == null)
+				{
+					CatLog.Debug("m_NpcBattle 是空的");
+					return;
+				}
+				m_NpcBattle.attack();
+			}
+			else
+			{
+				m_Movement.SetNavigation(m_huntTarget.GlobalPosition);
+			}
+		}
+
+		private void StopChase()
+		{
+			m_huntTarget = null;
+			m_StateMachine.SwitchNpcState(NpcState.Patrol);
+			m_Movement.ClearNavigation();
+		}
+
+
+	}
 }

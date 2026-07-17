@@ -59,9 +59,23 @@ namespace 维修公司.Dll.data
 
         [ExportGroup("武器")]
         [Export] public E_WeaponType WeaponType { get; set; }
+        [Export] public bool TwoHandedWeapon { get; set; } 
         [Export] public int AttackAnimIndex { get; set; }
         [Export] public int Damage { get; set; }
-         
+
+
+        [ExportGroup("AI")]
+        [Export] public float AttackDistance { get; set; } = 1f;
+        [Export] public float AttackInterval { get; set; } = 5f;
+
+
+
+
+
+
+
+
+
         public bool IsEquip => Type == E_ItemType.Weapon;
 
 

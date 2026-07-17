@@ -1,7 +1,9 @@
 using Godot;
 using 维修公司.Dll.data;
 using 维修公司.Dll.Interface;
+using 途畔归所.Dll.Base;
 using 途畔归所.Dll.Comp;
+using 途畔归所.Dll.Creature;
 using 途畔归所.Dll.Interface;
 using 途畔归所.Dll.Manager;
 using 途畔归所.Dll.NetWork;
@@ -16,12 +18,21 @@ public partial class ItemComp : RigidBody3D, IInteractable
 	[Export] public ItemData m_ItemData { get; set; }
 	[Export] public Area3D m_WeaponHitBox { get; set; }
 
-	private Node3D m_LastHitTarget;
+	// 便捷属性
+	public int m_AttackAnimIndex => m_ItemData.AttackAnimIndex;
+	public bool m_IsTwoHandedWeapon => m_ItemData.TwoHandedWeapon;
+	public float m_AttackDistance => m_ItemData.AttackDistance;
+    public E_ItemType m_ItemType => m_ItemData.Type;
+
+	public string ObjectName => m_ItemData.Name;
+
+    private Node3D m_LastHitTarget;
+
+	private Node3D m_Owner;
 
 
-	public E_ItemType m_ItemType => m_ItemData.Type;
 
-	public override void _Ready()
+    public override void _Ready()
 	{
 		if (m_ItemData == null)
 		{
@@ -54,34 +65,39 @@ public partial class ItemComp : RigidBody3D, IInteractable
 
 
 	/// <summary>注：玩家互动接口 </summary>
-	public void PlayerInteract(bool InputE, bool InputF, Player player)
+	public void PlayerInteract(bool InputE, bool InputF, CreatureBase Creature)
 	{
 		if (InputE)
 		{
-			PickUp(player);
+			PickUp(Creature);
 		}
 	}
 
 	/// <summary>互动：拾取功能 </summary>
-	private void PickUp(Player player)
+	private void PickUp(CreatureBase Creature)
 	{
-		var b = player.m_InventoryData.TryAddItem(m_ItemData);
+		var b = Creature.m_InventoryData.TryAddItem(m_ItemData);
 		GD.Print($"已拾取物品[{m_ItemData.Name}]，添加到背包{b}");
 		QueueFree();
 	}
 
 
-	public void BindAnim(CreatureAnimComp comp)
+	public void BindAnim(CreatureBase creature)
 	{
-		comp.OnEnableHitbox += EnableHitbox;
-		comp.OnDisableHitbox += DisableHitbox;
-	}
+        creature.m_AnimComp.OnEnableHitbox += EnableHitbox;
+        creature.m_AnimComp.OnDisableHitbox += DisableHitbox;
+        creature.m_StateMachine.SwitchTwoHandedIdle(m_IsTwoHandedWeapon);
+        m_Owner = creature;
 
-	public void UnbindAnim(CreatureAnimComp comp)
+    }
+
+	public void UnbindAnim(CreatureBase creature)
 	{
-		comp.OnEnableHitbox -= EnableHitbox;
-		comp.OnDisableHitbox -= DisableHitbox;
-	}
+        creature.m_AnimComp.OnEnableHitbox -= EnableHitbox;
+        creature.m_AnimComp.OnDisableHitbox -= DisableHitbox;
+        creature.m_StateMachine.SwitchTwoHandedIdle(false);
+        m_Owner = null;
+    }
 
 	// 动画轨道调用：开启判定窗口
 	public void EnableHitbox()
@@ -103,9 +119,11 @@ public partial class ItemComp : RigidBody3D, IInteractable
 	/// <summary>注 Area3D回调函数 </summary>
 	private void OnHit(Node3D body)
 	{
-		if (body is not IDamageable node || body == PlayerManager.Instance.m_LocalPlayer || body == m_LastHitTarget) return;
+		if (body is not IDamageable node || body == m_Owner || body == m_LastHitTarget) return;
 		node.TakeDamage(m_ItemData.Damage);
 		m_LastHitTarget = body;
 		CatLog.Ok($"[PlayerAttack] 命中 {body.Name}");
 	}
+
+
 }

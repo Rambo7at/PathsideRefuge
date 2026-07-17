@@ -18,7 +18,7 @@ namespace 途畔归所.Dll.Base
 
         public Equipment m_Equipment;
 
-        public InventoryData m_InventoryData { get => m_CreatureData.InventoryData; set => m_CreatureData.InventoryData = value; }
+
         public Array<ItemData> m_EquipData { get => m_CreatureData.EquipData; set => m_CreatureData.EquipData = value; }
 
 

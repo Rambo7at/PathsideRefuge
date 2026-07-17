@@ -1,5 +1,7 @@
 using Godot;
+using 维修公司.Dll.data;
 using 维修公司.Dll.Interface;
+using 途畔归所.Dll.Base;
 using 途畔归所.Dll.Core;
 using 途畔归所.Dll.Data;
 using 途畔归所.Dll.Interface;
@@ -22,6 +24,8 @@ namespace 途畔归所.Dll.Comp
         public bool m_IsOpen { get; private set; }
         InventoryData IInventoryHolder.InventoryData { get => m_inventoryData; set => m_inventoryData = value; }
         Vector3 IInventoryHolder.DropPos => m_dropPos.GlobalPosition;
+
+        public string ObjectName => m_placedData.m_Name;
 
         public override void _Ready()
         {
@@ -213,12 +217,15 @@ namespace 途畔归所.Dll.Comp
             if (!b) m_inventoryView.GetParent()?.RemoveChild(m_inventoryView);
         }
 
-        public void PlayerInteract(bool InputE, bool InputF, Player player)
+        public void PlayerInteract(bool InputE, bool InputF, CreatureBase creature)
         {
+
+            if (creature is not Player pl) return;
+
             if (InputE)
             {
                 if (m_IsOpen) CloseContainer();
-                else OpenContainer(player);
+                else OpenContainer(pl);
             }
         }
 

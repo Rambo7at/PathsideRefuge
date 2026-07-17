@@ -10,8 +10,10 @@ namespace 维修公司.Dll.Interface
 {
     public interface IInteractable
     {
+        string ObjectName { get; }
+
         /// <summary>执行互动</summary>
-        void PlayerInteract(bool InputE, bool InputF, Player player);
+        void PlayerInteract(bool InputE, bool InputF, CreatureBase player);
     }
 }
 

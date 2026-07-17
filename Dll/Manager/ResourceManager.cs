@@ -28,6 +28,7 @@ namespace 途畔归所.Dll.Manager
             LoadAsset("res://Prefab/Item/7at_空拳头.tscn");
             LoadAsset("res://Prefab/Npc/Npc.tscn");
             LoadAsset("res://Prefab/Piece/et_板条箱.tscn");
+            LoadAsset("res://Prefab/Item/7at_双手斧.tscn");
 
             LoadAsset("res://Prefab/Vegetation/ET-树.tscn");
 

@@ -18,7 +18,7 @@ namespace 途畔归所.Dll.Base
 	{
 		// 导出属性
 		[Export] public CreatureData m_CreatureData { get; set; }
-		[Export] public RayCast3D m_Eye { get; set; }
+		[Export] public Node3D m_Eye { get; set; }
 		[Export] public CreatureAnimComp m_AnimComp { get; set; }
 
 		[Export] private Array<PackedScene> m_AttackPrefabs = [];
@@ -28,10 +28,10 @@ namespace 途畔归所.Dll.Base
 		public NetTransformSync m_NetTransformSync;
 		public StateMachine m_StateMachine;
 		public AnimationTree m_AnimationTree;
+        public PhysicsRayQueryParameters3D m_PhysicsRay;
 
-
-		// 字段属性
-		public string m_Name => m_CreatureData.Name;
+        // 字段属性
+        public string m_Name => m_CreatureData.Name;
 		public E_CreatureType m_CreatureType => m_CreatureData.CreatureType;
 		public E_Faction m_Faction => m_CreatureData.Faction;
 
@@ -62,18 +62,22 @@ namespace 途畔归所.Dll.Base
 		public float m_StaggerDamage => m_CreatureData.StaggerDamage * m_MaxHealth;
 
 		public Array<DropBase> m_DropTable => m_CreatureData.DropTable;
+        public InventoryData m_InventoryData { get => m_CreatureData.InventoryData; set => m_CreatureData.InventoryData = value; }
 
+        // 公共成员
+        public Array<ItemComp> m_AttackItems = [];
         public bool m_IsOwner => m_NetSyncBase != null && m_NetSyncBase.IsOwner;
-
-        public Array<ItemComp> m_AttackItems = []; 
-
-
-		public bool IsDead => m_Health <= 0;
+        public bool IsDead => m_Health <= 0;
 		public Vector3 DropPos => GlobalPosition + Vector3.Up * 1f;
 
 
-		/// <summary>注：受击事件</summary>
-		public event Action<float, Node> OnHit;
+
+		public Rid Rid => GetRid();
+
+        public Array<Rid> m_SelfExclude;
+
+        /// <summary>注：受击事件</summary>
+        public event Action<float, Node> OnHitEvent;
 
 		public override void _EnterTree()
 		{
@@ -105,6 +109,8 @@ namespace 途畔归所.Dll.Base
             {
                 m_NetSyncBase.CallRpc("RPC_RequestHealth");
             }
+
+            m_SelfExclude ??= [Rid];  // 初始化射线 屏蔽字段
         }
 
 		/// <summary>客户端请求主机结算伤害</summary>
@@ -141,7 +147,7 @@ namespace 途畔归所.Dll.Base
 		{
 			if (IsDead) return;
 
-			OnHit?.Invoke(amount, attacker);
+            OnHitEvent?.Invoke(amount, attacker);
 
 			if (NetCore.Instance.IsHost)
 			{
@@ -189,32 +195,20 @@ namespace 途畔归所.Dll.Base
 			Velocity += GetGravity() * (float)delta;
 		}
 
-		/// <summary> 注：水平移动 </summary>
-		public virtual bool MoveHorizontally(Vector3 point, float speed)
+
+		public virtual void SetPhysicsRay(Vector3 from, Vector3 to, Array<Rid> rids)
 		{
-			Vector3 toTarget = point - GlobalPosition;
-			toTarget.Y = 0;
+            m_PhysicsRay ??= new PhysicsRayQueryParameters3D();
+            m_PhysicsRay.From = from;
+            m_PhysicsRay.To = to;
+			m_PhysicsRay.Exclude = rids;
+        }
 
-			if (toTarget.LengthSquared() < 0.001f)
-			{
-				// 停止水平速度，避免惯性滑动
-				Vector3 vel = Velocity;
-				vel.X = 0;
-				vel.Z = 0;
-				Velocity = vel;
-				return false;
-			}
 
-			Vector3 direction = toTarget.Normalized();
-			Vector3 vel2 = Velocity;
-			vel2.X = direction.X * speed;
-			vel2.Z = direction.Z * speed;
-			Velocity = vel2;
-			return true;
-		}
 
-		/// <summary> 注：智能转向，移动时面朝速度方向，静止时面朝目标点 </summary>
-		public void FaceMovementOrTarget(Vector3 lookTarget, float rotationSpeed, float delta)
+
+        /// <summary> 注：智能转向，移动时面朝速度方向，静止时面朝目标点 </summary>
+        public void FaceMovementOrTarget(Vector3 lookTarget, float rotationSpeed, float delta)
 		{
 			Vector3 horizontalVel = new Vector3(Velocity.X, 0, Velocity.Z);
 			Vector3 target;

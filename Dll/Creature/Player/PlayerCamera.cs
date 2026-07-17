@@ -7,7 +7,6 @@ public partial class PlayerCamera : SpringArm3D
 
     [Export] private float m_MouseSensitivity = 0.005f;
     [Export] private float m_VerticalLimit = 1.4f;
-    [Export] private RayCast3D m_RayCast3D;
 
     private Player m_Plyaer;
 
@@ -28,7 +27,6 @@ public partial class PlayerCamera : SpringArm3D
             CatLog.Net($"[PlayerCamera._Ready]：非所有组件，已销毁");
             CatUtils.StopAndExit(this);
             return;
-
         }
 
 
@@ -48,11 +46,10 @@ public partial class PlayerCamera : SpringArm3D
 
     public override void _Process(double delta)
     {
-        m_RayCast3D.GlobalRotation = this.GlobalRotation;
 
         GlobalPosition = m_Plyaer.GlobalPosition + new Vector3(0, 1.439f, 0);
 
-        m_RayCast3D.GlobalRotation = this.GlobalRotation;
+
     }
 
 

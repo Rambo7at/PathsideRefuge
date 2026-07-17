@@ -16,11 +16,7 @@ namespace 途畔归所.Dll.Creature
         public ItemData m_WeaponData { get => GetEquipData("Weapon"); set => SetEquipData("Weapon", value); }
 
         private ItemComp m_Unarmed;
-        private ItemComp m_WeaponComp;
-
-
-
-
+        public ItemComp m_WeaponComp;
 
         public override void _EnterTree()
         {
@@ -31,15 +27,22 @@ namespace 途畔归所.Dll.Creature
                 CatLog.Err($"[Equipment._Ready]：父对象不是 Humanoid 类，已销毁");
                 return;
             }
+
             m_Humanoid = humanoid;
             m_StateMachine = humanoid.m_StateMachine;
 
-            CatLog.Ok($"[Equipment._EnterTree]：{m_Humanoid.m_CreatureData.Name}开始执行");
 
             InitEquipData();
             LoadUnarmed();
+            
+
+        }
+
+        public override void _Ready()
+        {
             UpdateWeapon();
         }
+
 
         /// <summary>辅助：加载 人形生物 默认攻击件</summary>
         private void LoadUnarmed()
@@ -49,76 +52,44 @@ namespace 途畔归所.Dll.Creature
             if (m_Unarmed == null) CatLog.Warn("[Equipment._Ready] 人形生物 的拳头item 未有加载成功");
         }
 
+        /// <summary>注：更新装备武器 </summary>
         public void UpdateWeapon()
         {
-            // 1. 无武器数据，空手已经在手上 -> 只需卸掉任何残留的真武器
-            if (m_WeaponData == null && m_Unarmed.IsInsideTree())
+            // === 卸载当前手上的一切 ===
+            if (m_WeaponComp != null)
             {
-                if (m_WeaponComp != null)
-                {
-                    m_WeaponComp.UnbindAnim(m_Humanoid.m_AnimComp);
-                    m_WeaponComp.QueueFree();
-                    m_WeaponComp = null;
-                }
-                return;
-            }
-
-            // 2. 无武器数据，空手还没挂上 -> 卸掉真武器，挂上空手
-            if (m_WeaponData == null && !m_Unarmed.IsInsideTree())
-            {
-                if (m_WeaponComp != null)
-                {
-                    m_WeaponComp.UnbindAnim(m_Humanoid.m_AnimComp);
-                    m_WeaponComp.QueueFree();
-                    m_WeaponComp = null;
-                }
-                m_Humanoid.m_HandR.AddChild(m_Unarmed);
-                m_Unarmed.BindAnim(m_Humanoid.m_AnimComp);
-                m_StateMachine.SwitchAttackAnimIndex(m_Unarmed.m_ItemData.AttackAnimIndex);
-                return;
-            }
-
-            // 3. 有武器数据，空手还挂着，且没实例化真武器 -> 销毁空手，生成真武器
-            if (m_WeaponData != null && m_Unarmed.IsInsideTree() && m_WeaponComp == null)
-            {
-                // 移除空手
-                m_Unarmed.UnbindAnim(m_Humanoid.m_AnimComp);
-                m_Humanoid.m_HandR.RemoveChild(m_Unarmed);
-
-                // 实例化真武器
-                var newWeapon = m_WeaponData.DataToDrop();
-                if (newWeapon == null) return;
-
-                newWeapon.SetEquip();
-                m_Humanoid.m_HandR.AddChild(newWeapon);
-                newWeapon.BindAnim(m_Humanoid.m_AnimComp);
-                m_WeaponComp = newWeapon;
-                m_StateMachine.SwitchAttackAnimIndex(newWeapon.m_ItemData.AttackAnimIndex);
-                return;
-            }
-
-            // 4. 武器切换（已有真武器，但数据变了，且不是同一个武器）
-            if (m_WeaponData != null && m_WeaponComp != null && m_WeaponData.ID != m_WeaponComp.m_ItemData.ID)
-            {
-                // 卸掉旧武器
-                m_WeaponComp.UnbindAnim(m_Humanoid.m_AnimComp);
+                m_WeaponComp.UnbindAnim(m_Humanoid);
                 m_WeaponComp.QueueFree();
                 m_WeaponComp = null;
-
-                // 生成新武器
-                var newWeapon = m_WeaponData.DataToDrop();
-                if (newWeapon == null) return;
-                newWeapon.SetEquip();
-                m_Humanoid.m_HandR.AddChild(newWeapon);
-                newWeapon.BindAnim(m_Humanoid.m_AnimComp);
-                m_WeaponComp = newWeapon;
-                m_StateMachine.SwitchAttackAnimIndex(newWeapon.m_ItemData.AttackAnimIndex);
             }
+
+            if (m_Unarmed.IsInsideTree())
+            {
+                m_Unarmed.UnbindAnim(m_Humanoid);
+                m_Humanoid.m_HandR.RemoveChild(m_Unarmed);
+            }
+
+            // === 确定要装什么 ===
+            ItemComp targetComp;
+            if (m_WeaponData != null)
+            {
+                // 有武器数据 → 实例化真武器
+                targetComp = m_WeaponData.DataToDrop();
+                if (targetComp == null) return;
+                targetComp.SetEquip();
+                m_WeaponComp = targetComp;
+            }
+            else
+            {
+                // 无武器数据 → 用空手
+                targetComp = m_Unarmed;
+            }
+
+            // === 挂载 + 绑定动画 ===
+            m_Humanoid.m_HandR.AddChild(targetComp);
+            targetComp.BindAnim(m_Humanoid);
+            m_StateMachine.SwitchAttackAnimIndex(targetComp.m_AttackAnimIndex);
         }
-
-
-
-
 
         /// <summary>注：初始化装备数据 </summary>
         private void InitEquipData()
