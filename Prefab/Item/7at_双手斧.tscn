@@ -6,17 +6,15 @@
 [ext_resource type="Texture2D" uid="uid://bqx5nufj4fyhh" path="res://Asset/kaykit_character_pack_adventures/Assets/gltf/barbarian_texture.png" id="3_gwhu2"]
 [ext_resource type="Script" uid="uid://bgndbmht2eucx" path="res://Dll/NetWork/NetSyncBase.cs" id="4_gwhu2"]
 
-[sub_resource type="Resource" id="Resource_kxt6q"]
+[sub_resource type="Resource" id="Resource_avmtv"]
 script = ExtResource("2_avmtv")
 ID = "7at_双手斧"
 Name = "双手斧"
-Type = 3
-Description = "就是一把双手斧"
+Type = 4
 Icon = ExtResource("2_gwhu2")
-WeaponType = 1
-TwoHandedWeapon = true
+EquipType = 8
+Damage = 50
 AttackAnimIndex = 2
-Damage = 20
 metadata/_custom_type_script = "uid://inh0sbmkkjuj"
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vtm2t"]
@@ -68,10 +66,10 @@ size = Vector3(1.23489, 0.807848, 0.16357422)
 [sub_resource type="BoxShape3D" id="BoxShape3D_n6orb"]
 size = Vector3(1.2532959, 0.76953125, 0.27252197)
 
-[node name="7at_双手斧" type="RigidBody3D" unique_id=825352171 node_paths=PackedStringArray("m_WeaponHitBox")]
+[node name="7at_双手斧" type="RigidBody3D" unique_id=825352171 node_paths=PackedStringArray("WeaponHitBox")]
 script = ExtResource("1_gnroc")
-m_ItemData = SubResource("Resource_kxt6q")
-m_WeaponHitBox = NodePath("Area3D")
+Data = SubResource("Resource_avmtv")
+WeaponHitBox = NodePath("Area3D")
 metadata/_custom_type_script = "uid://uquicwf3cleb"
 
 [node name="NetSyncBase" type="Node" parent="." unique_id=130719684]

@@ -15,17 +15,17 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
-[node name="SlotUi" type="Control" unique_id=1872644542 node_paths=PackedStringArray("m_button", "m_itemIcon", "m_itemInfo", "m_checkBox")]
+[node name="SlotUi" type="Control" unique_id=1872644542 node_paths=PackedStringArray("Button", "ItemIcon", "ItemInfo")]
 self_modulate = Color(1, 1, 1, 0)
+z_index = 800
 layout_mode = 3
 anchors_preset = 0
 offset_right = 64.0
 offset_bottom = 64.0
 script = ExtResource("1_uvxin")
-m_button = NodePath("Button")
-m_itemIcon = NodePath("Button/PanelContainer/TextureRect")
-m_itemInfo = NodePath("Button/PanelContainer/TextureRect/Label")
-m_checkBox = NodePath("")
+Button = NodePath("Button")
+ItemIcon = NodePath("Button/PanelContainer/TextureRect")
+ItemInfo = NodePath("Button/PanelContainer/TextureRect/Label")
 
 [node name="Button" type="Button" parent="." unique_id=2092678774]
 self_modulate = Color(1, 1, 1, 0)

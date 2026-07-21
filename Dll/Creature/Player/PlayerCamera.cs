@@ -8,6 +8,8 @@ public partial class PlayerCamera : SpringArm3D
     [Export] private float m_MouseSensitivity = 0.005f;
     [Export] private float m_VerticalLimit = 1.4f;
 
+    [Export] private Node3D CameraHolder;
+
     private Player m_Plyaer;
 
     private Camera3D m_Camera3D;  // 引用子节点 Camera3D，可以不导出，通过 GetNode 获取
@@ -37,17 +39,19 @@ public partial class PlayerCamera : SpringArm3D
         if (cam != null && cam.GetParent() != this)
         {
             cam.GetParent()?.RemoveChild(cam);
-            AddChild(cam);
+            CameraHolder.AddChild(cam);
             m_Camera3D = cam;
+            m_Camera3D.Position = new Vector3(0.8f, 0.5f, 0f);
         }
         m_Camera3D.Current = true;
+
         Input.MouseMode = Input.MouseModeEnum.Captured;
     }
 
     public override void _Process(double delta)
     {
 
-        GlobalPosition = m_Plyaer.GlobalPosition + new Vector3(0, 1.439f, 0);
+        GlobalPosition = m_Plyaer.GlobalPosition + new Vector3(0f, 1.439f, 0f);
 
 
     }
@@ -64,17 +68,16 @@ public partial class PlayerCamera : SpringArm3D
 
     private void HandleMouseMotion(InputEventMouseMotion mouseMotion)
     {
-        // 水平旋转：绕世界 Y 轴旋转（左右看）
-        RotateY(-mouseMotion.Relative.X * m_MouseSensitivity);
+        // 水平旋转：开了TopLevel后，RotateY 和 GlobalRotate 效果基本一致，保留你原来的写法也可以
+        // 推荐改成绕世界Y轴，更严谨，避免极端情况的倾斜
+        float yawDelta = -mouseMotion.Relative.X * m_MouseSensitivity;
+        GlobalRotate(Vector3.Up, yawDelta);
 
-        // 垂直旋转：绕局部 X 轴旋转（上下看）
+        // 垂直旋转：保留你原来的逻辑也能用，推荐改成直接赋值，避免相对旋转误差
         float pitchDelta = -mouseMotion.Relative.Y * m_MouseSensitivity;
         float newPitch = Rotation.X + pitchDelta;
+        newPitch = Mathf.Clamp(newPitch, -m_VerticalLimit, m_VerticalLimit);
 
-        // 限制垂直角度，避免翻转
-        if (Mathf.Abs(newPitch) < m_VerticalLimit)
-        {
-            RotateObjectLocal(Vector3.Right, pitchDelta);
-        }
+        Rotation = new Vector3(newPitch, Rotation.Y, 0f);
     }
 }

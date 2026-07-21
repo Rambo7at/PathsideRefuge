@@ -1,6 +1,7 @@
 using Godot;
 using Godot.Collections;
 using 维修公司.Dll.data;
+using 途畔归所.Dll.Comp;
 using 途畔归所.Dll.Manager;
 
 namespace 途畔归所.Dll.Base
@@ -25,7 +26,7 @@ namespace 途畔归所.Dll.Base
 
             for (int i = 0; i < count; i++)
             {
-                items.Add(m_itemData.DataToDrop());
+                items.Add(m_itemData.ToDrop());
             }
 
             return items;

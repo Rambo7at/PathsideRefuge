@@ -75,7 +75,7 @@ namespace 途畔归所.Dll.Data
             foreach (var slotdata in m_itemArr)
             {
                 if (itemData.Stack <= 0) return true;
-                if (slotdata != null && slotdata.ID == itemData.ID && slotdata.m_IsStackable) slotdata.TryStack(itemData);
+                if (slotdata != null && slotdata.ID == itemData.ID && slotdata.CanStack) slotdata.TryStack(itemData);
             }
             return itemData.Stack < 1;
         }

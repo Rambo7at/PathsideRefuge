@@ -16,6 +16,6 @@ namespace 途畔归所.Dll.Interface
         /// <param name="source">伤害来源（可为空）</param>
         void TakeDamage(float amount, Node node = null);
 
-
+        
     }
 }

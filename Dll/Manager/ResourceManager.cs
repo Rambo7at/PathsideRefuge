@@ -1,9 +1,9 @@
 using Godot;
 using Godot.Collections;
 using 途畔归所.Dll.Base;
+using 途畔归所.Dll.Comp;
 using 途畔归所.Dll.NetWork;
 using 途畔归所.Dll.Utils;
-using static Godot.WebSocketPeer;
 
 namespace 途畔归所.Dll.Manager
 {
@@ -21,34 +21,12 @@ namespace 途畔归所.Dll.Manager
 
         public void Init()
         {
-            LoadAsset("res://Prefab/Player/player.tscn");
-            LoadAsset("res://Prefab/Item/et_牛奶罐.tscn");
-            LoadAsset("res://Prefab/Item/7at_匕首.tscn");
-            LoadAsset("res://Prefab/Item/et_木材.tscn");
-            LoadAsset("res://Prefab/Item/7at_空拳头.tscn");
-            LoadAsset("res://Prefab/Npc/Npc.tscn");
-            LoadAsset("res://Prefab/Piece/et_板条箱.tscn");
-            LoadAsset("res://Prefab/Item/7at_双手斧.tscn");
-
-            LoadAsset("res://Prefab/Vegetation/ET-树.tscn");
-
-            LoadAsset("res://Prefab/View/HUD/hud.tscn");
-            LoadAsset("res://Prefab/View/ESC/esc_ui.tscn");
-            LoadAsset("res://Prefab/View/ConsoleUI.tscn");
-            LoadAsset("res://Prefab/View/储物/InventoryUI.tscn");
-            LoadAsset("res://Prefab/View/格子/slot_ui.tscn");
-            LoadAsset("res://Prefab/View/Button/Button_A1.tscn");
-            LoadAsset("res://Prefab/View/容器/ContainerUI.tscn");
-            LoadAsset("res://Prefab/View/装备栏/EquipUI.tscn");
-
-
-            LoadAsset("res://Scenes/主菜单.tscn");
-            LoadAsset("res://Scenes/测试场景.tscn");
-            LoadAsset("res://Scenes/角色创建.tscn");
+            LoadDirectory("res://Prefab/");
+            LoadDirectory("res://Scenes/");
 
 
             RegisterResource();
-       
+
             CatLog.Ok("[ResourceManager] 已完成初始化");
         }
 
@@ -85,7 +63,7 @@ namespace 途畔归所.Dll.Manager
 
                 if (node is ItemComp item)
                 {
-                    ItemManager.Instance.RegisterItem(prefabHash,prefab, item.m_ItemData);
+                    ItemManager.Instance.RegisterItem(prefabHash, prefab, item.Data);
                 }
 
                 if (!NetObjectManager.Instance.m_PrefabDict.ContainsKey(prefabHash) && CatUtils.FindChildNode<NetSyncBase>(node) != null)
@@ -98,19 +76,40 @@ namespace 途畔归所.Dll.Manager
 
         }
 
+        /// <summary>注：递归加载指定目录下所有 .tscn 资源</summary>
+        private void LoadDirectory(string path)
+        {
+            using DirAccess dir = DirAccess.Open(path);
+            if (dir == null)
+            {
+                CatLog.Err($"[ResourceManager.LoadDirectory] 目录不存在: {path}");
+                return;
+            }
 
+            // 遍历当前目录下的所有文件
+            dir.ListDirBegin();
+            while (true)
+            {
+                string fileName = dir.GetNext();
+                if (string.IsNullOrEmpty(fileName)) break;
 
+                string fullPath = path + fileName;
 
+                // 如果是目录，递归进入
+                if (dir.CurrentIsDir())
+                {
+                    if (fileName == "." || fileName == "..") continue;
+                    LoadDirectory(fullPath + "/");
+                    continue;
+                }
 
+                // 只加载 .tscn 文件
+                if (!fileName.EndsWith(".tscn")) continue;
 
-
-
-
-
-
-
-
-
+                LoadAsset(fullPath);
+            }
+            dir.ListDirEnd();
+        }
 
         /// <summary> 辅助: 从指定路径加载资源 </summary>
         private void LoadAsset(string res)
@@ -126,13 +125,6 @@ namespace 途畔归所.Dll.Manager
                 CatLog.Err($"[ResourceManager.LoadAsset]：资源加载失败资源检查路径：{res}");
             }
         }
-
-
-
-
-
-
-
 
     }
 }

@@ -3,16 +3,12 @@
 [ext_resource type="Texture2D" uid="uid://b6h2h0bi0oqgm" path="res://Asset/EmacEArt/EmacEArt-中世纪_EA03_FREE_Slavica.png" id="1_pvpkm"]
 [ext_resource type="Script" uid="uid://uquicwf3cleb" path="res://Dll/Comp/ItemComp.cs" id="1_s38mp"]
 [ext_resource type="Script" uid="uid://inh0sbmkkjuj" path="res://Dll/Data/ItemData.cs" id="2_3gq3s"]
-[ext_resource type="Texture2D" uid="uid://cscbqc2mwg16y" path="res://Prefab/View/手机/电话.png" id="2_q6ofi"]
 [ext_resource type="Script" uid="uid://bgndbmht2eucx" path="res://Dll/NetWork/NetSyncBase.cs" id="4_q6ofi"]
 
-[sub_resource type="Resource" id="Resource_q6ofi"]
-resource_name = "et_牛奶罐"
+[sub_resource type="Resource" id="Resource_3gq3s"]
 script = ExtResource("2_3gq3s")
 ID = "et_牛奶罐"
 Name = "牛奶罐"
-Description = "牛奶罐"
-Icon = ExtResource("2_q6ofi")
 metadata/_custom_type_script = "uid://inh0sbmkkjuj"
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_pvpkm"]
@@ -62,7 +58,7 @@ shadow_mesh = SubResource("ArrayMesh_71kjo")
 
 [node name="et_牛奶罐" type="RigidBody3D" unique_id=1102270380]
 script = ExtResource("1_s38mp")
-m_ItemData = SubResource("Resource_q6ofi")
+Data = SubResource("Resource_3gq3s")
 
 [node name="NetSyncBase" type="Node" parent="." unique_id=814124682]
 script = ExtResource("4_q6ofi")

@@ -1,0 +1,43 @@
+[gd_scene format=3 uid="uid://g75jxm03t1q4"]
+
+[ext_resource type="Script" uid="uid://d2y0jjx1j30l5" path="res://Dll/View/DialogView.cs" id="1_0hpdw"]
+
+[node name="DialogView" type="Control" unique_id=212215259 node_paths=PackedStringArray("m_Label")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_0hpdw")
+m_Label = NodePath("Panel/Label")
+
+[node name="Panel" type="Panel" parent="." unique_id=251744829]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -500.0
+offset_top = -200.0
+offset_right = 500.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="Label" type="Label" parent="Panel" unique_id=1602189608]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -475.0
+offset_top = -200.0
+offset_right = 475.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/line_spacing = 3
+theme_override_constants/paragraph_spacing = 0
+theme_override_font_sizes/font_size = 40
+autowrap_mode = 1

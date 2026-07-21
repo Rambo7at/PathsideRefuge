@@ -16,7 +16,7 @@ corner_radius_bottom_right = 20
 corner_radius_bottom_left = 20
 shadow_size = 12
 
-[node name="EquipUI" type="Control" unique_id=1275478942 node_paths=PackedStringArray("m_EquipSlots")]
+[node name="EquipUI" type="Control" unique_id=1275478942 node_paths=PackedStringArray("EquipSlots")]
 top_level = true
 layout_mode = 3
 anchors_preset = 8
@@ -29,7 +29,7 @@ grow_vertical = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 script = ExtResource("1_adjn0")
-m_EquipSlots = [NodePath("Panel/SlotUi")]
+EquipSlots = [NodePath("Panel/主手"), NodePath("Panel/副手")]
 
 [node name="Panel" type="Panel" parent="." unique_id=666655981]
 layout_mode = 0
@@ -39,10 +39,20 @@ offset_right = 556.0
 offset_bottom = -97.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_pn5rc")
 
-[node name="SlotUi" parent="Panel" unique_id=1872644542 instance=ExtResource("1_ykb5r")]
+[node name="主手" parent="Panel" unique_id=1872644542 instance=ExtResource("1_ykb5r")]
 layout_mode = 0
-offset_left = 30.0
-offset_top = 32.0
-offset_right = 94.0
-offset_bottom = 96.0
-m_IsEquipSlot = true
+offset_left = 28.0
+offset_top = 40.0
+offset_right = 92.0
+offset_bottom = 104.0
+IsEquipSlot = true
+SlotType = 1
+
+[node name="副手" parent="Panel" unique_id=222902795 instance=ExtResource("1_ykb5r")]
+layout_mode = 0
+offset_left = 28.0
+offset_top = 156.0
+offset_right = 92.0
+offset_bottom = 220.0
+IsEquipSlot = true
+SlotType = 2

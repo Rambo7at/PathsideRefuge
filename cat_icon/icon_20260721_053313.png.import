@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ojvrhkxmoj6h"
-path="res://.godot/imported/6.png-26bdd2ad1d6e1f45d46586d40ee9275c.ctex"
+uid="uid://ogt3s7s58agc"
+path="res://.godot/imported/icon_20260721_053313.png-0a163543698d0759e882a08f4b750bce.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Prefab/View/HUD/6.png"
-dest_files=["res://.godot/imported/6.png-26bdd2ad1d6e1f45d46586d40ee9275c.ctex"]
+source_file="res://cat_icon/icon_20260721_053313.png"
+dest_files=["res://.godot/imported/icon_20260721_053313.png-0a163543698d0759e882a08f4b750bce.ctex"]
 
 [params]
 

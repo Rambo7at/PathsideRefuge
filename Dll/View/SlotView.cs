@@ -10,27 +10,32 @@ using static 维修公司.Dll.data.ItemData;
 
 namespace 途畔归所.Dll.View
 {
+    /// <summary>注：UI格子视图，支持物品显示、拖拽交换与装备槽位校验。</summary>
     public partial class SlotView : Control
     {
         [ExportGroup("基础")]
-        [Export] public bool m_IsEquipSlot = false;
-        [Export] public Button m_button;
-        [Export] public TextureRect m_itemIcon;
-        [Export] public Label m_itemInfo;
-        [ExportGroup("装备类型")]
-        [Export] public E_ItemType m_EquipType = E_ItemType.Weapon;
+        [Export] public bool IsEquipSlot = false;          // 是否为装备槽
+        [Export] public Button Button;                     // 交互按钮
+        [Export] public TextureRect ItemIcon;              // 物品图标
+        [Export] public Label ItemInfo;                    // 物品信息文本
+
+
+        [ExportGroup("格子类型")]
+        [Export] public E_EquipAVL SlotType = E_EquipAVL.None; // 槽位类型（主手/副手）
 
         private ItemData m_slotData { get => OnGetItem?.Invoke(); set => OnSetItem?.Invoke(value); }
         private Vector3 m_DropPos => OnDropPos?.Invoke() == null ? new Vector3() : OnDropPos.Invoke();
-        public bool isNull => m_slotData == null;
+
+        public bool IsNull => m_slotData == null;
 
         public Func<Vector3> OnDropPos;
-        public Func<ItemData> OnGetItem;   
-        public Action<ItemData> OnSetItem; 
+        public Func<ItemData> OnGetItem;
+        public Action<ItemData> OnSetItem;
 
+        /// <summary>注：初始化格子视图，绑定输入事件。</summary>
         public override void _Ready()
         {
-            if (m_button == null || m_itemIcon == null || m_itemInfo == null)
+            if (Button == null || ItemIcon == null || ItemInfo == null)
             {
                 CatLog.Err($"[SlotView._Ready]：检测需求字段 有空 已销毁");
                 CatUtils.StopAndExit(this);
@@ -42,25 +47,27 @@ namespace 途畔归所.Dll.View
                 CatLog.Err($"[SlotView._Ready]：检测委托未有进行绑定，请检查父对象：{this.GetParent().Name}");
             }
 
-            m_button.GuiInput += OnSlotGuiInput;
+            Button.GuiInput += OnSlotGuiInput;
             Refresh();
         }
 
+        /// <summary>注：刷新格子显示（物品图标、名称、数量）。</summary>
         public void Refresh()
         {
             if (m_slotData == null)
             {
-                m_itemInfo.Text = string.Empty;
-                m_itemIcon.Texture = null;
-                m_itemIcon.Visible = true;
+                ItemInfo.Text = string.Empty;
+                ItemIcon.Texture = null;
+                ItemIcon.Visible = true;
             }
             else
             {
-                m_itemInfo.Text = $"{m_slotData.Name} x{m_slotData.Stack}";
-                m_itemIcon.Texture = m_slotData.Icon;
+                ItemInfo.Text = $"{m_slotData.Name} x{m_slotData.Stack}";
+                ItemIcon.Texture = m_slotData.Icon;
             }
         }
 
+        /// <summary>注：处理格子上的鼠标输入事件（拖拽开始/结束）。</summary>
         private void OnSlotGuiInput(InputEvent @event)
         {
             var gui = PlayerManager.Instance.m_CanvasLayer;
@@ -77,7 +84,7 @@ namespace 途畔归所.Dll.View
             if (mb.ButtonIndex == MouseButton.Left)
             {
                 // 按下左键：只有当前格子非空且全局没有拖拽时才启动
-                if (mb.Pressed && !isNull && gui.CurrentDragSource == null)
+                if (mb.Pressed && !IsNull && gui.CurrentDragSource == null)
                 {
                     StartDrag(gui);
                 }
@@ -89,16 +96,17 @@ namespace 途畔归所.Dll.View
             }
         }
 
+        /// <summary>注：开始拖拽（创建拖拽图标）。</summary>
         private void StartDrag(PlayerGUI gui)
         {
             gui.CurrentDragSource = this;
-            m_itemIcon.Visible = false;
+            ItemIcon.Visible = false;
 
             gui.CurrentDragIcon = new TextureRect
             {
-                ExpandMode = m_itemIcon.ExpandMode,
-                Size = m_itemIcon.Size,
-                Texture = m_itemIcon.Texture,
+                ExpandMode = ItemIcon.ExpandMode,
+                Size = ItemIcon.Size,
+                Texture = ItemIcon.Texture,
                 ZIndex = 1000,
                 TopLevel = true,
                 MouseFilter = MouseFilterEnum.Ignore,
@@ -107,6 +115,7 @@ namespace 途畔归所.Dll.View
             gui.AddChild(gui.CurrentDragIcon);
         }
 
+        /// <summary>注：结束拖拽（清理图标、查找目标并执行交换或丢弃）。</summary>
         private void StopDrag(PlayerGUI gui)
         {
             var source = gui.CurrentDragSource;
@@ -117,9 +126,9 @@ namespace 途畔归所.Dll.View
             gui.CurrentDragIcon = null;
 
             // 恢复源图标
-            source.m_itemIcon.Visible = true;
+            source.ItemIcon.Visible = true;
 
-            // 查找目标格子（全局查找，支持跨容器）
+            // 查找目标格子
             SlotView targetSlot = GetHoveredSlot();
 
             if (targetSlot == null)
@@ -128,46 +137,76 @@ namespace 途畔归所.Dll.View
                 source.m_slotData?.TryDropItem(source.m_DropPos);
                 source.m_slotData = null;
                 Refresh();
+                gui.CurrentDragSource = null;
+                return;
             }
-            else if (targetSlot != source)
+
+            if (targetSlot == source)
             {
-                // 获取双方物品
-                var itemA = targetSlot.m_slotData;  // 目标格子里的物品
-                var itemB = source.m_slotData;      // 拖过来的物品
-
-                // ★ 装备栏类型校验
-                // 检查拖过来的物品是否能放入目标格子
-                if (targetSlot.m_IsEquipSlot && itemB != null && itemB.Type != targetSlot.m_EquipType)
-                {
-                    gui.CurrentDragSource = null;
-                    return;
-                }
-
-                // 检查目标格子原有物品是否能放入源格子（当源格子也是装备槽时）
-                if (source.m_IsEquipSlot && itemA != null && itemA.Type != source.m_EquipType)
-                {
-                    gui.CurrentDragSource = null;
-                    return;
-                }
-
-                // 交换
-                targetSlot.m_slotData = itemB;
-                source.m_slotData = itemA;
-
-                targetSlot.Refresh();
-                source.Refresh();
+                gui.CurrentDragSource = null;
+                return;
             }
+
+            // 执行交换（内部处理合法性校验）
+            SwapItems(source, targetSlot);
 
             gui.CurrentDragSource = null;
         }
 
+        /// <summary>注：交换两个槽位的物品数据。</summary>
+        private void SwapItems(SlotView fromSlot, SlotView toSlot)
+        {
+            var fromData = fromSlot.m_slotData;
+            var toData = toSlot.m_slotData;
+
+            // 1. 校验：目标槽是装备槽时，检查拖过来的物品能否放入
+            if (toSlot.IsEquipSlot && fromData != null)
+            {
+                if (toSlot.SlotType == E_EquipAVL.MainHand && !fromData.CanEquipMainHand)
+                {
+                    CatLog.Debug($"[SwapItems] 物品 {fromData.Name} 不能放入主手槽位");
+                    return;
+                }
+
+                if (toSlot.SlotType == E_EquipAVL.OffHand && !fromData.CanEquipOffHand)
+                {
+                    CatLog.Debug($"[SwapItems] 物品 {fromData.Name} 不能放入副手槽位");
+                    return;
+                }
+            }
+
+            // 2. 校验：源槽是装备槽时，检查目标物品能否放入源槽（交换场景）
+            if (fromSlot.IsEquipSlot && toData != null)
+            {
+                if (fromSlot.SlotType == E_EquipAVL.MainHand && !toData.CanEquipMainHand)
+                {
+                    CatLog.Debug($"[SwapItems] 物品 {toData.Name} 不能放入源主手槽位");
+                    return;
+                }
+
+                if (fromSlot.SlotType == E_EquipAVL.OffHand && !toData.CanEquipOffHand)
+                {
+                    CatLog.Debug($"[SwapItems] 物品 {toData.Name} 不能放入源副手槽位");
+                    return;
+                }
+            }
+
+            // 3. 执行交换
+            toSlot.m_slotData = fromData;
+            fromSlot.m_slotData = toData;
+
+            toSlot.Refresh();
+            fromSlot.Refresh();
+        }
+
+        /// <summary>注：获取当前鼠标悬停的格子视图。</summary>
         private SlotView GetHoveredSlot()
         {
             Control hovered = ((SceneTree)Engine.GetMainLoop()).Root.GuiGetHoveredControl();
             while (hovered != null)
             {
-                if (hovered is SlotView slot)
-                    return slot;
+                if (hovered is SlotView slot) return slot;
+
                 hovered = hovered.GetParent() as Control;
             }
             return null;

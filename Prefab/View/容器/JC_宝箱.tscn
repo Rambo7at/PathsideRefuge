@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://b6x2o6akmsf8x"]
 
-[ext_resource type="Texture2D" uid="uid://cf4ocen5u2250" path="res://Prefab/UI/容器/宝箱.png" id="1_s7l47"]
+[ext_resource type="Texture2D" uid="uid://bvxxkby4ebe22" path="res://Prefab/View/储物/背包.png" id="1_s7l47"]
 
 [node name="Control" type="Control" unique_id=646939714]
 layout_mode = 3

@@ -1,6 +1,7 @@
 using Godot;
 using System.Collections.Generic;
 using 维修公司.Dll.data;
+using 途畔归所.Dll.Comp;
 using 途畔归所.Dll.Utils;
 using static 途畔归所.Dll.Creature.StateMachine;
 
@@ -18,7 +19,7 @@ namespace 途畔归所.Dll.Creature.Npc
             public double interval = 0;
             public AttackInfo(ItemComp comp) => item = comp;
 
-            public void StartCooldown() => interval = item.m_ItemData.AttackInterval;
+            public void StartCooldown() => interval = item.Data.AttackInterval;
 
             public void Cooldown(double delta) => interval -= delta;
 
@@ -47,11 +48,18 @@ namespace 途畔归所.Dll.Creature.Npc
 
             foreach (var item in m_Npc.m_AttackItems)
             {
-                if (item?.m_ItemType != ItemData.E_ItemType.Weapon) continue;
+                if (item?.Data.Type != ItemData.E_ItemType.Equip) continue;
                 m_AttackInfos.Add(new(item));
             }
 
-            m_Equipment.m_WeaponData = m_AttackInfos[0].item.m_ItemData;
+            if (m_AttackInfos.Count == 0)
+            {
+
+                CatLog.Debug("这个是空的？");
+            }
+
+
+            m_Equipment.MainHandData = m_AttackInfos[0].item.Data;
         }
 
         public override void _PhysicsProcess(double delta)
@@ -67,7 +75,7 @@ namespace 途畔归所.Dll.Creature.Npc
             var info = GetReadyAttack();
             if (info == null) return;
 
-            m_Equipment.m_WeaponData = info.item.m_ItemData; // 装上hitbox
+            m_Equipment.MainHandData = info.item.Data; // 装上hitbox
 
             m_StateMachine.RequestAttack();
 

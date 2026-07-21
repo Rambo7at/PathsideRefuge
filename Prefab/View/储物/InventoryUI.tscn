@@ -4,7 +4,6 @@
 [ext_resource type="Theme" uid="uid://deadb5j65etkc" path="res://Theme/背包UI.tres" id="2_23av5"]
 
 [node name="InventoryUI" type="Control" unique_id=1275478942 node_paths=PackedStringArray("m_gridContainer")]
-top_level = true
 layout_mode = 3
 anchors_preset = 8
 anchor_left = 0.5
@@ -17,7 +16,6 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_mm8kq")
 m_gridContainer = NodePath("PanelContainer/GridContainer")
-m_uiName = "slot_ui"
 
 [node name="PanelContainer" type="PanelContainer" parent="." unique_id=2002482144]
 layout_mode = 1

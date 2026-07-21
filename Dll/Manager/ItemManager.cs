@@ -2,6 +2,7 @@ using Godot;
 using Godot.Collections;
 using System;
 using 维修公司.Dll.data;
+using 途畔归所.Dll.Comp;
 using 途畔归所.Dll.Utils;
 
 namespace 途畔归所.Dll.Manager
@@ -77,7 +78,7 @@ namespace 途畔归所.Dll.Manager
                 return null;
             }
 
-            data = comp.m_ItemData.DeepCopy();
+            data = comp.Data.DeepCopy();
             comp.QueueFree();
             if (data != null) m_ItemDataDict[prefab] = data;
 

@@ -2,138 +2,169 @@ using Godot;
 using Godot.Collections;
 using 维修公司.Dll.data;
 using 途畔归所.Dll.Base;
+using 途畔归所.Dll.Comp;
 using 途畔归所.Dll.Manager;
 using 途畔归所.Dll.Utils;
 using static 维修公司.Dll.data.ItemData;
+namespace 途畔归所.Dll.Creature;
 
-namespace 途畔归所.Dll.Creature
+/// <summary>注：装备管理组件，挂载于 Humanoid 上，负责主手/副手武器的加载、切换与动画绑定。</summary>
+public partial class Equipment : Node
 {
-    public partial class Equipment : Node
-    {
-        private Humanoid m_Humanoid;
-        private StateMachine m_StateMachine;
-        private Array<ItemData> m_EquipData { get => m_Humanoid.m_EquipData; set => m_Humanoid.m_EquipData = value; }
-        public ItemData m_WeaponData { get => GetEquipData("Weapon"); set => SetEquipData("Weapon", value); }
+	private Humanoid m_Humanoid;
+	private StateMachine m_StateMachine;
 
-        private ItemComp m_Unarmed;
-        public ItemComp m_WeaponComp;
+	// 装备数据容器（索引0=主手，1=副手）
+	private Array<ItemData> EquipData { get => m_Humanoid.m_EquipData; set => m_Humanoid.m_EquipData = value; }
 
-        public override void _EnterTree()
-        {
-            // 初始化
-            if (GetParent() is not Humanoid humanoid)
-            {
-                CatUtils.StopAndExit(this);
-                CatLog.Err($"[Equipment._Ready]：父对象不是 Humanoid 类，已销毁");
-                return;
-            }
+	/// <summary>注：主手武器数据</summary>
+	public ItemData MainHandData { get => GetEquipData("MainHand"); set => SetEquipData("MainHand", value); }
+	/// <summary>注：副手武器数据</summary>
+	public ItemData OffHandData { get => GetEquipData("OffHand"); set => SetEquipData("OffHand", value); }
 
-            m_Humanoid = humanoid;
-            m_StateMachine = humanoid.m_StateMachine;
+	private ItemComp m_Unarmed;      // 空手（默认武器）
 
+	public ItemComp MainHandComp;    // 当前主手武器实例
+	public ItemComp OffHandComp;     // 当前副手武器实例
 
-            InitEquipData();
-            LoadUnarmed();
-            
+	public override void _EnterTree()
+	{
+		if (GetParent() is not Humanoid humanoid)
+		{
+			CatUtils.StopAndExit(this);
+			CatLog.Err($"[Equipment._EnterTree]：父对象不是 Humanoid，已销毁");
+			return;
+		}
 
-        }
+		m_Humanoid = humanoid;
+		m_StateMachine = humanoid.m_StateMachine;
 
-        public override void _Ready()
-        {
-            UpdateWeapon();
-        }
+		InitEquipData();
+		LoadUnarmed();
+	}
 
+	public override void _Ready()
+	{
+		UpdateMainHand();
+	}
 
-        /// <summary>辅助：加载 人形生物 默认攻击件</summary>
-        private void LoadUnarmed()
-        {
-            m_Unarmed ??= ItemManager.Instance.GetItemDrop("7at_空拳头");
-            m_Unarmed.SetEquip();
-            if (m_Unarmed == null) CatLog.Warn("[Equipment._Ready] 人形生物 的拳头item 未有加载成功");
-        }
+	/// <summary>注：加载永久空手武器（作为默认装备）</summary>
+	private void LoadUnarmed()
+	{
+		m_Unarmed ??= ItemManager.Instance.GetItemDrop("7at_空拳头");
+		if (m_Unarmed == null)
+		{
+			CatLog.Warn("[Equipment.LoadUnarmed] 空拳头加载失败");
+			return;
+		}
+	}
 
-        /// <summary>注：更新装备武器 </summary>
-        public void UpdateWeapon()
-        {
-            // === 卸载当前手上的一切 ===
-            if (m_WeaponComp != null)
-            {
-                m_WeaponComp.UnbindAnim(m_Humanoid);
-                m_WeaponComp.QueueFree();
-                m_WeaponComp = null;
-            }
+	/// <summary>注：更新主手武器</summary>
+	public void UpdateMainHand()
+	{
+		ClearWeapon(ref MainHandComp);
 
-            if (m_Unarmed.IsInsideTree())
-            {
-                m_Unarmed.UnbindAnim(m_Humanoid);
-                m_Humanoid.m_HandR.RemoveChild(m_Unarmed);
-            }
+		// 若空手已挂载则解除，准备重新挂载
+		if (m_Unarmed.IsInsideTree())
+		{
+			m_Unarmed.UnbindAnim(m_Humanoid);
+			m_Humanoid.m_HandR.RemoveChild(m_Unarmed);
+		}
 
-            // === 确定要装什么 ===
-            ItemComp targetComp;
-            if (m_WeaponData != null)
-            {
-                // 有武器数据 → 实例化真武器
-                targetComp = m_WeaponData.DataToDrop();
-                if (targetComp == null) return;
-                targetComp.SetEquip();
-                m_WeaponComp = targetComp;
-            }
-            else
-            {
-                // 无武器数据 → 用空手
-                targetComp = m_Unarmed;
-            }
+		if (MainHandData?.ToDrop() is not ItemComp mainHandComp)
+		{
+			EquipWeapon("MainHand", m_Unarmed);
+			return;
+		}
 
-            // === 挂载 + 绑定动画 ===
-            m_Humanoid.m_HandR.AddChild(targetComp);
-            targetComp.BindAnim(m_Humanoid);
-            m_StateMachine.SwitchAttackAnimIndex(targetComp.m_AttackAnimIndex);
-        }
+		MainHandComp = mainHandComp;
+		EquipWeapon("MainHand", MainHandComp);
+	}
 
-        /// <summary>注：初始化装备数据 </summary>
-        private void InitEquipData()
-        {
-            m_EquipData ??= [];
+	/// <summary>注：更新副手武器</summary>
+	public void UpdateOffHand()
+	{
+		ClearWeapon(ref OffHandComp);
 
-            if (m_EquipData.Count == 0)
-            {
-                m_EquipData.Add(null);
-            }
+		if (OffHandData?.ToDrop() is not ItemComp offHandComp)
+		{
+			// 无副手数据 → 清空副手（不显示任何东西）
+			return;
+		}
 
-            if (m_EquipData.Count > 1)
-            {
-                for (int i = m_EquipData.Count - 1; i > 0; i--)
-                {
-                    m_EquipData.RemoveAt(i);
-                }
-            }
-        }
+		OffHandComp = offHandComp;
+		EquipWeapon("OffHand", OffHandComp);
+	}
 
-        private ItemData GetEquipData(string equip)
-        {
-            InitEquipData();
-            if (equip == "Weapon")
-            {
-                if (m_EquipData[0]?.Type != E_ItemType.Weapon)
-                {
-                    m_EquipData[0] = null;
-                }
-                return m_EquipData[0];
-            }
+	/// <summary>注：卸除并销毁指定武器实例（解绑动画 + 释放节点）。</summary>
+	private void ClearWeapon(ref ItemComp weaponComp)
+	{
+		if (weaponComp != null)
+		{
+			weaponComp.UnbindAnim(m_Humanoid);
+			weaponComp.QueueFree();
+			weaponComp = null;
+		}
+	}
 
-            return null;
-        }
+	/// <summary>注：将武器实例装备到指定槽位（挂载、旋转、动画绑定与状态更新）。</summary>
+	private void EquipWeapon(string equipName, ItemComp weapon)
+	{
 
-        private void SetEquipData(string equip, ItemData data)
-        {
-            InitEquipData();
-            if (equip == "Weapon")
-            {
-                m_EquipData[0] = data;
-                UpdateWeapon();
-            }
-        }
+		weapon.SetEquip(equipName, m_Humanoid);
 
-    }
+	}
+
+	/// <summary>注：初始化装备数据容器</summary>
+	private void InitEquipData()
+	{
+		EquipData ??= [];
+
+		while (EquipData.Count < 2)
+		{
+			EquipData.Add(null);
+		}
+
+		while (EquipData.Count > 2)
+		{
+			EquipData.RemoveAt(EquipData.Count - 1);
+		}
+	}
+
+	/// <summary>注：获取指定槽位的装备数据</summary>
+	private ItemData GetEquipData(string equip)
+	{
+		InitEquipData();
+
+		if (equip == "MainHand") return EquipData[0];
+		if (equip == "OffHand") return EquipData[1];
+
+		return null;
+	}
+
+	/// <summary>注：设置指定槽位的装备数据，并刷新对应槽位显示</summary>
+	private void SetEquipData(string equip, ItemData data)
+	{
+		InitEquipData();
+
+		if (equip == "MainHand")
+		{
+			if (data == null || data.CanEquipMainHand)
+			{
+				EquipData[0] = data;
+				UpdateMainHand();
+			}
+			return;
+		}
+
+		if (equip == "OffHand")
+		{
+			if (data == null || data.CanEquipOffHand)
+			{
+				EquipData[1] = data;
+				UpdateOffHand();
+			}
+			return;
+		}
+	}
 }

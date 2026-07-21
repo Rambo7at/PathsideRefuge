@@ -64,13 +64,14 @@ namespace 途畔归所.Dll.Creature
         {
             if (IsMenuState) return;
             UpdateRotation(delta);
-            TryAttack();
+       
         }
 
 
         public override void _PhysicsProcess(double delta)
         {
-
+            TryAttack();
+            TryDefense();
             m_Player.ApplyGravity(delta);
             UpdateMovement(delta);
             m_Player.MoveAndSlide();
@@ -169,6 +170,7 @@ namespace 途畔归所.Dll.Creature
         /// <summary>注：攻击输入检测，切换动画状态并触发攻击OneShot动画</summary>
         private void TryAttack()
         {
+            
             if (!Input.IsActionJustPressed("cat_Attack")) return;
             if (IsAttackState)
             {
@@ -178,6 +180,17 @@ namespace 途畔归所.Dll.Creature
             // 切换至攻击状态
             m_StateMachine.RequestAttack();
         }
+
+
+        private void TryDefense()
+        {
+            bool isPressed = Input.IsActionPressed("cat_Defense");
+            m_StateMachine.RequestDefense(isPressed);
+        }
+
+
+
+
 
 
         /// <summary>注：平滑更新玩家朝向，地面随输入更新目标角度，空中保持朝向</summary>

@@ -98,6 +98,7 @@ public partial class Player : Humanoid
                 if (node.As<Node3D>() is not IInteractable i) return;
 
                 CatLog.Ok($"已发现{i.ObjectName}");
+                i.PlayerInteract(true,false,this);
             }
         }
     }

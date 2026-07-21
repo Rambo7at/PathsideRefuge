@@ -3,12 +3,13 @@
 [ext_resource type="Script" uid="uid://uquicwf3cleb" path="res://Dll/Comp/ItemComp.cs" id="1_65m1r"]
 [ext_resource type="Script" uid="uid://inh0sbmkkjuj" path="res://Dll/Data/ItemData.cs" id="2_mjbou"]
 
-[sub_resource type="Resource" id="Resource_cflxa"]
+[sub_resource type="Resource" id="Resource_mjbou"]
 script = ExtResource("2_mjbou")
 ID = "7at_空拳头"
 Name = "空拳头"
-Type = 3
-Description = "拳头咯"
+Type = 4
+Description = "空拳头"
+EquipType = 1
 Damage = 5
 metadata/_custom_type_script = "uid://inh0sbmkkjuj"
 
@@ -17,10 +18,11 @@ metadata/_custom_type_script = "uid://inh0sbmkkjuj"
 [sub_resource type="BoxShape3D" id="BoxShape3D_mjbou"]
 size = Vector3(0.2, 0.2, 0.2)
 
-[node name="7at_空拳头" type="RigidBody3D" unique_id=701347580 node_paths=PackedStringArray("m_WeaponHitBox")]
+[node name="7at_空拳头" type="RigidBody3D" unique_id=701347580 node_paths=PackedStringArray("WeaponHitBox")]
+freeze = true
 script = ExtResource("1_65m1r")
-m_ItemData = SubResource("Resource_cflxa")
-m_WeaponHitBox = NodePath("Hitbox")
+Data = SubResource("Resource_mjbou")
+WeaponHitBox = NodePath("Hitbox")
 metadata/_custom_type_script = "uid://uquicwf3cleb"
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1770260614]

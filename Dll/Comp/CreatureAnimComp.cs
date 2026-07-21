@@ -19,13 +19,12 @@ namespace 途畔归所.Dll.Comp
 		public Action OnEndStagger;
 		public Action OnEndDeath;
 
-		// ── 预） ──
+		// ── 准备 ──
 		public Action OnFootstep;       // 脚步声
 		public Action OnLand;           // 落地
 
 		private void EnableHitbox() => OnEnableHitbox?.Invoke();
 		private void Combo() => OnCombo?.Invoke();
-
         private void EndCombo() => OnEndCombo?.Invoke();
         private void DisableHitbox() => OnDisableHitbox?.Invoke();
 		private void EndAttack() => OnEndAttack?.Invoke();

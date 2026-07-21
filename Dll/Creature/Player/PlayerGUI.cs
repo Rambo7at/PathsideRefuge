@@ -25,6 +25,8 @@ namespace 途畔归所.Dll.Creature
         private EscView m_escView;
         private HudView m_hudView;
         private EquipmentView m_EquipmentView;
+        private DialogView m_DialogView;
+
 
         // 属性
         public SlotView CurrentDragSource { get; set; }
@@ -51,13 +53,13 @@ namespace 途畔归所.Dll.Creature
                 return;
             }
 
-            InitInventory();
+            InitPlayerHUD();
             InitConsole();
             InitEsc();
-            InitPlayerHUD();
             InitPlayerEquip();
+            InitDialog();
+            InitInventory();
         }
-
 
         public override void _Process(double delta)
         {
@@ -125,6 +127,21 @@ namespace 途畔归所.Dll.Creature
             AddChild(m_EquipmentView);
         }
 
+        private void InitDialog()
+        {
+            m_DialogView ??= UIManager.Instance.GetUI("DialogView") is DialogView view ? view : null;
+
+            if (m_DialogView == null)
+            {
+                CatLog.Warn("获取 m_DialogView 失败");
+                return;
+            }
+
+            m_DialogView.Visible = false;
+            AddChild(m_DialogView);
+        }
+
+
         /// <summary>注：处理与 UI 相关的按键输入。</summary>
         private void ProcessUIInputs()
         {
@@ -136,7 +153,6 @@ namespace 途畔归所.Dll.Creature
             }
             if (Input.IsActionJustPressed("cat_Esc")) m_escView.ToggleUI();
         }
-
 
         /// <summary>注：根据当前打开的 UI 面板自动切换鼠标模式与 UI 状态标志。</summary>
         private void UpdateMouseMode()
@@ -153,6 +169,10 @@ namespace 途畔归所.Dll.Creature
                 m_StateMachine.SwitchPlayerState(StateMachine.PlayerState.Idle);
             }
         }
+
+
+        public DialogView GetDialogView() => m_DialogView == null ? null : m_DialogView;
+
 
 
         #region 接口实现
