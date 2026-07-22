@@ -1,9 +1,8 @@
 using Godot;
 using 途畔归所.Dll.Core;
-using 途畔归所.Dll.Creature;
-using 途畔归所.Dll.Creature.Npc;
 using 途畔归所.Dll.Utils;
 using static 途畔归所.Dll.Creature.StateMachine;
+namespace 途畔归所.Dll.Creature.Npc;
 
 public partial class NpcMovement : Node3D
 {
@@ -12,11 +11,10 @@ public partial class NpcMovement : Node3D
     private NavigationAgent3D m_NavAgent;
 
     // 便捷属性
-    private AnimState AnimState => m_StateMachine.m_AnimState;
-    private NpcState NpcState => m_StateMachine.m_NpcState;
+    private AnimState AnimState => m_StateMachine.CurrentAnimState;
+    private NpcState NpcState => m_StateMachine.CurrentNpcState;
     private bool IsStaggerState => AnimState == AnimState.Stagger;
     private bool IsDeathState => AnimState == AnimState.Death;
-
     private bool IsAttackState => AnimState == AnimState.Attack;
 
     private Vector3 m_SafeVelocity = Vector3.Zero;  // 存储 avoidance 后的安全速度
@@ -65,7 +63,6 @@ public partial class NpcMovement : Node3D
         // 完成导航停止
         if (IsNavigationFinished())
         {
-            // 停止
             m_NavAgent.Velocity = Vector3.Zero;
             m_Npc.Velocity = new Vector3(0, m_Npc.Velocity.Y, 0);
             return;
@@ -90,7 +87,6 @@ public partial class NpcMovement : Node3D
         // 3. 使用上一帧计算出的安全速度（由信号更新）
         m_Npc.Velocity = new Vector3(m_SafeVelocity.X, m_Npc.Velocity.Y, m_SafeVelocity.Z);
 
-
         // 4. 面向移动方向
         if (m_SafeVelocity.LengthSquared() > 0.01f)
         {
@@ -103,11 +99,18 @@ public partial class NpcMovement : Node3D
         m_SafeVelocity = safeVelocity;
     }
 
+    /// <summary>注：检查导航地图是否已就绪</summary>
+    private bool IsNavigationMapReady()
+    {
+        if (m_NavAgent == null) return false;
+        Rid map = m_NavAgent.GetNavigationMap();
+        return NavigationServer3D.MapGetIterationId(map) > 0;
+    }
 
-    // NpcMovement 里
+    /// <summary>注：设置随机巡逻目标点</summary>
     public void SetRandomPatrolTarget(float radius, float minDistance = 0f)
     {
-        if (m_NavAgent == null) return;
+        if (m_NavAgent == null || !IsNavigationMapReady()) return;
 
         Vector3 origin = m_Npc.GlobalPosition;
         Rid map = m_NavAgent.GetNavigationMap();
@@ -130,20 +133,25 @@ public partial class NpcMovement : Node3D
         SetNavigation(origin); // 找不到就原地
     }
 
+    /// <summary>注：检查导航是否已完成</summary>
     public bool IsNavigationFinished() => m_NavAgent.IsNavigationFinished();
 
+    /// <summary>注：设置导航目标点</summary>
     public void SetNavigation(Vector3 target)
     {
+        if (!IsNavigationMapReady()) return;
+
         Rid map = m_NavAgent.GetNavigationMap();
         Vector3 targetOnNav = NavigationServer3D.MapGetClosestPoint(map, target);
         m_NavAgent.TargetPosition = targetOnNav;
     }
 
+    /// <summary>注：清除导航目标，停止移动</summary>
     public void ClearNavigation()
     {
+        if (m_NavAgent == null) return;
         m_NavAgent.TargetPosition = m_Npc.GlobalPosition;
         m_NavAgent.Velocity = Vector3.Zero;
         m_Npc.Velocity = new Vector3(0, m_Npc.Velocity.Y, 0);
     }
-
 }

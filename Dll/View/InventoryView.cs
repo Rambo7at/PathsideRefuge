@@ -59,7 +59,7 @@ namespace 途畔归所.Dll.View
 
                 view.OnDropPos = () => m_holder.DropPos;
                 view.OnGetItem = () => m_holder.InventoryData.m_itemArr[index];
-                view.OnSetItem = (newItemData) => m_holder.InventoryData.m_itemArr[index] = newItemData;
+                view.OnSetItem = (newItemData) => m_holder.TrySetInventoryItem(index,newItemData) ;
 
                 m_slotViewArr.Add(view);
                 m_gridContainer.AddChild(view);

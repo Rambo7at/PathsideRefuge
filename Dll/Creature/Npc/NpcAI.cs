@@ -32,8 +32,8 @@ namespace 途畔归所.Dll.Creature.Npc
 		private float PatrolStopTime => m_Npc.m_CreatureData.PatrolStopTime;
 		private float PatrolRadius => m_Npc.m_CreatureData.PatrolRadius;
 
-		private bool IsPatrol => m_StateMachine.m_NpcState == NpcState.Patrol;
-		private bool IsChase => m_StateMachine.m_NpcState == NpcState.Chase;
+		private bool IsPatrol => m_StateMachine.CurrentNpcState == NpcState.Patrol;
+		private bool IsChase => m_StateMachine.CurrentNpcState == NpcState.Chase;
 
 		public override void _Ready()
 		{
@@ -69,7 +69,7 @@ namespace 途畔归所.Dll.Creature.Npc
 
 			SenseAI();
 
-			switch (m_StateMachine.m_NpcState)
+			switch (m_StateMachine.CurrentNpcState)
 			{
 				case StateMachine.NpcState.Patrol:
 					UpdatePatrol(dt);
@@ -102,7 +102,7 @@ namespace 途畔归所.Dll.Creature.Npc
 		/// <summary>注：巡逻决策 </summary>
 		private void UpdatePatrol(float delta)
 		{
-			if (m_StateMachine.m_NpcState != NpcState.Patrol)
+			if (m_StateMachine.CurrentNpcState != NpcState.Patrol)
 			{
 				m_IsWaiting = false;
 				m_StopTimer = 0f;
@@ -142,14 +142,14 @@ namespace 途畔归所.Dll.Creature.Npc
 
 			float dist = m_Npc.GlobalPosition.DistanceTo(m_huntTarget.GlobalPosition);
 
-			if (dist <= 2 && m_StateMachine.m_AnimState != StateMachine.AnimState.Attack)
+			if (dist <= 2 && m_StateMachine.CurrentAnimState != StateMachine.AnimState.Attack)
 			{
 				if (m_NpcBattle == null)
 				{
 					CatLog.Debug("m_NpcBattle 是空的");
 					return;
 				}
-				m_NpcBattle.attack();
+				m_NpcBattle.TryAttack();
 			}
 			else
 			{

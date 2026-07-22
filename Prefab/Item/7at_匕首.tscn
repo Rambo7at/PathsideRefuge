@@ -15,6 +15,7 @@ Icon = ExtResource("2_n7s87")
 EquipType = 1
 Damage = 10
 AttackAnimIndex = 1
+DualWieldIndex = 11
 metadata/_custom_type_script = "uid://inh0sbmkkjuj"
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_fy1x4"]
@@ -62,6 +63,8 @@ blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_wctwk")
 
 [node name="7at_匕首" type="RigidBody3D" unique_id=1274396886 node_paths=PackedStringArray("WeaponHitBox")]
+collision_layer = 4
+collision_mask = 5
 script = ExtResource("1_nbal6")
 Data = SubResource("Resource_b3m6x")
 WeaponHitBox = NodePath("Area3D")
@@ -79,6 +82,8 @@ transform = Transform3D(1, -3.1254891e-15, 0, -3.1254885e-15, 1, 0, 0, 0, 1, -0.
 mesh = SubResource("ArrayMesh_516wm")
 
 [node name="Area3D" type="Area3D" parent="." unique_id=1097314433]
+collision_layer = 7
+collision_mask = 7
 
 [node name="hitbox" type="CollisionShape3D" parent="Area3D" unique_id=1142291759]
 transform = Transform3D(-1.0000001, 2.8014688e-07, -1.8239048e-08, 2.8014688e-07, 0.99999994, -1.7136298e-07, 1.8238993e-08, -1.7136298e-07, -1, -0.00948283, 0.37801296, -1.9126696e-07)

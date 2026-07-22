@@ -58,6 +58,8 @@ shadow_mesh = SubResource("ArrayMesh_4rkel")
 size = Vector3(1.6364746, 0.48950195, 0.5805664)
 
 [node name="et-木材" type="RigidBody3D" unique_id=1889269625]
+collision_layer = 4
+collision_mask = 5
 script = ExtResource("1_1ie87")
 Data = SubResource("Resource_8fwts")
 

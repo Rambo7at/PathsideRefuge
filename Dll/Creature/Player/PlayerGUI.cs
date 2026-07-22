@@ -175,6 +175,17 @@ namespace 途畔归所.Dll.Creature
 
 
 
+        public bool TrySetInventoryItem(int index, ItemData data)
+        {
+            // 校验1：索引范围
+            if (index < 0 || index >= InventoryData.m_capacity) return false;
+
+            InventoryData.m_itemArr[index] = data;
+            return true;
+        }
+
+
+
         #region 接口实现
         public InventoryData InventoryData { get => m_player.m_InventoryData ??= new InventoryData(); set => m_player.m_InventoryData = value; }
         Vector3 IInventoryHolder.DropPos => m_DropPos;

@@ -196,13 +196,19 @@ namespace 途畔归所.Dll.Base
 		}
 
 
-		public virtual void SetPhysicsRay(Vector3 from, Vector3 to, Array<Rid> rids)
+		public virtual void SetPhysicsRay(Vector3 from, Vector3 to, Array<Rid> rids, uint mask = default)
 		{
-            m_PhysicsRay ??= new PhysicsRayQueryParameters3D();
-            m_PhysicsRay.From = from;
-            m_PhysicsRay.To = to;
+			m_PhysicsRay ??= new PhysicsRayQueryParameters3D();
+			m_PhysicsRay.From = from;
+			m_PhysicsRay.To = to;
 			m_PhysicsRay.Exclude = rids;
-        }
+
+			if (mask != default)
+			{
+				m_PhysicsRay.CollisionMask = mask;
+
+            }
+		}
 
 
 

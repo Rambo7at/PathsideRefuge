@@ -4,9 +4,7 @@ using System.Text.Json;
 using 途畔归所.Dll.Comp;
 using 途畔归所.Dll.Interface;
 using 途畔归所.Dll.Manager;
-
-namespace 维修公司.Dll.data
-{
+namespace 维修公司.Dll.data;
 
     /// <summary>注：物品数据资源类，定义所有物品的基础属性与装备特性。</summary>
     [GlobalClass]
@@ -88,7 +86,8 @@ namespace 维修公司.Dll.data
 
         [ExportSubgroup("属性")]
         [Export] public int Damage { get; set; }                    // 攻击力/伤害值
-        [Export] public int AttackAnimIndex { get; set; }           // 攻击动画索引（对应 StateMachine 中的动画）
+        [Export] public int AttackAnimIndex { get; set; }          // 默认攻击动画索引（单持）
+        [Export] public int DualWieldIndex { get; set; }           // 双持攻击动画索引（-1 表示不支持）
 
         [ExportGroup("AI")]
         [Export] public float AttackDistance { get; set; } = 1f;    // AI 攻击距离
@@ -109,6 +108,8 @@ namespace 维修公司.Dll.data
 
         /// <summary>注：能否装备到副手</summary>
         public bool CanEquipOffHand => EquipAVL == E_EquipAVL.OffHand || EquipAVL == E_EquipAVL.BothHands;
+
+        public bool IsTwoHandWeapon => EquipAVL == E_EquipAVL.TwoHand;
 
 
 
@@ -215,4 +216,4 @@ namespace 维修公司.Dll.data
         }
     }
 
-}
+

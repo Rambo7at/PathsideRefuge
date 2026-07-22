@@ -66,7 +66,7 @@ namespace 途畔归所.Dll.Data
 
         [ExportGroup("物品与掉落")]
         [Export] public InventoryData InventoryData { get; set; } = new(); // 背包数据
-        [Export] public  Array<ItemData> EquipData { get; set; } = [];
+        [Export] public  Dictionary<ItemData.E_EquipAVL,ItemData> EquipData { get; set; } = [];
         [Export] public Array<DropBase> DropTable { get; set; } = [];      // 死亡掉落表
 
         [ExportGroup("AI巡逻")]

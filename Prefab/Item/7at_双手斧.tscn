@@ -13,8 +13,9 @@ Name = "双手斧"
 Type = 4
 Icon = ExtResource("2_gwhu2")
 EquipType = 8
-Damage = 50
+Damage = 2
 AttackAnimIndex = 2
+AttackDistance = 2.0
 metadata/_custom_type_script = "uid://inh0sbmkkjuj"
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vtm2t"]
@@ -67,6 +68,8 @@ size = Vector3(1.23489, 0.807848, 0.16357422)
 size = Vector3(1.2532959, 0.76953125, 0.27252197)
 
 [node name="7at_双手斧" type="RigidBody3D" unique_id=825352171 node_paths=PackedStringArray("WeaponHitBox")]
+collision_layer = 4
+collision_mask = 5
 script = ExtResource("1_gnroc")
 Data = SubResource("Resource_avmtv")
 WeaponHitBox = NodePath("Area3D")
@@ -88,6 +91,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.002954483, 0.8796568, 0.00
 shape = SubResource("BoxShape3D_103bk")
 
 [node name="Area3D" type="Area3D" parent="." unique_id=206062449]
+collision_layer = 7
+collision_mask = 7
 
 [node name="hitbox" type="CollisionShape3D" parent="Area3D" unique_id=1323418983]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0006713867, 0.86387235, 0.0030212402)

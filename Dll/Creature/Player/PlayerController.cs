@@ -15,8 +15,8 @@ namespace 途畔归所.Dll.Creature
         private StateMachine m_StateMachine;
 
         // 便捷属性
-        private AnimState AnimState => m_StateMachine.m_AnimState;
-        private PlayerState PlayerState => m_StateMachine.m_PlayerState;
+        private AnimState AnimState => m_StateMachine.CurrentAnimState;
+        private PlayerState PlayerState => m_StateMachine.CurrentPlayerState;
         private bool IsAttackState => AnimState == AnimState.Attack;
         private bool IsMenuState => PlayerState == PlayerState.Menu;
 
@@ -171,7 +171,9 @@ namespace 途畔归所.Dll.Creature
         private void TryAttack()
         {
             
-            if (!Input.IsActionJustPressed("cat_Attack")) return;
+            if (!Input.IsActionJustPressed("cat_Attack") || m_StateMachine.CurrentPlayerState == PlayerState.Menu) return;
+
+
             if (IsAttackState)
             {
                 m_StateMachine.RequestCombo();
@@ -184,8 +186,24 @@ namespace 途畔归所.Dll.Creature
 
         private void TryDefense()
         {
-            bool isPressed = Input.IsActionPressed("cat_Defense");
-            m_StateMachine.RequestDefense(isPressed);
+            if (m_StateMachine.CurrentAnimState == AnimState.Attack)
+            {
+                if (m_StateMachine.IsDefending) m_StateMachine.RequestDefense(false);
+                return;
+            }
+
+            // 按下防御键的瞬间 → 请求举盾
+            if (Input.IsActionJustPressed("cat_Defense") && m_StateMachine.CurrentPlayerState != PlayerState.Menu)
+            {
+                m_StateMachine.RequestDefense(true);
+                return;
+            }
+
+            // 松开防御键的瞬间 → 请求放盾
+            if (Input.IsActionJustReleased("cat_Defense"))
+            {
+                m_StateMachine.RequestDefense(false);
+            }
         }
 
 

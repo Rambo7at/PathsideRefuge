@@ -57,6 +57,8 @@ blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_71kjo")
 
 [node name="et_牛奶罐" type="RigidBody3D" unique_id=1102270380]
+collision_layer = 4
+collision_mask = 5
 script = ExtResource("1_s38mp")
 Data = SubResource("Resource_3gq3s")
 

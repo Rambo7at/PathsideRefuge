@@ -234,6 +234,17 @@ namespace 途畔归所.Dll.Comp
             base.m_placedData.m_data = m_inventoryData.DeepCopy();
             netObject.m_customData = base.m_placedData.DeepCopy();
         }
+
+        public bool TrySetInventoryItem(int index, ItemData data)
+        {
+            // 校验1：索引范围
+            if (index < 0 || index >= m_inventoryData.m_capacity) return false;
+
+            m_inventoryData.m_itemArr[index] = data;
+            return true;
+        }
+
+
     }
 
 

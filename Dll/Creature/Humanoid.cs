@@ -19,7 +19,7 @@ namespace 途畔归所.Dll.Base
         public Equipment m_Equipment;
 
 
-        public Array<ItemData> m_EquipData { get => m_CreatureData.EquipData; set => m_CreatureData.EquipData = value; }
+        public Dictionary<ItemData.E_EquipAVL, ItemData> m_EquipData { get => m_CreatureData.EquipData; set => m_CreatureData.EquipData = value; }
 
 
 

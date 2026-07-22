@@ -104,13 +104,13 @@ namespace 途畔归所.Dll.View
 			if (slot.SlotType == E_EquipAVL.MainHand)
 			{
 				slot.OnGetItem += () => m_Holder.Equipment.MainHandData;
-				slot.OnSetItem += (newdata) => m_Holder.Equipment.MainHandData = newdata;
+
 			}
 			else if (slot.SlotType == E_EquipAVL.OffHand)
 			{
 				slot.OnGetItem += () => m_Holder.Equipment.OffHandData;
-				slot.OnSetItem += (newdata) => m_Holder.Equipment.OffHandData = newdata;
 			}
+			slot.OnSetItem += (newdata) => m_Holder.Equipment.TrySetEquipData(slot.SlotType, newdata);
 		}
 
 		/// <summary>注：切换装备栏显示状态。</summary>

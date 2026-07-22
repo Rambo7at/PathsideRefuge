@@ -12,6 +12,7 @@ ID = "7at_盾牌"
 Name = "盾牌"
 Icon = ExtResource("2_msddw")
 EquipType = 5
+AttackAnimIndex = -1
 metadata/_custom_type_script = "uid://inh0sbmkkjuj"
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_r3kee"]
@@ -55,9 +56,11 @@ blend_shape_mode = 0
 shadow_mesh = SubResource("ArrayMesh_ybqg6")
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_msddw"]
-size = Vector3(0.91186523, 1.0415039, 0.21276855)
+size = Vector3(0.9330826, 1.0653229, 0.33253193)
 
 [node name="7at_盾牌" type="RigidBody3D" unique_id=1881480368]
+collision_layer = 4
+collision_mask = 5
 script = ExtResource("1_mmcq0")
 Data = SubResource("Resource_o15kw")
 metadata/_custom_type_script = "uid://uquicwf3cleb"
@@ -71,5 +74,5 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0012586564, -0.0037353039,
 mesh = SubResource("ArrayMesh_v86yd")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=801203842]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0012586564, -0.0037353039, 0.1733321)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.007388875, -0.0333755, 0.13708532)
 shape = SubResource("BoxShape3D_msddw")

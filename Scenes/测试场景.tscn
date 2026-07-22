@@ -8,6 +8,7 @@
 [ext_resource type="Texture2D" uid="uid://dtdyslx8t74rv" path="res://Mat/草地-1/Ground037_1K-PNG_NormalGL.png" id="4_qutry"]
 [ext_resource type="Texture2D" uid="uid://3qru426iufg1" path="res://Mat/道路-1/Ground067_1K-PNG_Color.png" id="5_qutry"]
 [ext_resource type="Texture2D" uid="uid://c1066cwr4ibtc" path="res://Mat/道路-1/Ground067_1K-PNG_NormalGL.png" id="6_4sfak"]
+[ext_resource type="PackedScene" uid="uid://ccyut3db0phlt" path="res://Prefab/Npc/Npc.tscn" id="11_e120r"]
 [ext_resource type="PackedScene" uid="uid://dohla8te3p0fh" path="res://Prefab/Vegetation/ET-树.tscn" id="11_luoyv"]
 [ext_resource type="PackedScene" uid="uid://b67gkoovomi8k" path="res://Prefab/Piece/et_板条箱.tscn" id="12_luoyv"]
 
@@ -179,3 +180,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.276643, 0, -12.308217)
 
 [node name="ET-树" parent="." unique_id=522848780 instance=ExtResource("11_luoyv")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.474703, 0, 0)
+
+[node name="Npc" parent="." unique_id=1650011338 instance=ExtResource("11_e120r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.5913377, 0, 27.200506)

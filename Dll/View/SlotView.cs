@@ -30,7 +30,7 @@ namespace 途畔归所.Dll.View
 
         public Func<Vector3> OnDropPos;
         public Func<ItemData> OnGetItem;
-        public Action<ItemData> OnSetItem;
+        public Func<ItemData,bool> OnSetItem;
 
         /// <summary>注：初始化格子视图，绑定输入事件。</summary>
         public override void _Ready()
@@ -159,44 +159,38 @@ namespace 途畔归所.Dll.View
             var fromData = fromSlot.m_slotData;
             var toData = toSlot.m_slotData;
 
-            // 1. 校验：目标槽是装备槽时，检查拖过来的物品能否放入
-            if (toSlot.IsEquipSlot && fromData != null)
-            {
-                if (toSlot.SlotType == E_EquipAVL.MainHand && !fromData.CanEquipMainHand)
-                {
-                    CatLog.Debug($"[SwapItems] 物品 {fromData.Name} 不能放入主手槽位");
-                    return;
-                }
+            // 先把源格子清空（防止互相覆盖）
+            fromSlot.m_slotData = null;
 
-                if (toSlot.SlotType == E_EquipAVL.OffHand && !fromData.CanEquipOffHand)
-                {
-                    CatLog.Debug($"[SwapItems] 物品 {fromData.Name} 不能放入副手槽位");
-                    return;
-                }
+            // 尝试把 fromData 放到目标格子（走 OnSetItem → TrySetEquipData 校验）
+            bool toSuccess = toSlot.OnSetItem?.Invoke(fromData) ?? false;
+
+            if (!toSuccess)
+            {
+                // 目标格子拒绝 → 源格子恢复原数据
+                fromSlot.m_slotData = fromData;
+                fromSlot.Refresh();
+                toSlot.Refresh();
+                return;
             }
 
-            // 2. 校验：源槽是装备槽时，检查目标物品能否放入源槽（交换场景）
-            if (fromSlot.IsEquipSlot && toData != null)
-            {
-                if (fromSlot.SlotType == E_EquipAVL.MainHand && !toData.CanEquipMainHand)
-                {
-                    CatLog.Debug($"[SwapItems] 物品 {toData.Name} 不能放入源主手槽位");
-                    return;
-                }
 
-                if (fromSlot.SlotType == E_EquipAVL.OffHand && !toData.CanEquipOffHand)
-                {
-                    CatLog.Debug($"[SwapItems] 物品 {toData.Name} 不能放入源副手槽位");
-                    return;
-                }
+            // 尝试把 toData 放到源格子
+            bool fromSuccess = fromSlot.OnSetItem?.Invoke(toData) ?? false;
+
+            if (!fromSuccess)
+            {
+                // 源格子拒绝 → 回滚：目标格子恢复 toData，源格子恢复 fromData
+                toSlot.m_slotData = toData;
+                fromSlot.m_slotData = fromData;
+                fromSlot.Refresh();
+                toSlot.Refresh();
+                return;
             }
 
-            // 3. 执行交换
-            toSlot.m_slotData = fromData;
-            fromSlot.m_slotData = toData;
-
-            toSlot.Refresh();
+            // 全部成功，刷新显示
             fromSlot.Refresh();
+            toSlot.Refresh();
         }
 
         /// <summary>注：获取当前鼠标悬停的格子视图。</summary>
@@ -211,6 +205,9 @@ namespace 途畔归所.Dll.View
             }
             return null;
         }
+
+
+
     }
 
 }

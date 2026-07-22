@@ -121,6 +121,13 @@ cat_Defense={
 
 locale/translation_add_builtin_strings_to_pot=true
 
+[layer_names]
+
+3d_physics/layer_1="地面"
+3d_physics/layer_2="生物"
+3d_physics/layer_3="物品"
+3d_physics/layer_4="伤害"
+
 [physics]
 
 3d/physics_engine="Jolt Physics"
