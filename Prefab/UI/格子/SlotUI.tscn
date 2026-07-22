@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://droxh7tkm7y42"]
 
-[ext_resource type="Script" uid="uid://cudt31agajuym" path="res://Dll/View/SlotView.cs" id="1_uvxin"]
+[ext_resource type="Script" uid="uid://celqqkrtjjuys" path="res://Dll/UI/SlotUI.cs" id="1_alxsg"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_avedt"]
 bg_color = Color(0.6, 0.6, 0.6, 0)
@@ -15,17 +15,18 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
-[node name="SlotUi" type="Control" unique_id=1872644542 node_paths=PackedStringArray("Button", "ItemIcon", "ItemInfo")]
+[node name="SlotUI" type="Control" unique_id=19674448 node_paths=PackedStringArray("Button", "ItemIcon", "ItemInfo")]
 self_modulate = Color(1, 1, 1, 0)
 z_index = 800
 layout_mode = 3
 anchors_preset = 0
 offset_right = 64.0
 offset_bottom = 64.0
-script = ExtResource("1_uvxin")
+script = ExtResource("1_alxsg")
 Button = NodePath("Button")
 ItemIcon = NodePath("Button/PanelContainer/TextureRect")
 ItemInfo = NodePath("Button/PanelContainer/TextureRect/Label")
+metadata/_custom_type_script = "uid://celqqkrtjjuys"
 
 [node name="Button" type="Button" parent="." unique_id=2092678774]
 self_modulate = Color(1, 1, 1, 0)

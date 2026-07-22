@@ -18,8 +18,6 @@ namespace 途畔归所.Dll.Manager
 		public Player m_LocalPlayer;
 		public CreatureData m_LocalPlayerData { get ; set; }
 
-		public PlayerGUI m_CanvasLayer;
-
 		private PlayerManager()
 		{
 			m_playerHash = CatUtils.GetStableHashCode("Player");
@@ -27,8 +25,6 @@ namespace 途畔归所.Dll.Manager
 			if (NetObjectManager.Instance.GetPrefab(m_playerHash).Instantiate() is not Player pl) return;
 
 			m_LocalPlayer = pl;
-
-			m_CanvasLayer = m_LocalPlayer.m_PlayerGUI;
 		}
 
 		public void SpawnLocalPlayer(Vector3 Pos, Vector3 rot)

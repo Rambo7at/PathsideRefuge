@@ -1,18 +1,22 @@
 using Godot;
 using Godot.Collections;
 using 途畔归所.Dll.Interface;
+using 途畔归所.Dll.UI;
 using 途畔归所.Dll.Utils;
 using static 维修公司.Dll.data.ItemData;
 
 namespace 途畔归所.Dll.View
 {
+	[GlobalClass]
 	/// <summary>注：装备栏视图，管理主手/副手槽位的显示与交互委托绑定。</summary>
-	public partial class EquipmentView : Control
+	public partial class EquipmentView : CanvasLayer
 	{
-		[Export] private Array<SlotView> EquipSlots { get; set; } // 装备槽列表（编辑器配置）
+		private const int layerValue = 200;
 
-		private IEquipmentHolder m_Holder { get; set; }            // 持有者接口
-		private Dictionary<string, SlotView> EquipSlotDict = [];   // 槽位字典（按名称索引）
+		[Export] private Array<SlotUI> EquipSlots { get; set; } // 装备槽列表（编辑器配置）
+
+		public	 IEquipmentHolder m_Holder { get; set; }            // 持有者接口
+		private Dictionary<string, SlotUI> EquipSlotDict = [];   // 槽位字典（按名称索引）
 
 		public override void _EnterTree()
 		{
@@ -23,6 +27,8 @@ namespace 途畔归所.Dll.View
 			}
 
 			CollectSlots();
+
+			Layer = layerValue;
 		}
 
 		/// <summary>注：验证装备栏配置并获取持有者引用。</summary>
@@ -34,13 +40,12 @@ namespace 途畔归所.Dll.View
 				return false;
 			}
 
-			if (GetParent() is not IEquipmentHolder holder)
+			if (m_Holder == null)
 			{
-				CatLog.Err($"[EquipmentView._EnterTree]：父对象没有 IEquipmentHolder 接口，已销毁");
+				CatLog.Err($"[EquipmentView._EnterTree]：没有 IEquipmentHolder 接口，已销毁");
 				return false;
 			}
 
-			m_Holder = holder;
 			return true;
 		}
 
@@ -80,12 +85,12 @@ namespace 途畔归所.Dll.View
 				}
 			}
 
-			if (!EquipSlotDict.TryGetValue("MainHand", out SlotView mainHandSlot))
+			if (!EquipSlotDict.TryGetValue("MainHand", out SlotUI mainHandSlot))
 			{
 				CatLog.Warn($"[EquipmentView._EnterTree]：未找到 MainHand 槽位");
 			}
 
-			if (!EquipSlotDict.TryGetValue("OffHand", out SlotView offHandSlot))
+			if (!EquipSlotDict.TryGetValue("OffHand", out SlotUI offHandSlot))
 			{
 				CatLog.Warn($"[EquipmentView._EnterTree]：未找到 OffHand 槽位");
 			}
@@ -95,7 +100,7 @@ namespace 途畔归所.Dll.View
 		}
 
 		/// <summary>注：为指定槽位绑定数据委托（获取/设置物品数据）。</summary>
-		private void BindSlotEvents(SlotView slot)
+		private void BindSlotEvents(SlotUI slot)
 		{
 			if (slot == null) return;
 

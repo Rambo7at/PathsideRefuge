@@ -84,7 +84,6 @@ public partial class ItemComp : RigidBody3D, IInteractable
 			human.m_StateMachine.SwitchAttackAnimIndex(Data.AttackAnimIndex);
 		}
 
-		CatLog.Debug($"[SetEquip] 武器 {Data.Name} 挂载到 {equip}，WeaponHitBox ID: {WeaponHitBox.GetInstanceId()}");
 	}
 
 

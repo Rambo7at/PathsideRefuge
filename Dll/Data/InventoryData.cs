@@ -19,9 +19,9 @@ namespace 途畔归所.Dll.Data
             Chest = 1,
         }
 
-        [Export] public string m_UIname = "InventoryUI";
+        [Export] public string m_UIname = "BackpackView";
 
-        [Export] public string m_SlotUIName = "slot_ui";
+        [Export] public string m_SlotUIName = "SlotUI";
 
         [Export] public int m_maxCol = 1;
 

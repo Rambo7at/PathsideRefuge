@@ -1,40 +1,38 @@
 using Godot;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using 途畔归所.Dll.Utils;
 
-namespace 途畔归所.Dll.View
+namespace 途畔归所.Dll.View;
+
+[GlobalClass]
+public partial class DialogView : CanvasLayer
 {
-	public partial class DialogView : Control
-	{
+    private const int layerValue = 200;
+
+    [Export] private Label m_Label;
 
 
-		[Export] private Label m_Label;
+    // 便捷属性
+    private string m_Text { get => m_Label.Text; set => m_Label.Text = value; }
 
 
-		// 便捷属性
-		private string m_Text { get => m_Label.Text; set => m_Label.Text = value; }
+    public override void _Ready()
+    {
+        if (m_Label == null)
+        {
+            CatUtils.StopAndExit(this);
+        }
+
+        Layer = layerValue;
+    }
 
 
-		public override void _Ready()
-		{
-			if (m_Label == null)
-			{
-				CatUtils.StopAndExit(this);
-			}
-		}
+    public void SetDialogTet(string log)
+    {
+        m_Text = string.Empty;
+        m_Text = log;
+        Visible = true;
+    }
 
 
-		public void SetDialogTet(string log)
-		{
-			m_Text = string.Empty;
-			m_Text = log;
-			Visible = true;
-		}
-
-
-	}
 }
+

@@ -1,123 +1,170 @@
 using Godot;
+using 维修公司.Dll.data;
 using 维修公司.Dll.Interface;
 using 途畔归所.Dll.Base;
-using 途畔归所.Dll.Core;
-using 途畔归所.Dll.Creature;
+using 途畔归所.Dll.Data;
+using 途畔归所.Dll.Interface;
 using 途畔归所.Dll.Manager;
 using 途畔归所.Dll.Utils;
+using 途畔归所.Dll.View;
+namespace 途畔归所.Dll.Creature;
 
-public partial class Player : Humanoid
+public partial class Player : Humanoid, IInventoryHolder
 {
-	[Export] public PlayerGUI m_PlayerGUI;
-	[Export] public Node3D m_PlayerModel;
+	// 组合组件
+	public PlayerController Controller;
+	public PlayerGUI GUI;
 
-
-
-
-
-
-	private PlayerController m_PlayerController;
-
-
-
-
-	public override void _EnterTree()
-	{
-		// 执行父类 _EnterTree
-		base._EnterTree();
-
-
-
-
-
-
-
-
-
-	}
-
-
-
-
-
+	// UI 组件
+	public InventoryView InventoryView;
+	public ConsoleView ConsoleView;
+	public EscView EscView;
+	public HudView HudView;
+	public DialogView DialogView;
 
 	public override void _Ready()
 	{
-		// 执行父类 _Ready
 		base._Ready();
-
-
-		if (m_IsOwner == true)
-		{
-			//InitPlayerController();
-
-
-		}
-
-		if (m_PlayerGUI == null || m_PlayerModel == null)
-		{
-			string loga = m_PlayerGUI == null ? "m_PlayerGUI" : string.Empty;
-			string logb = m_PlayerModel == null ? "m_PlayerModel" : string.Empty;
-			CatLog.Net($"[Player._Ready]：{loga}/{logb} 字段为空");
-			CatUtils.StopAndExit(this);
-		}
 
 		if (!m_IsOwner)
 		{
-			CatLog.Net($"[Player._Ready]：当前并非本地玩家，已关闭运行逻辑");
+			CatLog.Net("[Player._Ready]：当前并非本地玩家，已关闭运行逻辑");
 			SetProcess(false);
 			SetPhysicsProcess(false);
+			return;
 		}
+
+		InitInventory();
+		InitConsole();
+		InitEsc();
+		InitHUD();
+		InitDialog();
+
+		Controller ??= new PlayerController();
+		GUI ??= new PlayerGUI();
+
+		AddChild(Controller);
+		AddChild(GUI);
+
+
 	}
 
 	public override void _PhysicsProcess(double delta) => RaycastInteract();
 
-
-	/// <summary> 注：视线射线检测交互对象 </summary>
+	/// <summary>注：视线射线检测交互对象</summary>
 	public void RaycastInteract()
 	{
 		if (Input.IsActionJustPressed("cat_E"))
 		{
 			var cam = WorldManager.Instance.GetCamera();
 			if (cam == null) return;
+
 			var viewport = cam.GetViewport();
 			var screenCenter = viewport.GetVisibleRect().Size / 2;
 
-			Vector3 from = cam.ProjectRayOrigin(screenCenter);
-			Vector3 dir = cam.ProjectRayNormal(screenCenter);
-			float distance = 10f;
-			Vector3 to = from + dir * distance;
+			var from = cam.ProjectRayOrigin(screenCenter);
+			var dir = cam.ProjectRayNormal(screenCenter);
+			var to = from + dir * 10f;
 
 			var spaceState = GetWorld3D().DirectSpaceState;
-
 			SetPhysicsRay(from, to, m_SelfExclude);
 
 			var result = spaceState.IntersectRay(m_PhysicsRay);
-
-			if (result.TryGetValue("collider", out var node))
+			if (result.TryGetValue("collider", out var node) && node.As<Node3D>() is IInteractable i)
 			{
-				if (node.As<Node3D>() is not IInteractable i) return;
-
 				CatLog.Ok($"已发现{i.ObjectName}");
-				i.PlayerInteract(true,false,this);
+				i.PlayerInteract(true, false, this);
 			}
 		}
 	}
 
+	public DialogView GetDialogView() => DialogView == null ? null : DialogView;
 
 
-	private void InitPlayerController()
+
+
+
+
+
+	/// <summary>注：初始化背包视图</summary>
+	private void InitInventory()
 	{
-		m_PlayerController ??= new PlayerController();
+		if (GUIManager.Instance.GetView(InventoryData.m_UIname) is not InventoryView view)
+		{
+			CatLog.Err("[Player.InitInventory] 背包视图加载失败");
+			return;
+		}
+		InventoryView = view;
+		InventoryView.m_holder = this;
+		InventoryView.Visible = false;
+	}
 
-		//m_PlayerController.Init(this);
+	/// <summary>注：初始化控制台视图</summary>
+	private void InitConsole()
+	{
+		if (ConsoleView != null) return;
 
-		AddChild(m_PlayerController);
+		if (GUIManager.Instance.GetView("ConsoleView") is not ConsoleView view) return;
+
+		ConsoleView = view;
+		ConsoleView.GetPlayer(this);
+		ConsoleView.Visible = false;
+	}
+
+	/// <summary>注：初始化ESC菜单视图</summary>
+	private void InitEsc()
+	{
+		if (EscView != null) return;
+
+		if (GUIManager.Instance.GetView("EscView") is not EscView view) return;
+
+		EscView = view;
+		EscView.Visible = false;
+	}
+
+	/// <summary>注：初始化HUD视图</summary>
+	private void InitHUD()
+	{
+		if (HudView != null) return;
+
+		if (GUIManager.Instance.GetView("HudView") is not HudView view) return;
+
+		HudView = view;
+		HudView.m_maxHP = m_Health;
+		HudView.Visible = true;
+	}
+
+	/// <summary>注：初始化对话视图</summary>
+	private void InitDialog()
+	{
+		if (DialogView != null) return;
+
+		if (GUIManager.Instance.GetView("DialogView") is not DialogView view)
+		{
+			CatLog.Warn("[Player.InitDialog] 对话视图加载失败");
+			return;
+		}
+
+		DialogView = view;
+		DialogView.Visible = false;
 	}
 
 
+	#region 接口实现
 
+	public InventoryData InventoryData
+	{
+		get => m_CreatureData.InventoryData;
+		set => m_CreatureData.InventoryData = value;
+	}
 
+	public bool TrySetInventoryItem(int index, ItemData data)
+	{
+		if (index < 0 || index >= InventoryData.m_capacity) return false;
+		InventoryData.m_itemArr[index] = data;
+		return true;
+	}
 
+	#endregion
 
 }

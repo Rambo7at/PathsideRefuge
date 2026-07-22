@@ -3,6 +3,7 @@ using 维修公司.Dll.data;
 using 维修公司.Dll.Interface;
 using 途畔归所.Dll.Base;
 using 途畔归所.Dll.Core;
+using 途畔归所.Dll.Creature;
 using 途畔归所.Dll.Data;
 using 途畔归所.Dll.Interface;
 using 途畔归所.Dll.Manager;
@@ -13,239 +14,237 @@ using 途畔归所.Dll.View;
 
 namespace 途畔归所.Dll.Comp
 {
-    public partial class ContainerComp : PlacedBase, IInteractable, IInventoryHolder
-    {
-        [Export] private InventoryData m_inventoryData;
-        [Export] private Node3D m_dropPos;
+	public partial class ContainerComp : PlacedBase, IInteractable, IInventoryHolder
+	{
+		[Export] private InventoryData m_inventoryData;
+		[Export] private Node3D m_dropPos;
 
-        private InventoryView m_inventoryView;
-        private NetSyncBase m_netSyncBase;
+		private InventoryView m_inventoryView;
+		private NetSyncBase m_netSyncBase;
 
-        public bool m_IsOpen { get; private set; }
-        InventoryData IInventoryHolder.InventoryData { get => m_inventoryData; set => m_inventoryData = value; }
-        Vector3 IInventoryHolder.DropPos => m_dropPos.GlobalPosition;
+		public bool m_IsOpen { get; private set; }
+		InventoryData IInventoryHolder.InventoryData { get => m_inventoryData; set => m_inventoryData = value; }
+		Vector3 IInventoryHolder.DropPos => m_dropPos.GlobalPosition;
 
-        public string ObjectName => m_placedData.m_Name;
+		public string ObjectName => m_placedData.m_Name;
 
-        public override void _Ready()
-        {
-            m_netSyncBase = CatUtils.FindChildNode<NetSyncBase>(this);
-            if (m_inventoryData == null || m_netSyncBase == null)
-            {
-                CatUtils.StopAndExit(this);
-                CatLog.Err("[ContainerComp._Ready]：ContainerComp 缺少 m_inventoryData 数据 或 NetSyncBase 组件 ，已销毁");
-                return;
-            }
+		public override void _Ready()
+		{
+			m_netSyncBase = CatUtils.FindChildNode<NetSyncBase>(this);
+			if (m_inventoryData == null || m_netSyncBase == null)
+			{
+				CatUtils.StopAndExit(this);
+				CatLog.Err("[ContainerComp._Ready]：ContainerComp 缺少 m_inventoryData 数据 或 NetSyncBase 组件 ，已销毁");
+				return;
+			}
 
-            if (InitSync(m_netSyncBase) == false)
-            {
-                CatUtils.StopAndExit(this);
-                return;
-            }
+			if (InitSync(m_netSyncBase) == false)
+			{
+				CatUtils.StopAndExit(this);
+				return;
+			}
 
-            // 直接创建 InventoryView，移除 InventoryComp 依赖
-            if (UIManager.Instance.GetUI(m_inventoryData.m_UIname) is not InventoryView view)
-            {
-                CatLog.Err("[ContainerComp._Ready] 箱子视图加载失败");
-                CatUtils.StopAndExit(this);
-                return;
-            }
-            m_inventoryView = view;
-            // 临时添加为子节点以触发 _Ready 绑定 IInventoryHolder，然后移除
-            AddChild(m_inventoryView);
-            RemoveChild(m_inventoryView);
-            m_inventoryView.Visible = false;
+			// 直接创建 InventoryView，移除 InventoryComp 依赖
+			if (GUIManager.Instance.GetView(m_inventoryData.m_UIname) is not InventoryView view)
+			{
+				CatLog.Err("[ContainerComp._Ready] 箱子视图加载失败");
+				CatUtils.StopAndExit(this);
+				return;
+			}
+			m_inventoryView = view;
+			m_inventoryView.m_holder = this;
+			m_inventoryView.Visible = false;
 
-            // 注册网络 RPC
-            m_netSyncBase.RegisterRpc("RequestOpenContainer", RPC_RequestOpenContainer);
-            m_netSyncBase.RegisterRpc<byte[]>("ReceiveContainerInventory", RPC_ReceiveContainerInventory);
-            m_netSyncBase.RegisterRpc<bool>("SyncContainerOpenState", RPC_SyncContainerOpenState);
-            m_netSyncBase.RegisterRpc("RequestCloseContainer", RPC_RequestCloseContainer);
-            m_netSyncBase.RegisterRpc("ReceiveCloseContainer", RPC_ReceiveCloseContainer);
-            m_netSyncBase.RegisterRpc<byte[]>("SubmitFinalInventory", RPC_SubmitFinalInventory);
-        }
+			// 注册网络 RPC
+			m_netSyncBase.RegisterRpc("RequestOpenContainer", RPC_RequestOpenContainer);
+			m_netSyncBase.RegisterRpc<byte[]>("ReceiveContainerInventory", RPC_ReceiveContainerInventory);
+			m_netSyncBase.RegisterRpc<bool>("SyncContainerOpenState", RPC_SyncContainerOpenState);
+			m_netSyncBase.RegisterRpc("RequestCloseContainer", RPC_RequestCloseContainer);
+			m_netSyncBase.RegisterRpc("ReceiveCloseContainer", RPC_ReceiveCloseContainer);
+			m_netSyncBase.RegisterRpc<byte[]>("SubmitFinalInventory", RPC_SubmitFinalInventory);
+		}
 
-        private bool InitSync(NetSyncBase netSync)
-        {
-            if (netSync == null || netSync.m_NetObj == null)
-            {
-                CatLog.Net("[ContainerComp.InitContainerNetSync] NetSyncBase 或 NetSyncBase.NetObj 为空");
-                return false;
-            }
-            NetObject netObject = netSync.m_NetObj;
+		private bool InitSync(NetSyncBase netSync)
+		{
+			if (netSync == null || netSync.m_NetObj == null)
+			{
+				CatLog.Net("[ContainerComp.InitContainerNetSync] NetSyncBase 或 NetSyncBase.NetObj 为空");
+				return false;
+			}
+			NetObject netObject = netSync.m_NetObj;
 
-            netSync.OnFlushNetState += () => FlushInventory(netSync.m_NetObj);
+			netSync.OnFlushNetState += () => FlushInventory(netSync.m_NetObj);
 
-            var custdata = netObject.m_customData.As<PlacedData>();
-            m_placedData = custdata != null ? custdata.DeepCopy() : m_placedData;
+			var custdata = netObject.m_customData.As<PlacedData>();
+			m_placedData = custdata != null ? custdata.DeepCopy() : m_placedData;
 
-            var data = m_placedData.m_data.As<InventoryData>();
-            m_inventoryData = (data?.m_itemArr == null || data.m_itemArr.Count == 0) ? m_inventoryData : data;
+			var data = m_placedData.m_data.As<InventoryData>();
+			m_inventoryData = (data?.m_itemArr == null || data.m_itemArr.Count == 0) ? m_inventoryData : data;
 
-            return true;
-        }
+			return true;
+		}
 
-        public override void _Process(double delta)
-        {
-            if (m_IsOpen && m_inventoryView.GetParent() == PlayerManager.Instance.m_CanvasLayer)
-            {
-                float distance = GlobalPosition.DistanceTo(PlayerManager.Instance.m_LocalPlayer.GlobalPosition);
-                if (distance >= 3f)
-                {
-                    CloseContainer();
-                }
-            }
-        }
+		public override void _Process(double delta)
+		{
+			if (m_IsOpen && m_inventoryView.GetParent() == PlayerManager.Instance.m_LocalPlayer.GUI)
+			{
+				float distance = GlobalPosition.DistanceTo(PlayerManager.Instance.m_LocalPlayer.GlobalPosition);
+				if (distance >= 3f)
+				{
+					CloseContainer();
+				}
+			}
+		}
 
-        public void OpenContainer(Player player)
-        {
-            if (player == null || m_inventoryView == null) return;
-            if (m_IsOpen) return;
+		public void OpenContainer(Player player)
+		{
+			if (player == null || m_inventoryView == null) return;
+			if (m_IsOpen) return;
 
-            if (NetCore.Instance.IsClient)
-            {
-                m_netSyncBase.CallRpc("RequestOpenContainer");
-                return;
-            }
+			if (NetCore.Instance.IsClient)
+			{
+				m_netSyncBase.CallRpc("RequestOpenContainer");
+				return;
+			}
 
-            PlayerManager.Instance.m_CanvasLayer.AddChild(m_inventoryView);
-            m_inventoryView.Visible = true;
-            m_IsOpen = true;
-            m_netSyncBase.CallAllRpc("SyncContainerOpenState", m_IsOpen);
-        }
+			PlayerManager.Instance.m_LocalPlayer.GUI.AddChild(m_inventoryView);
+			m_inventoryView.Visible = true;
+			m_IsOpen = true;
+			m_netSyncBase.CallAllRpc("SyncContainerOpenState", m_IsOpen);
+		}
 
-        public void CloseContainer()
-        {
-            if (m_IsOpen == false) return;
-            bool isUser = m_inventoryView.GetParent() == PlayerManager.Instance.m_CanvasLayer;
-            if (isUser == false) return;
+		public void CloseContainer()
+		{
+			if (m_IsOpen == false) return;
+			bool isUser = m_inventoryView.GetParent() == PlayerManager.Instance.m_LocalPlayer.GUI;
+			if (isUser == false) return;
 
-            if (NetCore.Instance.IsClient)
-            {
-                m_netSyncBase.CallRpc("RequestCloseContainer");
-                return;
-            }
+			if (NetCore.Instance.IsClient)
+			{
+				m_netSyncBase.CallRpc("RequestCloseContainer");
+				return;
+			}
 
-            m_inventoryView.GetParent()?.RemoveChild(m_inventoryView);
-            m_IsOpen = false;
-            m_netSyncBase.CallAllRpc("SyncContainerOpenState", m_IsOpen);
-        }
+			m_inventoryView.GetParent()?.RemoveChild(m_inventoryView);
+			m_IsOpen = false;
+			m_netSyncBase.CallAllRpc("SyncContainerOpenState", m_IsOpen);
+		}
 
-        private void RPC_RequestOpenContainer(long requesterId)
-        {
-            if (NetCore.Instance.IsClient) return;
-            if (m_IsOpen) return;
+		private void RPC_RequestOpenContainer(long requesterId)
+		{
+			if (NetCore.Instance.IsClient) return;
+			if (m_IsOpen) return;
 
-            byte[] bytes = m_inventoryData.Serialize();
-            m_IsOpen = true;
-            m_netSyncBase.CallAllRpc("SyncContainerOpenState", m_IsOpen);
-            m_netSyncBase.CallRpc("ReceiveContainerInventory", bytes, requesterId);
-        }
+			byte[] bytes = m_inventoryData.Serialize();
+			m_IsOpen = true;
+			m_netSyncBase.CallAllRpc("SyncContainerOpenState", m_IsOpen);
+			m_netSyncBase.CallRpc("ReceiveContainerInventory", bytes, requesterId);
+		}
 
-        private void RPC_RequestCloseContainer(long requesterId)
-        {
-            if (NetCore.Instance.IsClient) return;
-            if (m_IsOpen == false) return;
+		private void RPC_RequestCloseContainer(long requesterId)
+		{
+			if (NetCore.Instance.IsClient) return;
+			if (m_IsOpen == false) return;
 
-            m_IsOpen = false;
-            m_netSyncBase.CallAllRpc("SyncContainerOpenState", m_IsOpen);
-            m_netSyncBase.CallRpc("ReceiveCloseContainer", requesterId);
-        }
+			m_IsOpen = false;
+			m_netSyncBase.CallAllRpc("SyncContainerOpenState", m_IsOpen);
+			m_netSyncBase.CallRpc("ReceiveCloseContainer", requesterId);
+		}
 
-        private void RPC_ReceiveCloseContainer(long senderId)
-        {
-            if (senderId != 1 || NetCore.Instance.IsHost) return;
+		private void RPC_ReceiveCloseContainer(long senderId)
+		{
+			if (senderId != 1 || NetCore.Instance.IsHost) return;
 
-            m_inventoryView.GetParent()?.RemoveChild(m_inventoryView);
-            m_IsOpen = false;
+			m_inventoryView.GetParent()?.RemoveChild(m_inventoryView);
+			m_IsOpen = false;
 
-            byte[] finalInventoryData = m_inventoryData.Serialize();
-            m_netSyncBase.CallRpc("SubmitFinalInventory", finalInventoryData);
+			byte[] finalInventoryData = m_inventoryData.Serialize();
+			m_netSyncBase.CallRpc("SubmitFinalInventory", finalInventoryData);
 
-            CatLog.Net("容器已关闭，已提交最终库存数据");
-        }
+			CatLog.Net("容器已关闭，已提交最终库存数据");
+		}
 
-        private void RPC_SubmitFinalInventory(long requesterId, byte[] data)
-        {
-            if (NetCore.Instance.IsClient) return;
-            if (m_IsOpen)
-            {
-                CatLog.Warn($"[RPC_SubmitFinalInventory] 客户端{requesterId}在容器未关闭时提交数据，已拒绝");
-                return;
-            }
-            if (data == null || data.Length == 0)
-            {
-                CatLog.Warn($"[RPC_SubmitFinalInventory] 客户端{requesterId}提交了空的库存数据");
-                return;
-            }
+		private void RPC_SubmitFinalInventory(long requesterId, byte[] data)
+		{
+			if (NetCore.Instance.IsClient) return;
+			if (m_IsOpen)
+			{
+				CatLog.Warn($"[RPC_SubmitFinalInventory] 客户端{requesterId}在容器未关闭时提交数据，已拒绝");
+				return;
+			}
+			if (data == null || data.Length == 0)
+			{
+				CatLog.Warn($"[RPC_SubmitFinalInventory] 客户端{requesterId}提交了空的库存数据");
+				return;
+			}
 
-            InventoryData finalData = new InventoryData();
-            finalData.Deserialize(data);
-            m_inventoryData = finalData.DeepCopy();
+			InventoryData finalData = new InventoryData();
+			finalData.Deserialize(data);
+			m_inventoryData = finalData.DeepCopy();
 
-            // 如果视图正显示，刷新
-            if (m_inventoryView.GetParent() == PlayerManager.Instance.m_CanvasLayer)
-                m_inventoryView.RefreshAllSlots();
+			// 如果视图正显示，刷新
+			if (m_inventoryView.GetParent() == PlayerManager.Instance.m_LocalPlayer.GUI)
+				m_inventoryView.RefreshAllSlots();
 
-            CatLog.Net($"[RPC_SubmitFinalInventory] 客户端{requesterId}提交的最终库存数据已保存");
-        }
+			CatLog.Net($"[RPC_SubmitFinalInventory] 客户端{requesterId}提交的最终库存数据已保存");
+		}
 
-        private void RPC_ReceiveContainerInventory(long senderId, byte[] data)
-        {
-            if (senderId != 1 || NetCore.Instance.IsHost) return;
-            if (data == null)
-            {
-                CatLog.Warn("[RPC_ReceiveInventoryData] 数据包为空");
-                return;
-            }
+		private void RPC_ReceiveContainerInventory(long senderId, byte[] data)
+		{
+			if (senderId != 1 || NetCore.Instance.IsHost) return;
+			if (data == null)
+			{
+				CatLog.Warn("[RPC_ReceiveInventoryData] 数据包为空");
+				return;
+			}
 
-            InventoryData inventoryData = new InventoryData();
-            inventoryData.Deserialize(data);
-            m_inventoryData = inventoryData.DeepCopy();
+			InventoryData inventoryData = new InventoryData();
+			inventoryData.Deserialize(data);
+			m_inventoryData = inventoryData.DeepCopy();
 
-            PlayerManager.Instance.m_CanvasLayer.AddChild(m_inventoryView);
-            m_inventoryView.Visible = true;
-            m_inventoryView.RefreshAllSlots();
+			PlayerManager.Instance.m_LocalPlayer.GUI.AddChild(m_inventoryView);
+			m_inventoryView.Visible = true;
+			m_inventoryView.RefreshAllSlots();
 
-            CatLog.Net("库存数据同步成功");
-        }
+			CatLog.Net("库存数据同步成功");
+		}
 
-        private void RPC_SyncContainerOpenState(bool b)
-        {
-            if (NetCore.Instance.IsHost) return;
-            m_IsOpen = b;
-            if (!b) m_inventoryView.GetParent()?.RemoveChild(m_inventoryView);
-        }
+		private void RPC_SyncContainerOpenState(bool b)
+		{
+			if (NetCore.Instance.IsHost) return;
+			m_IsOpen = b;
+			if (!b) m_inventoryView.GetParent()?.RemoveChild(m_inventoryView);
+		}
 
-        public void PlayerInteract(bool InputE, bool InputF, CreatureBase creature)
-        {
+		public void PlayerInteract(bool InputE, bool InputF, CreatureBase creature)
+		{
 
-            if (creature is not Player pl) return;
+			if (creature is not Player pl) return;
 
-            if (InputE)
-            {
-                if (m_IsOpen) CloseContainer();
-                else OpenContainer(pl);
-            }
-        }
+			if (InputE)
+			{
+				if (m_IsOpen) CloseContainer();
+				else OpenContainer(pl);
+			}
+		}
 
-        private void FlushInventory(NetObject netObject)
-        {
-            base.m_placedData.m_data = m_inventoryData.DeepCopy();
-            netObject.m_customData = base.m_placedData.DeepCopy();
-        }
+		private void FlushInventory(NetObject netObject)
+		{
+			base.m_placedData.m_data = m_inventoryData.DeepCopy();
+			netObject.m_customData = base.m_placedData.DeepCopy();
+		}
 
-        public bool TrySetInventoryItem(int index, ItemData data)
-        {
-            // 校验1：索引范围
-            if (index < 0 || index >= m_inventoryData.m_capacity) return false;
+		public bool TrySetInventoryItem(int index, ItemData data)
+		{
+			// 校验1：索引范围
+			if (index < 0 || index >= m_inventoryData.m_capacity) return false;
 
-            m_inventoryData.m_itemArr[index] = data;
-            return true;
-        }
+			m_inventoryData.m_itemArr[index] = data;
+			return true;
+		}
 
 
-    }
+	}
 
 
 }

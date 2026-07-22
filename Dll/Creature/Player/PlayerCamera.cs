@@ -1,4 +1,5 @@
 using Godot;
+using 途畔归所.Dll.Creature;
 using 途畔归所.Dll.Manager;
 using 途畔归所.Dll.Utils;
 

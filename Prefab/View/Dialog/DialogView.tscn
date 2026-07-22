@@ -2,18 +2,12 @@
 
 [ext_resource type="Script" uid="uid://d2y0jjx1j30l5" path="res://Dll/View/DialogView.cs" id="1_0hpdw"]
 
-[node name="DialogView" type="Control" unique_id=212215259 node_paths=PackedStringArray("m_Label")]
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="DialogView" type="CanvasLayer" unique_id=1406643990 node_paths=PackedStringArray("m_Label")]
 script = ExtResource("1_0hpdw")
 m_Label = NodePath("Panel/Label")
+metadata/_custom_type_script = "uid://d2y0jjx1j30l5"
 
 [node name="Panel" type="Panel" parent="." unique_id=251744829]
-layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0

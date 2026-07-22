@@ -31,7 +31,6 @@ namespace 途畔归所.Dll.Core
             ResourceManager.Instance.Init();
             AddChild(NetObjectManager.Instance);
 
-            UIManager.Instance.Init();
 
 
             TimeManager timeMgr = new();

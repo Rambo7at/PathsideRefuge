@@ -4,14 +4,16 @@ using System;
 using 维修公司.Dll.data;
 using 途畔归所.Dll.Base;
 using 途畔归所.Dll.Comp;
+using 途畔归所.Dll.Interface;
 using 途畔归所.Dll.Manager;
 using 途畔归所.Dll.Utils;
+using 途畔归所.Dll.View;
 using static 维修公司.Dll.data.ItemData;
 
 namespace 途畔归所.Dll.Creature;
 
 /// <summary>注：装备管理组件，挂载于 Humanoid 上，负责主手/副手武器的加载、切换与动画绑定。</summary>
-public partial class Equipment : Node
+public partial class Equipment : Node, IEquipmentHolder 
 {
 	private Humanoid m_Humanoid;
 	private StateMachine StateMachine { get => m_Humanoid?.m_StateMachine; }
@@ -24,13 +26,18 @@ public partial class Equipment : Node
 
 	/// <summary>注：副手武器数据</summary>
 	public ItemData OffHandData { get => EquipData[E_EquipAVL.OffHand]; set => TrySetEquipData(E_EquipAVL.OffHand, value); }
+    Equipment IEquipmentHolder.Equipment{get => this;set { }}
 
-	private ItemComp m_Unarmed;      // 空手（默认武器）
+    public Vector3 DropPos => m_Humanoid.DropPos;
+
+    private ItemComp m_Unarmed;      // 空手（默认武器）
 
 	public ItemComp MainHandComp;    // 当前主手武器实例
 	public ItemComp OffHandComp;     // 当前副手武器实例
 
-	public override void _EnterTree()
+	public EquipmentView EquipmentView;
+
+    public override void _EnterTree()
 	{
 		if (GetParent() is not Humanoid humanoid)
 		{
@@ -47,11 +54,32 @@ public partial class Equipment : Node
 
 	public override void _Ready()
 	{
-		UpdateEquipment();
+		if (GetParent() is Player) InitPlayerEquip();
+
+
+        UpdateEquipment();
 	}
 
-	/// <summary>注：加载永久空手武器（作为默认装备）</summary>
-	private void LoadUnarmed()
+
+
+    private void InitPlayerEquip()
+    {
+        EquipmentView ??= GUIManager.Instance.GetView("EquipmentView") is EquipmentView view ? view : null;
+        if (EquipmentView == null)
+        {
+            CatLog.Warn("[PlayerGUI.InitPlayerEquip] 装备栏视图加载失败");
+            return;
+        }
+
+        EquipmentView.m_Holder = this;
+        EquipmentView.Visible = false;
+    }
+
+
+
+
+    /// <summary>注：加载永久空手武器（作为默认装备）</summary>
+    private void LoadUnarmed()
 	{
 		m_Unarmed ??= ItemManager.Instance.GetItemDrop("7at_空拳头");
 		if (m_Unarmed == null)

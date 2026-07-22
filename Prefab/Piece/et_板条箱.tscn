@@ -10,7 +10,7 @@
 
 [sub_resource type="Resource" id="Resource_pegm5"]
 script = ExtResource("3_jnto5")
-m_UIname = "ContainerUI"
+m_UIname = "ContainerView"
 metadata/_custom_type_script = "uid://bl12j36xetca"
 
 [sub_resource type="Resource" id="Resource_gl1ps"]

@@ -1,28 +1,19 @@
 [gd_scene format=3 uid="uid://dqnvs5qiu0y42"]
 
-[ext_resource type="Script" uid="uid://bhn1u4unx2dbj" path="res://Dll/View/HudView.cs" id="1_a431q"]
-[ext_resource type="Texture2D" uid="uid://c3ydq76rt57j6" path="res://Prefab/View/HUD/红条.png" id="1_vvi7k"]
-[ext_resource type="Texture2D" uid="uid://b8srh5f7g2y8j" path="res://Prefab/View/HUD/绿条.png" id="2_o2ye0"]
-[ext_resource type="Texture2D" uid="uid://bgfs47j4osaw4" path="res://Prefab/View/HUD/血框.png" id="3_w34op"]
-[ext_resource type="Script" uid="uid://bu8oo5cujt1ge" path="res://Dll/View/ReticleView.cs" id="5_4s4yv"]
+[ext_resource type="Script" uid="uid://bhn1u4unx2dbj" path="res://Dll/View/HudView.cs" id="1_qfumn"]
+[ext_resource type="Texture2D" uid="uid://c3ydq76rt57j6" path="res://Prefab/View/HUD/红条.png" id="2_5drko"]
+[ext_resource type="Texture2D" uid="uid://b8srh5f7g2y8j" path="res://Prefab/View/HUD/绿条.png" id="3_agrwj"]
+[ext_resource type="Texture2D" uid="uid://bgfs47j4osaw4" path="res://Prefab/View/HUD/血框.png" id="4_vqkmm"]
+[ext_resource type="Script" uid="uid://bu8oo5cujt1ge" path="res://Dll/View/ReticleView.cs" id="5_b68t4"]
 
-[node name="HUD" type="Control" unique_id=1872644542 node_paths=PackedStringArray("m_HPG", "m_HPR")]
-self_modulate = Color(1, 1, 1, 0)
-light_mask = 524288
-visibility_layer = 524288
-layout_mode = 3
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 1
-script = ExtResource("1_a431q")
+[node name="HudView" type="CanvasLayer" unique_id=1187545490 node_paths=PackedStringArray("m_HPG", "m_HPR")]
+script = ExtResource("1_qfumn")
 m_HPG = NodePath("血条/HP绿条")
 m_HPR = NodePath("血条/HP红条")
+metadata/_custom_type_script = "uid://bhn1u4unx2dbj"
 
 [node name="血条" type="Control" parent="." unique_id=726493251]
-layout_mode = 1
+layout_mode = 3
 anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0
@@ -45,7 +36,7 @@ grow_horizontal = 2
 grow_vertical = 0
 step = -1.0
 value = 100.0
-texture_progress = ExtResource("1_vvi7k")
+texture_progress = ExtResource("2_5drko")
 
 [node name="HP绿条" type="TextureProgressBar" parent="血条" unique_id=1292644136]
 layout_mode = 1
@@ -61,7 +52,7 @@ grow_horizontal = 2
 grow_vertical = 0
 step = -1.0
 value = 100.0
-texture_progress = ExtResource("2_o2ye0")
+texture_progress = ExtResource("3_agrwj")
 
 [node name="TextureRect（血框）" type="TextureRect" parent="血条" unique_id=744278000]
 self_modulate = Color(0.9228207, 0.7657399, 0.70993996, 1)
@@ -76,10 +67,9 @@ offset_top = -78.0
 offset_right = 311.5
 grow_horizontal = 2
 grow_vertical = 0
-texture = ExtResource("3_w34op")
+texture = ExtResource("4_vqkmm")
 
 [node name="DEbug" type="Button" parent="." unique_id=1485436705]
-layout_mode = 0
 offset_left = 501.0
 offset_top = 1002.0
 offset_right = 613.0
@@ -87,7 +77,6 @@ offset_bottom = 1033.0
 text = "DEBUG 按钮"
 
 [node name="Reticle" type="CenterContainer" parent="." unique_id=774739844]
-layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
@@ -99,7 +88,7 @@ offset_right = 20.0
 offset_bottom = 20.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("5_4s4yv")
+script = ExtResource("5_b68t4")
 
 [node name="Line2D" type="Line2D" parent="Reticle" unique_id=50161226]
 points = PackedVector2Array(0, -5, 0, -15)

@@ -4,81 +4,85 @@ using 维修公司.Dll.data;
 using 途畔归所.Dll.Data;
 using 途畔归所.Dll.Interface;
 using 途畔归所.Dll.Manager;
+using 途畔归所.Dll.UI;
 using 途畔归所.Dll.Utils;
 
-namespace 途畔归所.Dll.View
+namespace 途畔归所.Dll.View;
+
+[GlobalClass]
+public partial class InventoryView : CanvasLayer
 {
-    public partial class InventoryView : Control
-    {
-        [Export] private GridContainer m_gridContainer;
+	private const int layerValue = 200;
 
-        private IInventoryHolder m_holder;
+	[Export] private GridContainer m_gridContainer;
 
-        private Array<SlotView> m_slotViewArr = [];
+	public IInventoryHolder m_holder;
 
-        public override void _Ready()
-        {
-            if (GetParent() is not IInventoryHolder holder)
-            {
-                CatLog.Err($"[InventoryView._Ready]：父对象没有 IInventoryHolder 接口，已销毁");
-                CatUtils.StopAndExit(this);
-                return;
-            }
-
-            m_holder = holder;
-
-            int dataConut = m_holder.InventoryData.m_capacity;
-            InventoryData inventoryData = m_holder.InventoryData;
-            Array<ItemData> slotDataArr = m_holder.InventoryData.m_itemArr;
-
-            while (slotDataArr.Count < dataConut)
-            {
-                slotDataArr.Add(null);
-            }
-
-            if (slotDataArr.Count > dataConut)
-            {
-                for (int i = slotDataArr.Count - 1; i >= dataConut; i--)
-                {
-                    slotDataArr[i]?.TryDropItem(m_holder.DropPos);
-                    slotDataArr.Remove(slotDataArr[i]);
-                }
-            }
+	private Array<SlotUI> m_slotViewArr = [];
 
 
-            for (int i = 0; i < slotDataArr.Count; i++)
-            {
-                if (UIManager.Instance.GetUI(inventoryData.m_SlotUIName) is not SlotView view)
-                {
-                    CatLog.Err("[InventoryView._Ready] 格子UI类型错误");
-                    CatUtils.StopAndExit(this);
-                    return;
-                }
 
-                int index = i; // 闭包捕获
+	public override void _Ready()
+	{
+		if (m_holder == null)
+		{
+			CatLog.Err($"[InventoryView._Ready]：没有 IInventoryHolder 接口，已销毁 ");
+			CatUtils.StopAndExit(this);
+			return;
+		}
 
-                view.OnDropPos = () => m_holder.DropPos;
-                view.OnGetItem = () => m_holder.InventoryData.m_itemArr[index];
-                view.OnSetItem = (newItemData) => m_holder.TrySetInventoryItem(index,newItemData) ;
+		Layer = layerValue;
 
-                m_slotViewArr.Add(view);
-                m_gridContainer.AddChild(view);
-            }
 
-            RefreshAllSlots();
-            inventoryData.OnChanged += RefreshAllSlots;
-        }
+		int dataConut = m_holder.InventoryData.m_capacity;
+		InventoryData inventoryData = m_holder.InventoryData;
+		Array<ItemData> slotDataArr = m_holder.InventoryData.m_itemArr;
 
-        public void RefreshAllSlots() { foreach (var slot in m_slotViewArr) slot.Refresh(); }
+		while (slotDataArr.Count < dataConut)
+		{
+			slotDataArr.Add(null);
+		}
 
-        public void ToggleUI()
-        {
-            Visible = !Visible;
-            if (Visible) RefreshAllSlots();
-        }
+		if (slotDataArr.Count > dataConut)
+		{
+			for (int i = slotDataArr.Count - 1; i >= dataConut; i--)
+			{
+				slotDataArr[i]?.TryDropItem(m_holder.DropPos);
+				slotDataArr.Remove(slotDataArr[i]);
+			}
+		}
 
-        private Vector3 GetDropPos() => m_holder.DropPos;
+		for (int i = 0; i < slotDataArr.Count; i++)
+		{
+			if (GUIManager.Instance.GetUI(inventoryData.m_SlotUIName) is not SlotUI view)
+			{
+				CatLog.Err("[InventoryView._Ready] 格子UI类型错误");
+				CatUtils.StopAndExit(this);
+				return;
+			}
 
-    }
+			int index = i; // 闭包捕获
+
+			view.OnDropPos = () => m_holder.DropPos;
+			view.OnGetItem = () => m_holder.InventoryData.m_itemArr[index];
+			view.OnSetItem = (newItemData) => m_holder.TrySetInventoryItem(index, newItemData);
+
+			m_slotViewArr.Add(view);
+			m_gridContainer.AddChild(view);
+		}
+
+		RefreshAllSlots();
+		inventoryData.OnChanged += RefreshAllSlots;
+	}
+
+	public void RefreshAllSlots() { foreach (var slot in m_slotViewArr) slot.Refresh(); }
+
+	public void ToggleUI()
+	{
+		Visible = !Visible;
+		if (Visible) RefreshAllSlots();
+	}
+
+	private Vector3 GetDropPos() => m_holder.DropPos;
 
 }

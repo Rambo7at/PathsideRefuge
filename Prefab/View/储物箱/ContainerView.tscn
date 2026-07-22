@@ -1,0 +1,21 @@
+[gd_scene format=3 uid="uid://cocgp24psh3ch"]
+
+[ext_resource type="Script" uid="uid://4mosjn0tu8ro" path="res://Dll/View/InventoryView.cs" id="1_s1q6l"]
+[ext_resource type="Theme" uid="uid://deadb5j65etkc" path="res://Theme/背包UI.tres" id="2_a2xvo"]
+
+[node name="ContainerView" type="CanvasLayer" unique_id=475630318 node_paths=PackedStringArray("m_gridContainer")]
+script = ExtResource("1_s1q6l")
+m_gridContainer = NodePath("PanelContainer/GridContainer")
+metadata/_custom_type_script = "uid://4mosjn0tu8ro"
+
+[node name="PanelContainer" type="PanelContainer" parent="." unique_id=2002482144]
+offset_left = 51.0
+offset_top = 65.0
+offset_right = 750.5
+offset_bottom = 143.25
+theme = ExtResource("2_a2xvo")
+
+[node name="GridContainer" type="GridContainer" parent="PanelContainer" unique_id=487971680]
+layout_mode = 2
+theme = ExtResource("2_a2xvo")
+columns = 10

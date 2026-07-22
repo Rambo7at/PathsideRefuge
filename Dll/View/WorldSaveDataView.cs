@@ -89,7 +89,7 @@ namespace 途畔归所.Dll.View
 
             foreach (var id in IDarr)
             {
-                var ui = UIManager.Instance.GetUI("Button_A1") as Button;
+                var ui = GUIManager.Instance.GetUI("Button_A1") as Button;
                 if (ui == null) continue;
                 ui.Text = "ID:" + id;
                 m_saveSlotBox.AddChild(ui);

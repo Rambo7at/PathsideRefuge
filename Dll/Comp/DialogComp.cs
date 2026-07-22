@@ -1,5 +1,6 @@
 using Godot;
 using 途畔归所.Dll.Base;
+using 途畔归所.Dll.Creature;
 using 途畔归所.Dll.Utils;
 using 途畔归所.Dll.View;
 
@@ -26,7 +27,7 @@ namespace 途畔归所.Dll.Comp
 
         public void StartDialog(Player pl)
         {
-            var view = pl.m_PlayerGUI.GetDialogView();
+            var view = pl.GetDialogView();
 
             if (view == null) return;
 

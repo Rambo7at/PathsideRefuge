@@ -73,7 +73,7 @@ public partial class PlayerSaveDataView : Control
 
         foreach (int id in ids)
         {
-            var slot = UIManager.Instance.GetUI("Button_A1") as Button;
+            var slot = GUIManager.Instance.GetUI("Button_A1") as Button;
             if (slot == null) continue;
 
             slot.Text = "ID:" + id;
