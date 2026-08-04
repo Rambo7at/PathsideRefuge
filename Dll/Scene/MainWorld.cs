@@ -1,8 +1,8 @@
 using Godot;
 using 途畔归所.Dll.Base;
-using 途畔归所.Dll.Core;
-using 途畔归所.Dll.Data;
 using 途畔归所.Dll.Manager;
+
+namespace 途畔归所.Dll.Scene;
 
 public partial class MainWorld : SceneBase
 {
@@ -10,7 +10,7 @@ public partial class MainWorld : SceneBase
 
     public override void _Ready()
     {
-       
+
         PlayerManager.Instance.SpawnLocalPlayer(SpawnPian.GlobalPosition, SpawnPian.Rotation);
     }
 }

@@ -80,15 +80,15 @@ namespace 途畔归所.Dll.Data
             return itemData.Stack < 1;
         }
 
-
-
         public byte[] Serialize()
         {
-            var list = new List<byte[]>();
+            List<byte[]> list = [];
+
             foreach (var item in m_itemArr)
             {
                 list.Add(item?.Serialize());
             }
+
             return JsonSerializer.SerializeToUtf8Bytes(list);
         }
 

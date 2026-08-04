@@ -46,7 +46,7 @@ public class GUIManager
     }
 
 
-    /// <summary>注：获取UI预制件</summary>
+    /// <summary>注：获取View预制件</summary>
     public CanvasLayer GetView(string uiName)
     {
         int hash = CatUtils.GetStableHashCode(uiName);
