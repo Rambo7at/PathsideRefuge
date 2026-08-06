@@ -24,9 +24,10 @@ public partial class Player : Humanoid, IInventoryHolder
 
 	public override void _Ready()
 	{
-		base._Ready();
+        CatLog.Debug($"[Player._Ready] 进入，m_IsOwner={m_IsOwner}，树状态：{IsInsideTree()}");
+        base._Ready();
 
-		if (!m_IsOwner)
+        if (!m_IsOwner)
 		{
 			CatLog.Net("[Player._Ready]：当前并非本地玩家，已关闭运行逻辑");
 			SetProcess(false);
@@ -34,7 +35,9 @@ public partial class Player : Humanoid, IInventoryHolder
 			return;
 		}
 
-		InitInventory();
+        CatLog.Ok("[Player._Ready] 本地玩家初始化开始");
+
+        InitInventory();
 		InitConsole();
 		InitEsc();
 		InitHUD();
@@ -50,6 +53,12 @@ public partial class Player : Humanoid, IInventoryHolder
 	}
 
 	public override void _PhysicsProcess(double delta) => RaycastInteract();
+
+
+    public override void _ExitTree()
+    {
+        
+    }
 
 	/// <summary>注：视线射线检测交互对象</summary>
 	public void RaycastInteract()

@@ -1,0 +1,25 @@
+[gd_scene format=3 uid="uid://ct46j2cpb5n6w"]
+
+[ext_resource type="Script" uid="uid://bloli18akioju" path="res://Dll/Comp/ScenePortalComp.cs" id="1_jmfrg"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_q5k7f"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_q5k7f"]
+
+[node name="7at_传送测试" type="Node3D" unique_id=370073041 node_paths=PackedStringArray("triggerArea")]
+script = ExtResource("1_jmfrg")
+triggerArea = NodePath("Area3D")
+targetScene = "测试场景"
+metadata/_custom_type_script = "uid://bloli18akioju"
+
+[node name="Area3D" type="Area3D" parent="." unique_id=1252367534]
+collision_layer = 3
+collision_mask = 3
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D" unique_id=646979921]
+transform = Transform3D(6, 0, 0, 0, 6, 0, 0, 0, 6, 0, 0, 0)
+shape = SubResource("BoxShape3D_q5k7f")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=738063348]
+transform = Transform3D(4, 0, 0, 0, 4, 0, 0, 0, 4, 0, 0, 0)
+mesh = SubResource("BoxMesh_q5k7f")

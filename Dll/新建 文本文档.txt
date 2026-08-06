@@ -1,0 +1,170 @@
+## 🧠 途畔归所 · AI 协作上下文提示词（完整版）
+
+---
+
+### 📌 项目概述
+
+- **项目名**：途畔归所（Pathside Refuge）
+- **类型**：1-8人联机RPG，主机权威P2P
+- **技术栈**：Godot 4.2+ / C# / ENet (Godot MultiplayerAPI)
+- **开发者**：单人，当前进度约 60%
+- **代码命名空间**：`途畔归所.Dll.*`
+- **最后更新**：2026.08.04
+
+---
+
+### 👤 用户画像与习惯
+
+| 特征 | 说明 |
+|------|------|
+| **角色** | 独立开发者，熟悉 Godot + C# |
+| **代码风格** | 偏好简洁直观，避免过度设计；逻辑内聚到数据/组件自身；方法单一职责 |
+| **注释规范** | 类/方法用 `/// <summary>注：xxx</summary>`；属性行尾 `// xxx`；接口实现方法不加注释 |
+| **命名规范** | 公开属性无前缀（`MainHandData`）；私有字段 `m_` 前缀（`m_Humanoid`）；布尔 `Is/Can/Has`；查询 `GetXxx`；动作动词开头 |
+| **沟通偏好** | 直击要点，分点清晰，先分析后建议；不喜欢废话和过度设计；提供具体代码示例 |
+| **开发习惯** | 自己主导编码，AI 辅助分析；不确定的命名会要求备选方案；日志驱动调试 |
+| **文档偏好** | 极简，只要“项目结构速览”级别的文档，不要详细手册 |
+
+---
+
+### 🏗️ 当前架构关键点
+
+- **主机权威验证 + RPC 广播**，客户端预测表现
+- **CreatureBase**：所有生物基类，含伤害网络分层（TakeDamage → ProcessDamage → ApplyDamage）
+- **StateMachine**：统一状态机，管理 AnimState/NpcState/PlayerState，含 Stance/Defense 混合参数
+- **Equipment**：装备管理组件，字典存储 `Dictionary<E_EquipAVL, ItemData>`，含 RPC 同步
+- **ItemData**：物品数据资源，含 E_ItemType/E_EquipType/E_EquipAVL
+- **ItemComp**：物品掉落实体，继承 RigidBody3D
+- **SlotUI**：UI 格子，委托化数据读写（OnGetItem/OnSetItem/OnDropPos），支持拖拽交换
+- **NetSyncBase**：网络同步组件，管理 RPC 注册/调用/场景归属
+
+---
+
+### ✅ 已完成工作（2026.07 - 2026.08）
+
+#### UI 架构重构（核心）
+
+| 改动 | 状态 |
+|------|------|
+| PlayerGUI 从“UI生成器”降级为“CanvasLayer容器（Layer=2000）” | ✅ |
+| 所有 View 迁移到 Player 直接持有并初始化（InventoryView/ConsoleView/EscView/HudView/DialogView） | ✅ |
+| GUIManager 泛型工厂 `CreateUI<T>` 替代双方法（GetUI/GetView） | ✅ |
+| 数据注入从“父节点层级查找”改为“外部显式 Init(holder)” | ✅ |
+| 拖拽状态从 PlayerGUI 迁移到 Player | ✅ |
+| SlotUI 完全委托化（OnGetItem/OnSetItem/OnDropPos），不依赖场景树 | ✅ |
+
+#### 装备系统
+
+| 改动 | 状态 |
+|------|------|
+| EquipData 从 Array 改为 `Dictionary<E_EquipAVL, ItemData>` | ✅ |
+| TrySetEquipData 完整校验（双手互斥/攻击状态拦截/主副手冲突） | ✅ |
+| 双刀模式框架（DualAttackAnimIndex + 主副手独立 HitBox） | ✅ |
+| 盾牌防御完整闭环（方向检测 + Tween 平滑 + 格挡优先级） | ✅ |
+| **装备栏 RPC 同步**（RequestChangeEquip + SyncEquip + 去重检查） | ✅ |
+
+#### 物理与感知
+
+| 改动 | 状态 |
+|------|------|
+| 物理图层分离（生物 Layer2 / 物品 Layer3） | ✅ |
+| SenseComp 感知组件（Area3D + 射线验证） | ✅ |
+| NpcMovement 导航地图就绪检查 | ✅ |
+
+---
+
+### 🚧 待完成任务（优先级排序）
+
+| 优先级 | 任务 | 状态 |
+|--------|------|------|
+| **P0** | **项目结构速览.md 制作**（当前目标） | ⬜ |
+| P1 | 复习存储系统（InventoryData / Equipment 序列化） | ⬜ |
+| P1 | 单机场景切换实现（WorldManager 加载/卸载） | ⬜ |
+| P1 | 搭建房子测试场景（House.tscn） | ⬜ |
+| P1 | ScenePortal 场景切换触发器（E 键交互切换） | ⬜ |
+| P2 | 跨场景 RPC 同步框架（场景隔离 + 临时主机） | ⬜ |
+| P3 | 属性系统（基础/派生属性） | 🟡 |
+| P3 | 伤害公式化（防御/减伤） | 🟡 |
+
+---
+
+### 🔧 关键代码规范（AI 必须遵守）
+
+#### 注释风格
+```csharp
+/// <summary>注：类/枚举/方法说明</summary>
+[Export] public int Health { get; set; }  // 属性行尾注释
+// 接口实现方法不加注释
+```
+
+#### 命名规范
+| 类型 | 格式 | 示例 |
+|------|------|------|
+| 公开属性/字段 | 无前缀，帕斯卡 | `MainHandData` |
+| 私有字段 | `m_` 前缀 | `m_Humanoid` |
+| 布尔型 | `Is/Can/Has` 前缀 | `IsHost`, `CanStack` |
+| 查询方法 | `Get` + 名词 | `GetItemData` |
+| 动作方法 | 动词开头 | `TrySetEquipData` |
+| RPC 方法 | `RPC_` 前缀 | `RPC_SyncEquip` |
+
+---
+
+### 📁 项目结构速览（待制作）
+
+```
+途畔归所.Dll/
+├── Base/                    # 基类
+│   ├── Humanoid.cs          # 生物基类（玩家/NPC 共用）
+│   └── PlacedBase.cs        # 放置物基类
+├── Creature/                # 生物实体
+│   ├── Player.cs            # 玩家实体（持有 UI/Controller）
+│   ├── PlayerController.cs  # 玩家输入处理
+│   ├── PlayerGUI.cs         # UI 根容器（CanvasLayer, Layer=2000）
+│   ├── Equipment.cs         # 装备管理（含 RPC 同步）
+│   ├── StateMachine.cs      # 统一状态机
+│   └── Npc/                 # NPC（AI/战斗/移动）
+├── UI/                      # UI 视图
+│   ├── InventoryView.cs     # 背包
+│   ├── EquipmentView.cs     # 装备栏
+│   ├── SlotUI.cs            # 格子控件（委托注入）
+│   ├── DialogView.cs        # 对话
+│   ├── HudView.cs           # HUD
+│   ├── ConsoleView.cs       # 控制台
+│   └── EscView.cs           # ESC 菜单
+├── Item/
+│   ├── ItemData.cs          # 物品数据
+│   └── ItemComp.cs          # 物品实体
+├── Comp/
+│   ├── CreatureAnimComp.cs  # 动画事件
+│   ├── SenseComp.cs         # 感知组件
+│   └── ContainerComp.cs     # 容器组件
+├── Manager/
+│   ├── WorldManager.cs      # 场景管理
+│   ├── GUIManager.cs        # UI 工厂（泛型）
+│   ├── ItemManager.cs       # 物品管理
+│   └── PlayerManager.cs     # 本地玩家
+├── NetWork/
+│   └── NetSyncBase.cs       # RPC 注册/调用/场景归属
+├── Data/
+│   ├── InventoryData.cs     # 背包数据（序列化）
+│   └── CreatureData.cs      # 生物数据
+├── Interface/
+│   ├── IInventoryHolder.cs
+│   ├── IEquipmentHolder.cs
+│   └── IInteractable.cs
+└── Utils/
+    └── CatUtils.cs          # 通用工具
+```
+
+---
+
+### 📝 下一步工作流程
+
+1. **新对话开始后**，我会传入所有 `.cs` 文件，AI 需快速定位类结构和职责
+2. **优先完成** `Docs/STRUCTURE.md` 项目结构速览文件
+3. **后续工作**：跨场景同步框架（单机先行：存储系统复习 → 场景切换 → 房子场景 → ScenePortal）
+4. **新代码必须遵守上述注释/命名规范**
+
+---
+
+*提示词版本：2.0 | 生成时间：2026.08.04*

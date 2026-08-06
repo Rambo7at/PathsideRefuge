@@ -58,6 +58,22 @@ public partial class PlayerCamera : SpringArm3D
     }
 
 
+    public override void _ExitTree()
+    {
+        // 归还相机给 WorldManager：从 CameraHolder 移除，使其成为孤立节点，但不销毁
+        if (m_Camera3D != null && m_Camera3D.GetParent() == CameraHolder)
+        {
+            CameraHolder.RemoveChild(m_Camera3D);
+            m_Camera3D.Current = false;
+            CatLog.Debug("[PlayerCamera] 相机已归还（孤立）");
+        }
+
+    }
+
+   
+
+
+
     public override void _Input(InputEvent @event)
     {
         if (@event is InputEventMouseMotion mouseMotion)

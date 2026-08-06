@@ -31,7 +31,7 @@ namespace 途畔归所.Dll.View
 		{
 			if (CheckSaveDataBeforeAction() == false) return;
 
-			WorldManager.Instance.ChangeScene(this, "测试场景");
+			WorldManager.Instance.ChangeScene("测试场景");
 		}
 
 		/// <summary>回调函数：在线游戏 </summary>
@@ -40,7 +40,7 @@ namespace 途畔归所.Dll.View
             if (CheckSaveDataBeforeAction() == false) return;
 
             NetCore.Instance.StartLANHost();
-            WorldManager.Instance.ChangeScene(this, "测试场景");
+            WorldManager.Instance.ChangeScene("测试场景");
         }
 
 
@@ -86,7 +86,7 @@ namespace 途畔归所.Dll.View
 		{
             if (SaveManager.Instance.HasValidPlayerSaveData() == false)
             {
-                WorldManager.Instance.ChangeScene(this, "角色创建");
+                WorldManager.Instance.ChangeScene("角色创建");
 				return false;
             }
 

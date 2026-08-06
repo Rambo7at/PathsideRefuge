@@ -6,11 +6,11 @@ namespace 途畔归所.Dll.Scene;
 
 public partial class MainWorld : SceneBase
 {
-    [Export] public Node3D SpawnPian;
+	[Export] public Node3D SpawnPian;
 
-    public override void _Ready()
-    {
+	public override void _Ready()
+	{
 
-        PlayerManager.Instance.SpawnLocalPlayer(SpawnPian.GlobalPosition, SpawnPian.Rotation);
-    }
+		PlayerManager.Instance.SpawnLocalPlayer(SpawnPian.GlobalPosition, SpawnPian.Rotation);
+	}
 }

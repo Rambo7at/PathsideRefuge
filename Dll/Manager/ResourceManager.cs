@@ -54,9 +54,9 @@ public class ResourceManager
                 continue;
             }
 
-            if (node is SceneBase && !WorldManager.Instance.SceneDict.ContainsKey(prefabHash))
+            if (node is SceneBase)
             {
-                WorldManager.Instance.SceneDict[prefabHash] = prefab;
+                WorldManager.Instance.RegisterScene(prefabHash, prefab);
                 node.QueueFree();
                 continue;
             }
