@@ -20,8 +20,6 @@ public partial class InventoryView : CanvasLayer
 
 	private Array<SlotUI> m_slotViewArr = [];
 
-
-
 	public override void _Ready()
 	{
 		if (m_holder == null)

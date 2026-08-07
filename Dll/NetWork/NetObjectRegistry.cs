@@ -8,6 +8,7 @@ using 途畔归所.Dll.Utils;
 
 namespace 途畔归所.Dll.Manager
 {
+
     /// <summary>注：网络对象注册表，管理网络对象注册、同步及相关事件。</summary>
     public partial class NetObjectRegistry : Node
     {
@@ -52,10 +53,6 @@ namespace 途畔归所.Dll.Manager
             }
 
         }
-
-
-
-
 
         /// <summary>注：主机同步注册网络对象信息，并触发对象生成事件。</summary>
         [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
@@ -165,4 +162,6 @@ namespace 途畔归所.Dll.Manager
         }
 
     }
+
+
 }
