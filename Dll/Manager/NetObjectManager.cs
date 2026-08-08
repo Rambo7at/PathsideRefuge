@@ -1,10 +1,9 @@
 using Godot;
 using System.Collections.Generic;
-using System.Xml.Linq;
 using 途畔归所.Dll.Core;
-using 途畔归所.Dll.Data;
 using 途畔归所.Dll.NetWork;
 using 途畔归所.Dll.Utils;
+using static 途畔归所.Dll.Base.SceneBase;
 
 namespace 途畔归所.Dll.Manager
 {
@@ -105,7 +104,7 @@ namespace 途畔归所.Dll.Manager
         }
 
         /// <summary>注：根据参数生成网络对象，参数无效则输出错误。</summary>
-        public bool SpawnObject(Vector3 pos, Vector3 rot, int hash = default, Node node = null , NetObject netObject = null)
+        public bool SpawnObject(Vector3 pos, Vector3 rot, int hash = default, Node node = null, NetObject netObject = null)
         {
             if (hash != default && node == null && netObject == null)
             {
@@ -130,7 +129,7 @@ namespace 途畔归所.Dll.Manager
             }
             else
             {
-               
+
                 GD.PrintErr("[NetObjectManager.SpawnObject]：无效参数");
                 return false;
             }
@@ -158,8 +157,8 @@ namespace 途畔归所.Dll.Manager
 
             if (netobj.sceneHash == default)
             {
-                if (currentScene.m_sceneData.m_sceneType != SceneData.SceneType.GameScene) return;
-                netobj.sceneHash = currentScene.m_sceneData.m_sceneHash;
+                if (currentScene.SceneType != E_SceneType.GameScene) return;
+                netobj.sceneHash = currentScene.SceneData.SceneHash;
             }
 
             if (node == null)
@@ -177,7 +176,7 @@ namespace 途畔归所.Dll.Manager
 
                 var sync = node3D.GetNodeOrNull<NetSyncBase>("NetSyncBase");
                 if (sync == null) return;
-                sync.m_NetObj = netobj;
+                sync.NetObj = netobj;
                 _netObjectInstances[m_id] = instance;
                 node3D.Position = netobj.Position;
                 node3D.Rotation = netobj.Rotation;
@@ -191,7 +190,7 @@ namespace 途畔归所.Dll.Manager
 
                 var sync = node3D.GetNodeOrNull<NetSyncBase>("NetSyncBase");
                 if (sync == null) return;
-                sync.m_NetObj = netobj;
+                sync.NetObj = netobj;
                 _netObjectInstances[m_id] = node;
                 node3D.Position = netobj.Position;
                 node3D.Rotation = netobj.Rotation;

@@ -40,7 +40,7 @@ namespace 途畔归所.Dll.View
             if (CheckSaveDataBeforeAction() == false) return;
 
             NetCore.Instance.StartLANHost();
-            WorldManager.Instance.ChangeScene("测试场景");
+            PlayerManager.Instance.EnterGame();
         }
 
 
@@ -77,20 +77,20 @@ namespace 途畔归所.Dll.View
 			{
 				await ToSignal(GetTree(), "process_frame");
 			}
-			GetTree().ChangeSceneToFile("res://Scenes/测试场景.tscn");
-			GD.Print("[MainWorld] 连接已就绪，发送玩家请求");
+            PlayerManager.Instance.EnterGame();
+            GD.Print("[MainWorld] 连接已就绪，发送玩家请求");
 		}
 
 
 		private bool CheckSaveDataBeforeAction()
 		{
-            if (SaveManager.Instance.HasValidPlayerSaveData() == false)
+            if (PlayerManager.Instance.HasPlayers == false)
             {
                 WorldManager.Instance.ChangeScene("角色创建");
 				return false;
             }
 
-			if (SaveManager.Instance.HasValidWorldSaveData() == false)
+			if (WorldManager.Instance.HasWorlds == false)
 			{
 				输入框.Visible = true;
                 return false;

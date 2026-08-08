@@ -2,6 +2,7 @@ using Godot;
 using Godot.Collections;
 using 途畔归所.Dll.Base;
 using 途畔归所.Dll.Comp;
+using 途畔归所.Dll.Creature;
 using 途畔归所.Dll.NetWork;
 using 途畔归所.Dll.Utils;
 
@@ -59,6 +60,11 @@ public class ResourceManager
                 WorldManager.Instance.RegisterScene(prefabHash, prefab);
                 node.QueueFree();
                 continue;
+            }
+
+            if (node is Player)
+            {
+                PlayerManager.Instance.RegisterPlayer(prefabHash,prefab);
             }
 
             if (node is ItemComp item)

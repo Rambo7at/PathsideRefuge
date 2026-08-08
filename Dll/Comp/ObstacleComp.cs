@@ -9,6 +9,6 @@ public partial class ObstacleComp : NavigationObstacle3D
 	public override void _Ready()
 	{
 		NetSyncBase net = CatUtils.FindChildNode<NetSyncBase>(GetParent());
-		if (net?.m_NetObj == null) return;
+		if (net?.NetObj == null) return;
 	}
 }

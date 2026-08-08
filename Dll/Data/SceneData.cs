@@ -4,24 +4,19 @@ using 途畔归所.Dll.NetWork;
 
 namespace 途畔归所.Dll.Data;
 
+/// <summary>注：场景数据 </summary>
 [GlobalClass]
 public partial class SceneData : Resource
 {
-    public enum SceneType
-    {
-        GameScene = 0,
-        ViewScene = 1,
-    }
 
-    [Export] public string m_sceneName { get; set; }
 
-    [Export] public int m_sceneHash { get; set; }
+    [Export] public string SceneName { get; set; }
 
-    [Export] public bool m_newScene { get; set; } = true;
+    [Export] public int SceneHash { get; set; }
 
-    [Export] public SceneType m_sceneType { get; set; }
+    [Export] public bool IsNewScene { get; set; } = true;
 
-    [Export] public Array<NetObject> m_NetObjectArr { get; set; }
+    [Export] public Array<NetObject> NetObjectList { get; set; } = [];
 
 
 

@@ -2,106 +2,102 @@ using Godot;
 using 途畔归所.Dll.Manager;
 using 途畔归所.Dll.Utils;
 
-namespace 途畔归所.Dll.View
+namespace 途畔归所.Dll.View;
+
+public partial class WorldSaveDataView : Control
 {
-    public partial class WorldSaveDataView : Control
+
+    [Export] Label m_nameLabel;
+    [Export] Button m_toggleSaveButton;
+    [Export] VBoxContainer m_worldInfoBox;         // 原 PlayerInfoBox，只显示世界名
+    [Export] VBoxContainer m_saveSlotBox;
+
+    [Export] Control m_inputField;
+    [Export] LineEdit m_inputTextBox;
+
+    string _butInfo;
+
+    public override void _Ready()
+    {
+        if (m_nameLabel == null || m_toggleSaveButton == null || m_worldInfoBox == null || m_saveSlotBox == null)
+        {
+            CatLog.Err("[WorldSaveDataView] 存在未赋值的导出控件，已跳过初始化。");
+            CatUtils.StopAndExit(this);
+            return;
+        }
+
+        m_saveSlotBox.Visible = false;
+
+        _butInfo = m_toggleSaveButton.Text;
+
+        if (WorldManager.Instance.CurrentWorld != null) m_nameLabel.Text = m_nameLabel.Text = "世界：" + WorldManager.Instance.CurrentWorld.Name;
+
+        RefreshSaveSlots();
+    }
+
+
+
+    public override void _Process(double delta)
+    {
+        if (WorldManager.Instance.CurrentWorld == null) return;
+
+        m_nameLabel.Text = WorldManager.Instance.CurrentWorld.Name;
+    }
+
+    private void Creator() => m_inputField.Visible = true;
+
+
+    private void OnConfirmWorldName()
     {
 
-        [Export] Label m_nameLabel;
-        [Export] Button m_toggleSaveButton;
-        [Export] VBoxContainer m_worldInfoBox;         // 原 PlayerInfoBox，只显示世界名
-        [Export] VBoxContainer m_saveSlotBox;
+        string name = m_inputTextBox.Text;
 
-        [Export] Control m_inputField;
-        [Export] LineEdit m_inputTextBox;
+        if (string.IsNullOrEmpty(name)) return;
 
-        string _butInfo;
+        WorldManager.Instance.CreateWorld(name);
 
-        public override void _Ready()
-        {
-            if (m_nameLabel == null || m_toggleSaveButton == null || m_worldInfoBox == null || m_saveSlotBox == null)
-            {
-                CatLog.Err("[WorldSaveDataView] 存在未赋值的导出控件，已跳过初始化。");
-                CatUtils.StopAndExit(this);
-                return;
-            }
+        RefreshSaveSlots();
 
-            m_saveSlotBox.Visible = false;
-
-            _butInfo = m_toggleSaveButton.Text;
-
-            var wolde = SaveManager.Instance.GetSelectedWorldData();
-
-            if (wolde != null) m_nameLabel.Text = m_nameLabel.Text = "世界：" + wolde.m_name;
-
-            RefreshSaveSlots();
-        }
-
-
-
-        public override void _Process(double delta)
-        {
-          
-            var data = SaveManager.Instance.GetSelectedWorldData();
-            if (data == null) return;
-
-            m_nameLabel.Text = data.m_name;
-        }
-
-        private void Creator() => m_inputField.Visible = true;
-
-
-        private void OnConfirmWorldName()
-        {
-            
-            string name = m_inputTextBox.Text;
-
-            if (string.IsNullOrEmpty(name)) return;
-
-            SaveManager.Instance.CreateWorld(name);
-
-            RefreshSaveSlots();
-
-            m_inputField.Visible = false;
-        }
-
-
-        private void OpenSaveSelection()
-        {
-            m_saveSlotBox.Visible = !m_saveSlotBox.Visible;
-            m_worldInfoBox.Visible = !m_worldInfoBox.Visible;
-            m_toggleSaveButton.Text = m_toggleSaveButton.Text == _butInfo ? "返回" : _butInfo;
-        }
-
-        private void RefreshSaveSlots()
-        {
-            var savedata = m_saveSlotBox.GetChildren();
-
-            if (savedata == null) return;
-
-            foreach (var save in savedata)
-            {
-                save.QueueFree();
-            }
-
-            var IDarr = SaveManager.Instance.GetAllWorldIDs();
-            if (IDarr == null || IDarr.Count == 0) return;
-
-            foreach (var id in IDarr)
-            {
-                var ui = GUIManager.Instance.GetUI("Button_A1") as Button;
-                if (ui == null) continue;
-                ui.Text = "ID:" + id;
-                m_saveSlotBox.AddChild(ui);
-                ui.Pressed += () => OnButtonPressed(id);
-            }
-        }
-
-        private void OnButtonPressed(int ID)
-        {
-            SaveManager.Instance.m_selWorldIdx = ID;
-            OpenSaveSelection();
-        }
-
+        m_inputField.Visible = false;
     }
+
+
+    private void OpenSaveSelection()
+    {
+        m_saveSlotBox.Visible = !m_saveSlotBox.Visible;
+        m_worldInfoBox.Visible = !m_worldInfoBox.Visible;
+        m_toggleSaveButton.Text = m_toggleSaveButton.Text == _butInfo ? "返回" : _butInfo;
+    }
+
+    private void RefreshSaveSlots()
+    {
+        var savedata = m_saveSlotBox.GetChildren();
+
+        if (savedata == null) return;
+
+        foreach (var save in savedata)
+        {
+            save.QueueFree();
+        }
+
+        var IDarr = WorldManager.Instance.GetAllWorldIDs();
+        if (IDarr == null || IDarr.Count == 0) return;
+
+        foreach (var id in IDarr)
+        {
+            var ui = GUIManager.Instance.GetUI("Button_A1") as Button;
+            if (ui == null) continue;
+            ui.Text = "ID:" + id;
+            m_saveSlotBox.AddChild(ui);
+            ui.Pressed += () => OnButtonPressed(id);
+        }
+    }
+
+    private void OnButtonPressed(int ID)
+    {
+        WorldManager.Instance.SelWorldIdx = ID;
+        OpenSaveSelection();
+    }
+
 }
+

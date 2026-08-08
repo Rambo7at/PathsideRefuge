@@ -66,14 +66,14 @@ namespace 途畔归所.Dll.Comp
 
 		private bool InitSync(NetSyncBase netSync)
 		{
-			if (netSync == null || netSync.m_NetObj == null)
+			if (netSync == null || netSync.NetObj == null)
 			{
 				CatLog.Net("[ContainerComp.InitContainerNetSync] NetSyncBase 或 NetSyncBase.NetObj 为空");
 				return false;
 			}
-			NetObject netObject = netSync.m_NetObj;
+			NetObject netObject = netSync.NetObj;
 
-			netSync.OnFlushNetState += () => FlushInventory(netSync.m_NetObj);
+			netSync.OnSaveState += () => FlushInventory(netSync.NetObj);
 
 			var custdata = netObject.m_customData.As<PlacedData>();
 			m_placedData = custdata != null ? custdata.DeepCopy() : m_placedData;
@@ -86,9 +86,9 @@ namespace 途畔归所.Dll.Comp
 
 		public override void _Process(double delta)
 		{
-			if (m_IsOpen && m_inventoryView.GetParent() == PlayerManager.Instance.m_LocalPlayer.GUI)
+			if (m_IsOpen && m_inventoryView.GetParent() == PlayerManager.Instance.LocalPlayer.GUI)
 			{
-				float distance = GlobalPosition.DistanceTo(PlayerManager.Instance.m_LocalPlayer.GlobalPosition);
+				float distance = GlobalPosition.DistanceTo(PlayerManager.Instance.LocalPlayer.GlobalPosition);
 				if (distance >= 3f)
 				{
 					CloseContainer();
@@ -107,7 +107,7 @@ namespace 途畔归所.Dll.Comp
 				return;
 			}
 
-			PlayerManager.Instance.m_LocalPlayer.GUI.AddChild(m_inventoryView);
+			PlayerManager.Instance.LocalPlayer.GUI.AddChild(m_inventoryView);
 			m_inventoryView.Visible = true;
 			m_IsOpen = true;
 			m_netSyncBase.CallAllRpc("SyncContainerOpenState", m_IsOpen);
@@ -116,7 +116,7 @@ namespace 途畔归所.Dll.Comp
 		public void CloseContainer()
 		{
 			if (m_IsOpen == false) return;
-			bool isUser = m_inventoryView.GetParent() == PlayerManager.Instance.m_LocalPlayer.GUI;
+			bool isUser = m_inventoryView.GetParent() == PlayerManager.Instance.LocalPlayer.GUI;
 			if (isUser == false) return;
 
 			if (NetCore.Instance.IsClient)
@@ -183,7 +183,7 @@ namespace 途畔归所.Dll.Comp
 			m_inventoryData = finalData.DeepCopy();
 
 			// 如果视图正显示，刷新
-			if (m_inventoryView.GetParent() == PlayerManager.Instance.m_LocalPlayer.GUI)
+			if (m_inventoryView.GetParent() == PlayerManager.Instance.LocalPlayer.GUI)
 				m_inventoryView.RefreshAllSlots();
 
 			CatLog.Net($"[RPC_SubmitFinalInventory] 客户端{requesterId}提交的最终库存数据已保存");
@@ -202,7 +202,7 @@ namespace 途畔归所.Dll.Comp
 			inventoryData.Deserialize(data);
 			m_inventoryData = inventoryData.DeepCopy();
 
-			PlayerManager.Instance.m_LocalPlayer.GUI.AddChild(m_inventoryView);
+			PlayerManager.Instance.LocalPlayer.GUI.AddChild(m_inventoryView);
 			m_inventoryView.Visible = true;
 			m_inventoryView.RefreshAllSlots();
 

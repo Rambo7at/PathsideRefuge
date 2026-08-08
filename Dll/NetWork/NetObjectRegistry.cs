@@ -139,12 +139,12 @@ namespace 途畔归所.Dll.Manager
         /// <summary>注：根据网络对象 ID 获取网络对象。</summary>
         public NetObject GetNetObject(NetID id) => _netObjects.TryGetValue(id, out var netobj) ? netobj : null;
 
-        public Array<NetObject> GetNetObjectsForCurrentScene(int sceneHash)
+
+        /// <summary>注：获取指定场景的所有网络对象身份信息列表</summary>
+        public Array<NetObject> GetNetObjectsForScene(int sceneHash)
         {
             Array<NetObject> arr = [];
             
-
-
             foreach (var netobj in _netObjects)
             {
                 if (netobj.Value.sceneHash != sceneHash) continue;

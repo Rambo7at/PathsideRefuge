@@ -46,9 +46,9 @@ namespace 途畔归所.Dll.NetWork
 				return;
 			}
 
-			if (_sync.m_NetObj == null) return;
+			if (_sync.NetObj == null) return;
 
-			_netobj = _sync.m_NetObj;
+			_netobj = _sync.NetObj;
 		}
 
 		public override void _Process(double delta)

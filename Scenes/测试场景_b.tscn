@@ -1,12 +1,12 @@
 [gd_scene format=3 uid="uid://clncxbo3p8ku8"]
 
 [ext_resource type="Script" uid="uid://ifxi4iqpfig5" path="res://Dll/Scene/MainWorld.cs" id="1_07fpy"]
+[ext_resource type="Script" uid="uid://dyn84wa2w7odt" path="res://Dll/NetWork/NetObject.cs" id="2_4ajan"]
 [ext_resource type="Script" uid="uid://bcrc0qpx746xk" path="res://Dll/Data/SceneData.cs" id="2_ly1fj"]
 [ext_resource type="PackedScene" uid="uid://ct46j2cpb5n6w" path="res://Prefab/Piece/7at_传送测试2.tscn" id="3_s8p1x"]
 
-[sub_resource type="Resource" id="Resource_07fpy"]
+[sub_resource type="Resource" id="Resource_fouew"]
 script = ExtResource("2_ly1fj")
-m_NetObjectArr = null
 metadata/_custom_type_script = "uid://bcrc0qpx746xk"
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_p0ede"]
@@ -62,7 +62,7 @@ metallic_specular = 0.0
 [node name="测试场景_b" type="Node3D" unique_id=1739503600 node_paths=PackedStringArray("SpawnPian")]
 script = ExtResource("1_07fpy")
 SpawnPian = NodePath("Node3D")
-m_sceneData = SubResource("Resource_07fpy")
+SceneData = SubResource("Resource_fouew")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1462069046]
 environment = SubResource("Environment_ly1fj")

@@ -29,6 +29,9 @@ namespace 途畔归所.Dll.Data
         [Export] public string Name { get; set; } = string.Empty;          // 角色名称
         [Export] public bool IsPlayer { get; set; } = false;              // 是否为玩家角色
         [Export] public int PlayerID { get; set; }
+        [Export] public int LastSceneHash { get; set; }                   // 玩家最后所在场景哈希
+        [Export] public Vector3 LastPosition { get; set; }                // 玩家最后所在位置
+        [Export] public Vector3 LastRotation { get; set; }                // 玩家最后所在朝向
 
         [Export] public E_CreatureType CreatureType { get; set; }          // 生物类型（人形/野兽/怪物等）
         [Export] public E_Faction Faction { get; set; }                    // 所属阵营（玩家/敌对/中立/野生）

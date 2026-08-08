@@ -57,7 +57,7 @@ public partial class Player : Humanoid, IInventoryHolder
 
     public override void _ExitTree()
     {
-        
+        PlayerManager.Instance.SaveLocalPlayerData();
     }
 
 	/// <summary>注：视线射线检测交互对象</summary>

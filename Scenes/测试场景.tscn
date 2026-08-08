@@ -4,6 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://c01l0e5fhrj37" path="res://Mat/岩石-1/Rock058_1K-PNG_Color.png" id="1_a2o25"]
 [ext_resource type="Texture2D" uid="uid://c1jss78hg0iuv" path="res://Mat/岩石-1/Rock058_1K-PNG_NormalGL.png" id="2_ak4h6"]
 [ext_resource type="Script" uid="uid://bcrc0qpx746xk" path="res://Dll/Data/SceneData.cs" id="2_e120r"]
+[ext_resource type="Script" uid="uid://dyn84wa2w7odt" path="res://Dll/NetWork/NetObject.cs" id="2_luoyv"]
 [ext_resource type="Texture2D" uid="uid://bdiidrnx6whrn" path="res://Mat/草地-1/Ground037_1K-PNG_Color.png" id="3_04x88"]
 [ext_resource type="Texture2D" uid="uid://dtdyslx8t74rv" path="res://Mat/草地-1/Ground037_1K-PNG_NormalGL.png" id="4_qutry"]
 [ext_resource type="Texture2D" uid="uid://3qru426iufg1" path="res://Mat/道路-1/Ground067_1K-PNG_Color.png" id="5_qutry"]
@@ -12,9 +13,8 @@
 [ext_resource type="PackedScene" uid="uid://dohla8te3p0fh" path="res://Prefab/Vegetation/ET-树.tscn" id="11_luoyv"]
 [ext_resource type="PackedScene" uid="uid://b67gkoovomi8k" path="res://Prefab/Piece/et_板条箱.tscn" id="12_luoyv"]
 
-[sub_resource type="Resource" id="Resource_luoyv"]
+[sub_resource type="Resource" id="Resource_o6hn0"]
 script = ExtResource("2_e120r")
-m_NetObjectArr = null
 metadata/_custom_type_script = "uid://bcrc0qpx746xk"
 
 [sub_resource type="NavigationMesh" id="NavigationMesh_luoyv"]
@@ -150,7 +150,7 @@ volumetric_fog_sky_affect = 0.434
 [node name="测试场景" type="Node3D" unique_id=1047784342 node_paths=PackedStringArray("SpawnPian")]
 script = ExtResource("1_04x88")
 SpawnPian = NodePath("playerSpawn")
-m_sceneData = SubResource("Resource_luoyv")
+SceneData = SubResource("Resource_o6hn0")
 
 [node name="NavigationRegion3D" type="NavigationRegion3D" parent="." unique_id=660417127]
 navigation_mesh = SubResource("NavigationMesh_luoyv")

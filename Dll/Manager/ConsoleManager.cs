@@ -67,7 +67,7 @@ public partial class ConsoleManager : Node
 
     private bool PlayerInfo(ConsoleView consoleComp)
     {
-        consoleComp.m_RichTextLabel.Text += $"目前活跃玩家数量：{PlayerManager.Instance.GetActivePlayersIndex()}";
+        consoleComp.m_RichTextLabel.Text += $"目前活跃玩家数量：这个方法目前暂时停用，后续会进行更新";
         return true;
     }
 

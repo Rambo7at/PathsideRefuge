@@ -2,16 +2,15 @@
 
 [ext_resource type="Script" uid="uid://hy5ixgsowtf" path="res://Dll/Scene/MainMenu.cs" id="1_ckshb"]
 [ext_resource type="Script" uid="uid://bcrc0qpx746xk" path="res://Dll/Data/SceneData.cs" id="2_7d8j3"]
+[ext_resource type="Script" uid="uid://dyn84wa2w7odt" path="res://Dll/NetWork/NetObject.cs" id="2_byk0q"]
 [ext_resource type="Script" uid="uid://bqarb0fywcm1e" path="res://Dll/View/MainMenuView.cs" id="3_57u2r"]
 [ext_resource type="Script" uid="uid://bcuobq8gejhm5" path="res://Dll/View/PlayerSaveDataView.cs" id="4_7d8j3"]
 [ext_resource type="Script" uid="uid://d3n2uh5lhi655" path="res://Dll/View/WorldSaveDataView.cs" id="5_31f7p"]
 [ext_resource type="Script" uid="uid://bu1cnhtinvlio" path="res://Dll/View/PlayMenuView.cs" id="5_cjyvh"]
 [ext_resource type="Theme" uid="uid://ddcpo5it8afda" path="res://Theme/主菜单UI.tres" id="7_cjyvh"]
 
-[sub_resource type="Resource" id="Resource_31f7p"]
+[sub_resource type="Resource" id="Resource_1xrc6"]
 script = ExtResource("2_7d8j3")
-m_sceneType = 1
-m_NetObjectArr = null
 metadata/_custom_type_script = "uid://bcrc0qpx746xk"
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ckshb"]
@@ -42,7 +41,8 @@ material = SubResource("StandardMaterial3D_ckshb")
 
 [node name="主菜单" type="Node3D" unique_id=650275170]
 script = ExtResource("1_ckshb")
-m_sceneData = SubResource("Resource_31f7p")
+SceneData = SubResource("Resource_1xrc6")
+SceneType = 1
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=991670717]
 environment = SubResource("Environment_7d8j3")

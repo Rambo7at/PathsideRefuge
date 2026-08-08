@@ -1,82 +1,184 @@
 using Godot;
-using System.Collections.Generic;
+using Godot.Collections;
+using System;
 using 途畔归所.Dll.Creature;
 using 途畔归所.Dll.Data;
 using 途畔归所.Dll.Utils;
 
-namespace 途畔归所.Dll.Manager
+namespace 途畔归所.Dll.Manager;
+
+/// <summary>注：玩家管理器，负责玩家数据的持有、管理、生成及场景切换入口</summary>
+public class PlayerManager
 {
-	public class PlayerManager
+	private static PlayerManager _instance;
+	public static PlayerManager Instance => _instance ??= new PlayerManager();
+
+	private PackedScene _playerPacked;                              // 缓存的玩家预制体
+
+	private Dictionary<int, CreatureData> PlayerDataDict { get; set; } = [];  // 所有玩家数据
+
+	public int SelPlayerIdx { get; set; }                          // 当前选中的玩家索引
+
+	public int PlayerHash { get; private set; }                    // 玩家预制体哈希值
+
+	public bool HasPlayers => PlayerDataDict.Count > 0;            // 是否存在玩家数据
+
+	public Player LocalPlayer { get; set; }                        // 本地玩家实例
+	public CreatureData LocalPlayerData => GetLocalPlayerData();   // 本地玩家数据（只读）
+
+	private PlayerManager()
 	{
-		private static PlayerManager _instance;
-		public static PlayerManager Instance => _instance ??= new PlayerManager();
+		PlayerDataDict = SaveManager.Instance.GetPlayerDataDict();
+		SelPlayerIdx = SaveManager.Instance.GetSelectedPlayerIndex();
+		CatLog.Ok("[PlayerManager] 初始化完成");
+	}
 
-		public Dictionary<int, Player> ActivePlayers = [];
+	/// <summary>注：注册玩家预制体及其哈希值</summary>
+	public void RegisterPlayer(int hash, PackedScene packedScene)
+	{
+		_playerPacked = packedScene;
+		PlayerHash = hash;
+	}
 
-		public int m_playerHash;
+	/// <summary>注：获取所有有效的玩家ID列表</summary>
+	public Array<int> GetAllPlayerIDs()
+	{
+		Array<int> ints = [];
 
-		public Player m_LocalPlayer;
-		public CreatureData m_LocalPlayerData { get ; set; }
-
-		private PlayerManager()
+		foreach (var plData in PlayerDataDict)
 		{
-			m_playerHash = CatUtils.GetStableHashCode("Player");
+			if (plData.Key == default || plData.Value == null) continue;
+			ints.Add(plData.Key);
+		}
+		return ints;
+	}
 
-			if (NetObjectManager.Instance.GetPrefab(m_playerHash).Instantiate() is not Player pl) return;
+	/// <summary>注：创建新玩家并添加到数据字典中</summary>
+	public void CreatePlayer(string playerName)
+	{
+		CreatureData data = new()
+		{
+			Name = playerName,
+			IsPlayer = true,
+			PlayerID = Math.Abs(Guid.NewGuid().GetHashCode())
+		};
 
-			m_LocalPlayer = pl;
+		PlayerDataDict.Add(data.PlayerID, data);
+	}
+
+	/// <summary>注：获取本地玩家数据（如选中索引无效则自动指向第一个有效玩家）</summary>
+	public CreatureData GetLocalPlayerData()
+	{
+		if (PlayerDataDict.TryGetValue(SelPlayerIdx, out var worldData)) return worldData;
+		if (PlayerDataDict.Count == 0) return null;
+
+		foreach (var data in PlayerDataDict)
+		{
+			if (data.Value == null) continue;
+			SelPlayerIdx = data.Key;
+			return data.Value;
+		}
+		return null;
+	}
+
+	/// <summary>注：导出所有玩家数据的深拷贝（供 SaveManager 写入磁盘）</summary>
+	public Dictionary<int, CreatureData> SavePlayerDataDict()
+	{
+		Dictionary<int, CreatureData> data = [];
+
+		foreach (var item in PlayerDataDict)
+		{
+			if (item.Value == null) continue;
+			data.Add(item.Key, item.Value.DeepCopy());
 		}
 
-        public void SpawnLocalPlayer(Vector3 Pos, Vector3 rot)
-        {
-            CatLog.Debug($"[PlayerManager.SpawnLocalPlayer] 进入，m_LocalPlayer={(m_LocalPlayer == null ? "null" : "存在")}");
+		return data;
+	}
 
-            // 1. 检查玩家是否有效，无效则重新实例化
-            if (m_LocalPlayer == null || !GodotObject.IsInstanceValid(m_LocalPlayer))
-            {
-                CatLog.Warn("[PlayerManager.SpawnLocalPlayer] 玩家引用无效，重新实例化");
-                var prefab = NetObjectManager.Instance.GetPrefab(m_playerHash);
-                if (prefab == null)
-                {
-                    CatLog.Err("[PlayerManager.SpawnLocalPlayer] 无法获取玩家预制体");
-                    return;
-                }
-                var newPlayer = prefab.Instantiate() as Player;
-                if (newPlayer == null)
-                {
-                    CatLog.Err("[PlayerManager.SpawnLocalPlayer] 实例化玩家失败");
-                    return;
-                }
-                m_LocalPlayer = newPlayer;
-                CatLog.Ok("[PlayerManager.SpawnLocalPlayer] 已重新实例化玩家");
-            }
-            else
-            {
-                // 玩家有效，但如果还有父节点（异常情况），先移除
-                if (m_LocalPlayer.GetParent() != null)
-                {
-                    CatLog.Warn($"[PlayerManager.SpawnLocalPlayer] 玩家仍有父节点 {m_LocalPlayer.GetParent().Name}，正在移除");
-                    m_LocalPlayer.GetParent().RemoveChild(m_LocalPlayer);
-                }
-            }
+	/// <summary>注：从主菜单进入游戏，加载玩家最后所在场景或默认场景</summary>
+	public void EnterGame()
+	{
+		if (LocalPlayerData == null) return;
 
-            // 2. 检查玩家数据
-            if (m_LocalPlayerData == null)
-            {
-                CatLog.Err("[PlayerManager.SpawnLocalPlayer] m_LocalPlayerData 为空");
-                return;
-            }
+		if (!WorldManager.Instance.ChangeScene(LocalPlayerData.LastSceneHash))
+		{
+			WorldManager.Instance.LoadDefaultScene();
+		}
+	}
 
-            // 3. 设置数据并添加到场景
-            m_LocalPlayer.m_CreatureData = m_LocalPlayerData;
-            CatLog.Debug($"[PlayerManager.SpawnLocalPlayer] 调用 SpawnObject，位置：{Pos}");
-            NetObjectManager.Instance.SpawnObject(Pos, rot, default, m_LocalPlayer);
-            CatLog.Ok("[PlayerManager.SpawnLocalPlayer] 执行完成");
-        }
+	/// <summary>注：在指定位置生成本地玩家（若玩家实例无效则自动重建）</summary>
+	public void SpawnLocalPlayer(Vector3 Pos, Vector3 rot)
+	{
+		if (LocalPlayer == null || !GodotObject.IsInstanceValid(LocalPlayer))
+		{
+			if (_playerPacked.Instantiate() is not Player newPlayer) return;
+			LocalPlayer = newPlayer;
+		}
+		else
+		{
+			if (LocalPlayer.GetParent() != null)
+			{
+				CatLog.Warn($"[PlayerManager.SpawnLocalPlayer] 玩家仍有父节点 {LocalPlayer.GetParent().Name}，正在移除");
+				LocalPlayer.GetParent().RemoveChild(LocalPlayer);
+			}
+		}
 
-        public int GetActivePlayersIndex() => ActivePlayers.Count;
+		if (LocalPlayerData == null)
+		{
+			CatLog.Net("[PlayerManager.SpawnLocalPlayer] LocalPlayerData 为空");
+			return;
+		}
 
-		public int GetPlayerID() => (m_LocalPlayerData?.PlayerID == default) ? 0 : m_LocalPlayerData.PlayerID;
+		LocalPlayer.m_CreatureData = LocalPlayerData.DeepCopy();
+		NetObjectManager.Instance.SpawnObject(Pos, rot, default, LocalPlayer);
+	}
 
+	public void SaveLocalPlayerData()
+	{
+		if (LocalPlayer == null) return;
+
+		if (!PlayerDataDict.ContainsKey(LocalPlayer.m_CreatureData.PlayerID)) return;
+
+		PlayerDataDict[LocalPlayer.m_CreatureData.PlayerID] = LocalPlayer.m_CreatureData.DeepCopy();
+	}
+
+
+	/// <summary>注：检查玩家存档中是否有可用的位置信息（场景匹配且有位置）</summary>
+	public bool CanUseSavedPosition() => LocalPlayerData?.LastPosition != default && LocalPlayerData?.LastSceneHash == WorldManager.Instance?.GetCurrentScenehash();
+
+	/// <summary>注：从当前世界状态刷新玩家存档数据（场景哈希、位置、旋转）</summary>
+	public void RefreshPlayerData()
+	{
+		if (LocalPlayerData == null)
+		{
+			CatLog.Warn("[PlayerManager.RefreshPlayerData] LocalPlayerData 为空，跳过刷新");
+			return;
+		}
+
+		CatLog.Debug("[PlayerManager.RefreshPlayerData] 开始刷新玩家数据");
+
+		var currentScene = WorldManager.Instance.GetCurrentScene();
+		if (currentScene != null)
+		{
+			LocalPlayerData.LastSceneHash = currentScene.SceneData.SceneHash;
+			CatLog.Debug($"[PlayerManager.RefreshPlayerData] 场景哈希已更新：{LocalPlayerData.LastSceneHash}");
+		}
+		else
+		{
+			CatLog.Warn("[PlayerManager.RefreshPlayerData] 当前场景为空，无法更新场景哈希");
+		}
+
+		if (LocalPlayer != null && GodotObject.IsInstanceValid(LocalPlayer))
+		{
+			LocalPlayerData.LastPosition = LocalPlayer.GlobalPosition;
+			LocalPlayerData.LastRotation = LocalPlayer.GlobalRotation;
+			CatLog.Debug($"[PlayerManager.RefreshPlayerData] 位置已更新：{LocalPlayerData.LastPosition}，旋转：{LocalPlayerData.LastRotation}");
+		}
+		else
+		{
+			CatLog.Warn("[PlayerManager.RefreshPlayerData] 玩家实例无效，无法更新位置和旋转");
+		}
+
+		CatLog.Ok("[PlayerManager.RefreshPlayerData] 玩家数据刷新完成");
 	}
 }

@@ -26,7 +26,7 @@ public partial class PlayerSaveDataView : Control
 		m_saveSlotBox.Visible = false;
 		_butInfo = m_toggleSaveBtn.Text;
 
-		var player = SaveManager.Instance.GetSelectedPlayerData();
+		var player = PlayerManager.Instance.LocalPlayerData;
 		if (player != null)
 		{
 			ApplyPlayerInfo(player);
@@ -37,11 +37,10 @@ public partial class PlayerSaveDataView : Control
 
 	public override void _Process(double delta)
 	{
-		var data = SaveManager.Instance.GetSelectedPlayerData();
+		var data = PlayerManager.Instance.LocalPlayerData;
 		if (data == null) return;
 
 		ApplyPlayerInfo(data);
-		PlayerManager.Instance.m_LocalPlayerData = data.DeepCopy();
 	}
 
 	private void Creator() => WorldManager.Instance.ChangeScene("角色创建");
@@ -68,7 +67,7 @@ public partial class PlayerSaveDataView : Control
 			child.QueueFree();
 		}
 
-		var ids = SaveManager.Instance.GetAllPlayerIDs();
+		var ids = PlayerManager.Instance.GetAllPlayerIDs();
 		if (ids == null || ids.Count == 0) return;
 
 		foreach (int id in ids)
@@ -86,7 +85,7 @@ public partial class PlayerSaveDataView : Control
 
 	private void OnButtonPressed(int ID)
 	{
-		SaveManager.Instance.m_selPlayerIdx = ID;
+		PlayerManager.Instance.SelPlayerIdx = ID;
 		OpenSaveSelection();
 	}
 

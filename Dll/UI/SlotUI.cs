@@ -71,7 +71,7 @@ public partial class SlotUI : Control
 	/// <summary>注：处理格子上的鼠标输入事件（拖拽开始/结束）。</summary>
 	private void OnSlotGuiInput(InputEvent @event)
 	{
-		var gui = PlayerManager.Instance.m_LocalPlayer.GUI;
+		var gui = PlayerManager.Instance.LocalPlayer.GUI;
 
 		// 移动时更新拖拽图标位置（只要全局有拖拽存在）
 		if (@event is InputEventMouseMotion motion && gui.CurrentDragIcon != null)
