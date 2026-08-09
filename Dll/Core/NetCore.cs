@@ -16,7 +16,10 @@ namespace 途畔归所.Dll.Core
 
 		public const long ServerID = 1; // Godot 服务器 Peer ID 固定为 1
 
+		public bool IsMultiplayer => Multiplayer?.MultiplayerPeer != null;
+
 		public bool IsHost => Multiplayer.IsServer();
+
 		public bool IsClient => !IsHost;
 
 		//─────────────── LAN 发现（保留原有 UDP 广播）───────────────
@@ -35,9 +38,9 @@ namespace 途畔归所.Dll.Core
 		{
 			Instance = this;
 			Multiplayer.PeerConnected += OnPeerConnected;
-			Multiplayer.PeerDisconnected += OnPeerDisconnected;
 			Multiplayer.ConnectedToServer += OnConnectedToServer;
 			Multiplayer.ConnectionFailed += OnConnectionFailed;
+			Multiplayer.PeerDisconnected += OnPeerDisconnected;
 
 			CatLog.Ok("[NetCore]：已完成初始化");
 		}

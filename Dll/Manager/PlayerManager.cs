@@ -1,6 +1,7 @@
 using Godot;
 using Godot.Collections;
 using System;
+using 途畔归所.Dll.Core;
 using 途畔归所.Dll.Creature;
 using 途畔归所.Dll.Data;
 using 途畔归所.Dll.Utils;
@@ -26,10 +27,15 @@ public class PlayerManager
 	public Player LocalPlayer { get; set; }                        // 本地玩家实例
 	public CreatureData LocalPlayerData => GetLocalPlayerData();   // 本地玩家数据（只读）
 
+	public bool IsHost => NetCore.Instance.IsHost;                  // 是否为主机
+
+
 	private PlayerManager()
 	{
 		PlayerDataDict = SaveManager.Instance.GetPlayerDataDict();
 		SelPlayerIdx = SaveManager.Instance.GetSelectedPlayerIndex();
+
+
 		CatLog.Ok("[PlayerManager] 初始化完成");
 	}
 
@@ -130,7 +136,7 @@ public class PlayerManager
 		}
 
 		LocalPlayer.m_CreatureData = LocalPlayerData.DeepCopy();
-		NetObjectManager.Instance.SpawnObject(Pos, rot, default, LocalPlayer);
+		NetObjectManager.Instance.SpawnObject(LocalPlayer,Pos, rot);
 	}
 
 	public void SaveLocalPlayerData()

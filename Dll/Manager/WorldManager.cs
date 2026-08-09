@@ -4,7 +4,6 @@ using 途畔归所.Dll.Base;
 using 途畔归所.Dll.Data;
 using 途畔归所.Dll.Utils;
 using static 途畔归所.Dll.Base.SceneBase;
-using static 途畔归所.Dll.Data.SceneData;
 
 namespace 途畔归所.Dll.Manager;
 
@@ -25,8 +24,9 @@ public class WorldManager
 	private Camera3D _gameCamera;                                 // 游戏相机（ViewScene时停用，GameScene由PlayerCamera接管）
 
 	public WorldData CurrentWorld => GetCurrentWorld();
-
 	public bool HasWorlds => WorldDataDict.Count > 0;
+
+	public int CurrentSceneHash => _currentScene?.SceneData.SceneHash ?? -1;
 
 	public WorldManager()
 	{
@@ -185,7 +185,7 @@ public class WorldManager
 		return _gameCamera;
 	}
 
-	/// <summary>注：由场景根节点在进入树时调用，更新当前场景引用；ViewScene 时自动停用游戏相机</summary>
+	/// <summary>注：由SceneBase节点在 _EnterTree 时调用，更新当前场景引用；ViewScene 时自动停用游戏相机</summary>
 	public void SetCurrentSceneType(SceneBase node3D)
 	{
 		if (node3D == null) return;

@@ -36,7 +36,9 @@ public partial class ScenePortalComp : Node3D
 
     private void OnBodyEntered(Node3D body)
     {
-        if (body is not Player) return;
+        if (body is not Player player) return;
+        if (!player.m_IsOwner) return;  // 只有本地玩家能触发
+
         CallDeferred(nameof(DoChangeScene));
     }
 

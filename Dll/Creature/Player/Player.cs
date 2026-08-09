@@ -2,6 +2,7 @@ using Godot;
 using 维修公司.Dll.data;
 using 维修公司.Dll.Interface;
 using 途畔归所.Dll.Base;
+using 途畔归所.Dll.Core;
 using 途畔归所.Dll.Data;
 using 途畔归所.Dll.Interface;
 using 途畔归所.Dll.Manager;
@@ -57,11 +58,17 @@ public partial class Player : Humanoid, IInventoryHolder
 
     public override void _ExitTree()
     {
+        base._ExitTree();
         PlayerManager.Instance.SaveLocalPlayerData();
+
+        if (NetCore.Instance.IsHost && m_IsOwner && m_NetSyncBase.NetObj != null)
+        {
+            NetObjectRegistry.Instance.BroadcastDestroyNetObject(m_NetSyncBase.NetObj);
+        }
     }
 
-	/// <summary>注：视线射线检测交互对象</summary>
-	public void RaycastInteract()
+    /// <summary>注：视线射线检测交互对象</summary>
+    public void RaycastInteract()
 	{
 		if (Input.IsActionJustPressed("cat_E"))
 		{

@@ -19,6 +19,17 @@ public partial class GameCore : Node
         CatLog.Ok("[GameCore._Ready]：初始化完成");
     }
 
+    public override void _Process(double delta)
+    {
+
+        if (Input.IsActionJustPressed("cat_F6"))
+        {
+            NetObjectRegistry.Instance.GetAllNetObjects();
+
+        }
+           
+    }
+
 
     /// <summary>注：初始化全部管理器 </summary>
     private void InitManagers()
@@ -26,6 +37,7 @@ public partial class GameCore : Node
         SaveManager.Instance.Init();
 
         AddChild(NetCore.Instance);
+        AddChild(RpcGateway.Instance);
         AddChild(NetObjectRegistry.Instance);
 
         ResourceManager.Instance.Init();

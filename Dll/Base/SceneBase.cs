@@ -4,7 +4,6 @@ using 途畔归所.Dll.Core;
 using 途畔归所.Dll.Data;
 using 途畔归所.Dll.Manager;
 using 途畔归所.Dll.Utils;
-using static 途畔归所.Dll.Data.SceneData;
 
 namespace 途畔归所.Dll.Base;
 
@@ -17,19 +16,64 @@ public partial class SceneBase : Node3D
         ViewScene = 1,
     }
 
-
     [Export] public SceneData SceneData { get; set; }          // 场景数据（场景名、哈希、网络对象列表等）
 
     [Export] public E_SceneType SceneType { get; set; }
 
+    public bool IsReady { get; private set; } = false;  // 场景是否已完成初始化/加载
 
     public event Action OnSaveState;                            // 触发时，订阅者应将自身状态保存到 NetObj.m_customData
 
     public override void _EnterTree()
     {
-        SetupCurrentScene();                                    // 初始化场景上下文并加载存档数据
-        RestoreNetObjects();                                    // 从场景存档中恢复网络对象
+        if (NetCore.Instance.IsMultiplayer && NetCore.Instance.IsClient && SceneType == E_SceneType.GameScene)
+        {
+            SetupCurrentScene();
+
+            NetObjectRegistry.Instance.RequestSceneData(SceneData.SceneHash);
+
+            IsReady = true;
+            return;
+        }
+
+        SetupCurrentScene();
+        RestoreNetObjects();
     }
+
+    /// <summary>注：调试打印场景数据详情（仅 debug 构建）</summary>
+    private void DebugPrintSceneData()
+    {
+        if (SceneData == null)
+        {
+            CatLog.Debug("[SceneBase] SceneData 为空");
+            return;
+        }
+
+        CatLog.Debug($"[SceneBase] ┌─ 场景数据详情 ──");
+        CatLog.Debug($"[SceneBase] │ SceneName   : {SceneData.SceneName}");
+        CatLog.Debug($"[SceneBase] │ SceneHash   : {SceneData.SceneHash}");
+        CatLog.Debug($"[SceneBase] │ IsNewScene  : {SceneData.IsNewScene}");
+        CatLog.Debug($"[SceneBase] │ NetObjectCount : {SceneData.NetObjectList.Count}");
+
+        if (SceneData.NetObjectList.Count > 0)
+        {
+            for (int i = 0; i < SceneData.NetObjectList.Count; i++)
+            {
+                var obj = SceneData.NetObjectList[i];
+                if (obj != null)
+                {
+                    CatLog.Debug($"[SceneBase] │ [{i}] PrefabHash={obj.PrefabHash}, Owner={obj.OwnerPeerID}, sceneHash={obj.sceneHash}, Pos={obj.Position}");
+                }
+                else
+                {
+                    CatLog.Debug($"[SceneBase] │ [{i}] null");
+                }
+            }
+        }
+        CatLog.Debug($"[SceneBase] └─────────────────");
+    }
+
+    //////////////下方代码不动
 
     /// <summary>注：触发所有订阅者保存状态，并将场景标记为"非新场景"。</summary>
     public void SaveAllStates()
@@ -68,7 +112,11 @@ public partial class SceneBase : Node3D
         foreach (var netObject in SceneData.NetObjectList)
         {
             if (netObject.PrefabHash == PlayerManager.Instance.PlayerHash) continue;
-            NetObjectManager.Instance.SpawnObject(netObject.Position, netObject.Rotation, 0, null, netObject);
+            NetObjectManager.Instance.SpawnObject(netObject, netObject.Position, netObject.Rotation);
         }
+
+        IsReady = true;
     }
+
+
 }

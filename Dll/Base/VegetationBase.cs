@@ -93,7 +93,7 @@ namespace 途畔归所.Dll.Base
                 if (drop == null) continue;
                 foreach (var item in drop.GetItemDrop())
                 {
-                    NetObjectManager.Instance.SpawnObject(DropPos, Vector3.Zero, default, item);
+                    NetObjectManager.Instance.SpawnObject(item,DropPos, Vector3.Zero);
                 }
             }
             CatUtils.StopAndExit(this);

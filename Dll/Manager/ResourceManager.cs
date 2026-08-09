@@ -62,6 +62,7 @@ public class ResourceManager
                 continue;
             }
 
+
             if (node is Player)
             {
                 PlayerManager.Instance.RegisterPlayer(prefabHash,prefab);
@@ -72,10 +73,7 @@ public class ResourceManager
                 ItemManager.Instance.RegisterItem(prefabHash, prefab, item.Data);
             }
 
-            if (!NetObjectManager.Instance.m_PrefabDict.ContainsKey(prefabHash) && CatUtils.FindChildNode<NetSyncBase>(node) != null)
-            {
-                NetObjectManager.Instance.m_PrefabDict.Add(prefabHash, prefab);
-            }
+            NetObjectManager.Instance.RegisterNetObject(prefabHash, prefab);
 
             node.QueueFree();
         }

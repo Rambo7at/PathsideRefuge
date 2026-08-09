@@ -62,7 +62,7 @@ public partial class ConsoleManager : Node
         Vector3 finalPos = consoleComp.m_player.GlobalPosition + offset;
 
 
-        return NetObjectManager.Instance.SpawnObject(finalPos, default, CatUtils.GetStableHashCode(consoleComp.m_Command[1]));
+        return NetObjectManager.Instance.SpawnObject(CatUtils.GetStableHashCode(consoleComp.m_Command[1]),finalPos, default);
     }
 
     private bool PlayerInfo(ConsoleView consoleComp)

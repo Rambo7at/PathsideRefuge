@@ -64,7 +64,7 @@ public partial class NetSyncBase : Node
             }
             else
             {
-                CatLog.Net("[NetSyncBase._Ready]：对象是客户端，已销毁");
+                CatLog.Warn($"[NetSyncBase._Ready]：对象是客户端，已销毁{node3D.Name}");
                 node3D.QueueFree();
                 return;
             }
@@ -75,11 +75,6 @@ public partial class NetSyncBase : Node
         sceneBase.OnSaveState += () => OnSaveState?.Invoke();
         IsInit = true;
     }
-
-
-
-
-
 
 
     #region RPC 注册
@@ -126,13 +121,42 @@ public partial class NetSyncBase : Node
     /// <summary>注：广播RPC给所有客户端（双参数）</summary>
     public void CallAllRpc(string name, Variant value1, Variant value2) => CallAllRpc(name, new Godot.Collections.Array { value1, value2 });
 
-    /// <summary>注：RPC统一接收入口，所有RPC调用汇聚至此，按name分发至RpcDict对应委托</summary>
+
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
     public void Rpc_Anypeer(string name, Variant variant)
     {
-        long senderId = Multiplayer.GetRemoteSenderId();
-        if (RpcDict.TryGetValue(name, out var action)) action?.Invoke(senderId, variant);
-    }
+        // 1. 场景存在性检查（保留）
+        var currentScene = WorldManager.Instance.GetCurrentScene();
+        if (currentScene == null)
+        {
+            CatLog.Debug($"[NetSyncBase] 当前场景为空，忽略 RPC：{name}");
+            return;
+        }
 
+        // 2. 仅游戏场景处理 RPC（保留）
+        if (currentScene.SceneType != SceneBase.E_SceneType.GameScene)
+        {
+            CatLog.Debug($"[NetSyncBase] 非游戏场景，忽略 RPC：{name}");
+            return;
+        }
+
+        // ⭐ 3. 场景就绪检查：只对客户端有效，主机不拦截
+        if (NetCore.Instance.IsClient && !currentScene.IsReady)
+        {
+            CatLog.Debug($"[NetSyncBase] 场景未就绪，忽略 RPC：{name}");
+            return;
+        }
+
+        // 4. 分发 RPC（保持不变）
+        long senderId = Multiplayer.GetRemoteSenderId();
+        if (RpcDict.TryGetValue(name, out var action))
+        {
+            action?.Invoke(senderId, variant);
+        }
+        else
+        {
+            CatLog.Warn($"[NetSyncBase] 未注册的 RPC：{name}");
+        }
+    }
     #endregion
 }
