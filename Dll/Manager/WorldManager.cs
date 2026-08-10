@@ -208,7 +208,7 @@ public class WorldManager
 	public SceneBase GetCurrentScene() => _currentScene;
 
 	/// <summary>注：获取当前场景哈希</summary>
-	public int GetCurrentScenehash() => _currentScene.SceneData.SceneHash;
+	public int GetCurrentScenehash() => _currentScene.SceneData?.SceneHash ?? default;
 
 	/// <summary>注：保存当前场景数据，返回世界存档（供 SaveManager 调用）</summary>
 	public Dictionary<int, WorldData> SaveWorldDataDict()

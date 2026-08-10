@@ -144,5 +144,8 @@ public partial class SceneBase : Node3D
         IsReady = true;
     }
 
-
+    public void DispatchRpc(string name, Variant variant)
+    { 
+    
+    }
 }

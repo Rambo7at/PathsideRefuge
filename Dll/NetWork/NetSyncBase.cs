@@ -6,6 +6,7 @@ using 途畔归所.Dll.Base;
 using 途畔归所.Dll.Core;
 using 途畔归所.Dll.Manager;
 using 途畔归所.Dll.Utils;
+using static System.Collections.Specialized.BitVector32;
 
 namespace 途畔归所.Dll.NetWork;
 
@@ -83,52 +84,80 @@ public partial class NetSyncBase : Node
     // ─── RPC 注册（注册到自己的 RpcDict，而不是全局） ────────
 
     public void RegisterRpc(string name, Action action)
-        => RpcDict[name] = (id, _) => action();
+    {
+        if (!CheckBeforeRegisterRpc(name)) return;
+        RpcDict[name] = RpcGateway.Instance.MakeRpcHandler(action);
+    }
 
     public void RegisterRpc(string name, Action<long> action)
-        => RpcDict[name] = (id, _) => action(id);
+    {
+        if (!CheckBeforeRegisterRpc(name)) return;
+        RpcDict[name] = RpcGateway.Instance.MakeRpcHandler(action);
+    }
 
-    public void RegisterRpc<[MustBeVariant] T>(string name, Action<long, T> action)
-        => RpcDict[name] = (id, value) => action(id, value.As<T>());
-
-    public void RegisterRpc<[MustBeVariant] T>(string name, Action<T> action)
-        => RpcDict[name] = (id, value) => action(value.As<T>());
+    public void RegisterRpc<[MustBeVariant] T1>(string name, Action<long, T1> action)
+    {
+        if (!CheckBeforeRegisterRpc(name)) return;
+        RpcDict[name] = RpcGateway.Instance.MakeRpcHandler(action);
+    }
 
     public void RegisterRpc<[MustBeVariant] T1, [MustBeVariant] T2>(string name, Action<long, T1, T2> action)
     {
-        RpcDict[name] = (id, value) =>
-        {
-            var arr = value.As<Godot.Collections.Array>();
-            if (arr == null || arr.Count < 2) return;
-            action(id, arr[0].As<T1>(), arr[1].As<T2>());
-        };
+        if (!CheckBeforeRegisterRpc(name)) return;
+        RpcDict[name] = RpcGateway.Instance.MakeRpcHandler(action);
     }
+
+    public void RegisterRpc<[MustBeVariant] T1, [MustBeVariant] T2, [MustBeVariant] T3>(string name, Action<long, T1, T2, T3> action)
+    {
+        if (!CheckBeforeRegisterRpc(name)) return;
+        RpcDict[name] = RpcGateway.Instance.MakeRpcHandler(action);
+    }
+
+    public void RegisterRpc<[MustBeVariant] T1, [MustBeVariant] T2, [MustBeVariant] T3, [MustBeVariant] T4>(string name, Action<long, T1, T2, T3, T4> action)
+    {
+        if (!CheckBeforeRegisterRpc(name)) return;
+        RpcDict[name] = RpcGateway.Instance.MakeRpcHandler(action);
+    }
+
+    public void RegisterRpc<[MustBeVariant] T1, [MustBeVariant] T2, [MustBeVariant] T3, [MustBeVariant] T4, [MustBeVariant] T5>(string name, Action<long, T1, T2, T3, T4, T5> action)
+    {
+        if (!CheckBeforeRegisterRpc(name)) return;
+        RpcDict[name] = RpcGateway.Instance.MakeRpcHandler(action);
+    }
+
+
+    /// <summary>注：公共注册前置检查，返回true代表可以继续注册</summary>
+    private bool CheckBeforeRegisterRpc(string name)
+    {
+        if (RpcDict.ContainsKey(name))
+        {
+            CatLog.Warn($"[NetSyncBase.RegisterRpc]：重名RPC 方法{name}");
+            return false;
+        }
+        return true;
+    }
+
+
 
     // ─── RPC 发送（携带自己的 NetID 作为路由目标） ────────────
 
-    public void CallRpc(string name, bool reliable = true)
-        => RpcGateway.Instance.CallRpc(NetObj.netId, name, reliable);
+    public void SendRpcToHost(string name, params Variant[] args) => RpcGateway.Instance.SendRpcToHost(NetObj.netId, name, true, args);
 
-    public void CallRpc(string name, Variant value, bool reliable = true)
-        => RpcGateway.Instance.CallRpc(NetObj.netId, name, value, reliable);
+    /// <summary>注：发送 RPC 给主机（指定可靠性）</summary>
+    public void SendRpcToHost(string name, bool reliable, params Variant[] args) => RpcGateway.Instance.SendRpcToHost(NetObj.netId, name, reliable, args);
 
-    public void CallRpc(string name, Variant value, long targetPeerId, bool reliable = true)
-        => RpcGateway.Instance.CallRpc(NetObj.netId, name, value, targetPeerId, reliable);
+    /// <summary>注：发送 RPC 给指定对等端（默认可靠）</summary>
+    public void SendRpcToPeer(string name, long targetPeerId, params Variant[] args) => RpcGateway.Instance.SendRpcToPeer(NetObj.netId, name, targetPeerId, true, args);
 
-    public void CallRpc(string name, Variant v1, Variant v2, bool reliable = true)
-        => RpcGateway.Instance.CallRpc(NetObj.netId, name, v1, v2, reliable);
+    /// <summary>注：发送 RPC 给指定对等端（指定可靠性）</summary>
+    public void SendRpcToPeer(string name, long targetPeerId, bool reliable, params Variant[] args) => RpcGateway.Instance.SendRpcToPeer(NetObj.netId, name, targetPeerId, reliable, args);
 
-    public void CallRpc(string name, Variant v1, Variant v2, long targetPeerId, bool reliable = true)
-        => RpcGateway.Instance.CallRpc(NetObj.netId, name, v1, v2, reliable);
+    /// <summary>注：广播 RPC 给所有客户端（默认可靠）</summary>
+    public void SendRpcBroadcast(string name, params Variant[] args) => RpcGateway.Instance.SendRpcBroadcast(NetObj.netId, name, true, args);
 
-    public void CallAllRpc(string name, bool reliable = true)
-        => RpcGateway.Instance.CallAllRpc(NetObj.netId, name, reliable);
+    /// <summary>注：广播 RPC 给所有客户端（指定可靠性）</summary>
+    public void SendRpcBroadcast(string name, bool reliable, params Variant[] args) => RpcGateway.Instance.SendRpcBroadcast(NetObj.netId, name, reliable, args);
 
-    public void CallAllRpc(string name, Variant value, bool reliable = true)
-        => RpcGateway.Instance.CallAllRpc(NetObj.netId, name, value, reliable);
-
-    public void CallAllRpc(string name, Variant v1, Variant v2, bool reliable = true)
-        => RpcGateway.Instance.CallAllRpc(NetObj.netId, name, v1, v2, reliable);
 
     // ─── RPC 分发（由 RpcGateway 调用） ──────────────────────
 
