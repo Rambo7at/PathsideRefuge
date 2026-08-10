@@ -22,22 +22,48 @@ public partial class SceneBase : Node3D
 
     public bool IsReady { get; private set; } = false;  // 场景是否已完成初始化/加载
 
+    public long OwnerPeerID { get;  set; }
+    public bool HasOwner => OwnerPeerID != 0;
+
     public event Action OnSaveState;                            // 触发时，订阅者应将自身状态保存到 NetObj.m_customData
 
     public override void _EnterTree()
     {
-        if (NetCore.Instance.IsMultiplayer && NetCore.Instance.IsClient && SceneType == E_SceneType.GameScene)
-        {
-            SetupCurrentScene();
+        SetupCurrentScene();
 
-            NetObjectRegistry.Instance.RequestSceneData(SceneData.SceneHash);
+        // 2. 如果是客户端，检查场景拥有者
+        if (NetCore.Instance.IsClient && SceneType == E_SceneType.GameScene)
+        {
+            if (OwnerPeerID == 0)
+            {
+                // 场景无主 → 向主机请求分配拥有者，或等待主机进入
+                CatLog.Net($"[SceneBase] 场景 {SceneData.SceneHash} 无拥有者，向主机请求...");
+                // 发送 RPC 给主机：RequestSceneOwnership
+                // 或者直接请求场景数据（如果主机在该场景）
+                NetObjectRegistry.Instance.RequestSceneData(SceneData.SceneHash);
+            }
+            else
+            {
+                // 场景已有拥有者 → 向拥有者请求数据同步
+                CatLog.Net($"[SceneBase] 场景拥有者为 {OwnerPeerID}，请求数据同步...");
+                // 直接向 OwnerPeerID 发送 RPC 请求场景数据
+                // 或通过主机中转
+            }
 
             IsReady = true;
             return;
         }
 
+
         SetupCurrentScene();
         RestoreNetObjects();
+
+
+        if (NetCore.Instance.IsHost && SceneType == E_SceneType.GameScene)
+        {
+            OwnerPeerID = NetCore.Instance.LocalPeerID;
+            CatLog.Ok($"[SceneBase] 主机成为场景 {SceneData.SceneHash} 的拥有者");
+        }
     }
 
     /// <summary>注：调试打印场景数据详情（仅 debug 构建）</summary>
@@ -62,7 +88,7 @@ public partial class SceneBase : Node3D
                 var obj = SceneData.NetObjectList[i];
                 if (obj != null)
                 {
-                    CatLog.Debug($"[SceneBase] │ [{i}] PrefabHash={obj.PrefabHash}, Owner={obj.OwnerPeerID}, sceneHash={obj.sceneHash}, Pos={obj.Position}");
+                    CatLog.Debug($"[SceneBase] │ [{i}] PrefabHash={obj.PrefabHash}, {obj.netId}, Pos={obj.Position}");
                 }
                 else
                 {

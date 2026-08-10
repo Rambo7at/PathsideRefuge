@@ -1,5 +1,7 @@
 using Godot;
 using System;
+using System.Collections.Generic;
+using System.Xml.Linq;
 using 途畔归所.Dll.Base;
 using 途畔归所.Dll.Core;
 using 途畔归所.Dll.Manager;
@@ -11,15 +13,18 @@ namespace 途畔归所.Dll.NetWork;
 /// <summary>注：网络同步组件，管理RPC注册与调用分发、对象身份注册</summary>
 public partial class NetSyncBase : Node
 {
-    private Node3D _node3D;                   // 挂载的父节点（3D对象）
-    private int _nodeHash;                   // 父节点名称哈希值
+    private Node3D _node3D;
+    private int _nodeHash;
 
-    public NetObject NetObj { get; set; }    // 网络对象数据
-    public bool IsOwner => NetObj != null && NetObj.OwnerPeerID == NetCore.Instance.LocalPeerID;  // 是否为本机所属对象
-    public bool IsInit = false;              // 是否已完成初始化
+    public NetObject NetObj { get; set; }
+    public bool IsOwner => NetObj != null && NetObj.netId.OwnerPeerID == NetCore.Instance.LocalPeerID;
 
-    public System.Collections.Generic.Dictionary<string, Action<long, Variant>> RpcDict { get; set; } = [];  // RPC名称 → 处理委托映射表
-    public event Action OnSaveState;     // 场景刷新网络状态时触发
+    public bool IsInit = false;
+
+    public event Action OnSaveState;
+
+    // ─── 每个 NetSyncBase 独立管理自己的 RPC 注册表 ──────────
+    public Dictionary<string, Action<long, Variant>> RpcDict { get; set; } = [];
 
     public override void _EnterTree()
     {
@@ -38,11 +43,9 @@ public partial class NetSyncBase : Node
     public override void _ExitTree()
     {
         if (NetObj == null) return;
-
-        NetObjectRegistry.Instance.RemoveNet(NetObj.Id);
+        NetObjectRegistry.Instance.RemoveNet(NetObj.netId);
     }
 
-    /// <summary>注：为场景中手动放置的预制件补注册NetObj身份，防止被系统清理</summary>
     private void RegisterManual(SceneBase sceneBase, Node3D node3D)
     {
         _node3D = node3D;
@@ -69,85 +72,68 @@ public partial class NetSyncBase : Node
                 return;
             }
 
-            NetObj.sceneHash = NetObj.sceneHash == sceneBase.SceneData.SceneHash ? NetObj.sceneHash : sceneBase.SceneData.SceneHash;
+            // 场景哈希现在存储在 netId 中，不需要单独赋值
+            // NetObj.sceneHash 已移除
         }
 
         sceneBase.OnSaveState += () => OnSaveState?.Invoke();
         IsInit = true;
     }
 
+    // ─── RPC 注册（注册到自己的 RpcDict，而不是全局） ────────
 
-    #region RPC 注册
-    /// <summary>注：注册无参数RPC</summary>
-    public void RegisterRpc(string name, Action action) => RpcDict[name] = (id, _) => action();
+    public void RegisterRpc(string name, Action action)
+        => RpcDict[name] = (id, _) => action();
 
-    /// <summary>注：注册带发送者ID的RPC</summary>
-    public void RegisterRpc(string name, Action<long> action) => RpcDict[name] = (id, _) => action(id);
+    public void RegisterRpc(string name, Action<long> action)
+        => RpcDict[name] = (id, _) => action(id);
 
-    /// <summary>注：注册带发送者ID+单参数的RPC</summary>
-    public void RegisterRpc<[MustBeVariant] T>(string name, Action<long, T> action) => RpcDict[name] = (id, value) => action(id, value.As<T>());
+    public void RegisterRpc<[MustBeVariant] T>(string name, Action<long, T> action)
+        => RpcDict[name] = (id, value) => action(id, value.As<T>());
 
-    /// <summary>注：注册带单参数的RPC</summary>
-    public void RegisterRpc<[MustBeVariant] T>(string name, Action<T> action) => RpcDict[name] = (id, value) => action(value.As<T>());
+    public void RegisterRpc<[MustBeVariant] T>(string name, Action<T> action)
+        => RpcDict[name] = (id, value) => action(value.As<T>());
 
-    /// <summary>注：注册带发送者ID+双参数的RPC</summary>
     public void RegisterRpc<[MustBeVariant] T1, [MustBeVariant] T2>(string name, Action<long, T1, T2> action)
     {
         RpcDict[name] = (id, value) =>
         {
             var arr = value.As<Godot.Collections.Array>();
-
             if (arr == null || arr.Count < 2) return;
-
             action(id, arr[0].As<T1>(), arr[1].As<T2>());
         };
     }
 
-    /// <summary>注：发送RPC给主机（无参数）</summary>
-    public void CallRpc(string name) => RpcId(1, nameof(Rpc_Anypeer), name, default);
+    // ─── RPC 发送（携带自己的 NetID 作为路由目标） ────────────
 
-    /// <summary>注：发送RPC给主机（单参数）</summary>
-    public void CallRpc(string name, Variant value, long Id = 1) => RpcId(Id, nameof(Rpc_Anypeer), name, value);
+    public void CallRpc(string name, bool reliable = true)
+        => RpcGateway.Instance.CallRpc(NetObj.netId, name, reliable);
 
-    /// <summary>注：发送RPC给主机（双参数）</summary>
-    public void CallRpc(string name, Variant value1, Variant value2, long Id = 1) => CallRpc(name, new Godot.Collections.Array() { value1, value2 }, Id);
+    public void CallRpc(string name, Variant value, bool reliable = true)
+        => RpcGateway.Instance.CallRpc(NetObj.netId, name, value, reliable);
 
-    /// <summary>注：广播RPC给所有客户端（无参数）</summary>
-    public void CallAllRpc(string name) => Rpc(nameof(Rpc_Anypeer), name, default);
+    public void CallRpc(string name, Variant value, long targetPeerId, bool reliable = true)
+        => RpcGateway.Instance.CallRpc(NetObj.netId, name, value, targetPeerId, reliable);
 
-    /// <summary>注：广播RPC给所有客户端（单参数）</summary>
-    public void CallAllRpc(string name, Variant value) => Rpc(nameof(Rpc_Anypeer), name, value);
+    public void CallRpc(string name, Variant v1, Variant v2, bool reliable = true)
+        => RpcGateway.Instance.CallRpc(NetObj.netId, name, v1, v2, reliable);
 
-    /// <summary>注：广播RPC给所有客户端（双参数）</summary>
-    public void CallAllRpc(string name, Variant value1, Variant value2) => CallAllRpc(name, new Godot.Collections.Array { value1, value2 });
+    public void CallRpc(string name, Variant v1, Variant v2, long targetPeerId, bool reliable = true)
+        => RpcGateway.Instance.CallRpc(NetObj.netId, name, v1, v2, reliable);
 
+    public void CallAllRpc(string name, bool reliable = true)
+        => RpcGateway.Instance.CallAllRpc(NetObj.netId, name, reliable);
 
-    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
-    public void Rpc_Anypeer(string name, Variant variant)
+    public void CallAllRpc(string name, Variant value, bool reliable = true)
+        => RpcGateway.Instance.CallAllRpc(NetObj.netId, name, value, reliable);
+
+    public void CallAllRpc(string name, Variant v1, Variant v2, bool reliable = true)
+        => RpcGateway.Instance.CallAllRpc(NetObj.netId, name, v1, v2, reliable);
+
+    // ─── RPC 分发（由 RpcGateway 调用） ──────────────────────
+
+    public void DispatchRpc(string name, Variant variant)
     {
-        // 1. 场景存在性检查（保留）
-        var currentScene = WorldManager.Instance.GetCurrentScene();
-        if (currentScene == null)
-        {
-            CatLog.Debug($"[NetSyncBase] 当前场景为空，忽略 RPC：{name}");
-            return;
-        }
-
-        // 2. 仅游戏场景处理 RPC（保留）
-        if (currentScene.SceneType != SceneBase.E_SceneType.GameScene)
-        {
-            CatLog.Debug($"[NetSyncBase] 非游戏场景，忽略 RPC：{name}");
-            return;
-        }
-
-        // ⭐ 3. 场景就绪检查：只对客户端有效，主机不拦截
-        if (NetCore.Instance.IsClient && !currentScene.IsReady)
-        {
-            CatLog.Debug($"[NetSyncBase] 场景未就绪，忽略 RPC：{name}");
-            return;
-        }
-
-        // 4. 分发 RPC（保持不变）
         long senderId = Multiplayer.GetRemoteSenderId();
         if (RpcDict.TryGetValue(name, out var action))
         {
@@ -155,8 +141,7 @@ public partial class NetSyncBase : Node
         }
         else
         {
-            CatLog.Warn($"[NetSyncBase] 未注册的 RPC：{name}");
+            CatLog.Warn($"[NetSyncBase] 未注册的 RPC：{name}，目标：{NetObj?.netId}");
         }
     }
-    #endregion
 }

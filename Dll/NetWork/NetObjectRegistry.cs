@@ -39,19 +39,18 @@ public partial class NetObjectRegistry : Node
     {
         NetID id = GetNetID();
 
-        NetObject netobj = new(id, pos, rot, hash, id.UserID);
-        netobj.Id = id;
-        netobj.sceneHash = id.SceneHash;
+        NetObject netobj = new(id, hash, pos, rot);
 
         _netObjects[id] = netobj;
+
         if (NetCore.Instance.IsHost)
         {
-            Rpc(nameof(Rpc_HostSyncRegister), id.UserID, id.ID, hash, pos, rot, id.SceneHash);
+            Rpc(nameof(Rpc_HostSyncRegister), id.OwnerPeerID, id.LocalSeqId, id.SceneHash, netobj.PrefabHash, pos, rot);
             return id;
         }
         else
         {
-            Rpc(nameof(Rpc_ReportToServer), id.UserID, id.ID, hash, pos, rot, id.SceneHash);
+            Rpc(nameof(Rpc_ReportToServer), id.OwnerPeerID, id.LocalSeqId, id.SceneHash, netobj.PrefabHash, pos, rot);
             return id;
         }
     }
@@ -59,75 +58,69 @@ public partial class NetObjectRegistry : Node
     public NetID RegisterObject(NetObject netobj, Vector3 pos, Vector3 rot)
     {
         NetID id = GetNetID();
-        netobj.Id = id;
-        netobj.sceneHash = id.SceneHash;
+        netobj.netId = id;
+
         _netObjects[id] = netobj;
 
         if (NetCore.Instance.IsHost)
         {
-            Rpc(nameof(Rpc_HostSyncRegister), id.UserID, id.ID, netobj.PrefabHash, pos, rot, id.SceneHash);
+            Rpc(nameof(Rpc_HostSyncRegister), id.OwnerPeerID, id.LocalSeqId, id.SceneHash, netobj.PrefabHash, pos, rot);
             return id;
         }
         else
         {
-            Rpc(nameof(Rpc_ReportToServer), id.UserID, id.ID, netobj.PrefabHash, pos, rot, id.SceneHash);
+            Rpc(nameof(Rpc_ReportToServer), id.OwnerPeerID, id.LocalSeqId, id.SceneHash, netobj.PrefabHash, pos, rot);
             return id;
         }
     }
 
     /// <summary>注：主机同步注册网络对象信息，并触发对象生成事件。</summary>
     [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
-    private void Rpc_HostSyncRegister(long userId, uint objId, int hash, Vector3 pos, Vector3 rot, int sceneHash)
+    private void Rpc_HostSyncRegister(long ownerPeer, uint seqId, int sceneHash,int prefabHash, Vector3 pos, Vector3 rot )
     {
-        NetID id = new(userId, objId, sceneHash);
+        NetID netId = new(ownerPeer, seqId, sceneHash);
 
-        if (!_netObjects.ContainsKey(id))
-        {
-            var netobj = new NetObject(id, pos, rot, hash, userId);
-            netobj.sceneHash = sceneHash;
-            _netObjects[id] = netobj;
-        }
+        if (_netObjects.ContainsKey(netId)) return;
 
-        OnSpawned?.Invoke(id, null);
+        var netobj = new NetObject(netId, prefabHash,pos, rot);
+
+        _netObjects[netId] = netobj;
+
+        OnSpawned?.Invoke(netId, null);
     }
 
     /// <summary>注：向服务器报告网络对象信息，服务器登记并广播给其他客户端，触发对象生成事件。</summary>
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
-    private void Rpc_ReportToServer(long userId, uint objId, int hash, Vector3 pos, Vector3 rot, int sceneHash)
+    private void Rpc_ReportToServer(long ownerPeer, uint seqId, int sceneHash, int prefabHash, Vector3 pos, Vector3 rot)
     {
         if (NetCore.Instance.IsClient) return;
 
-        NetID id = new(userId, objId, sceneHash);
+        NetID netId = new(ownerPeer, seqId, sceneHash);
 
-        if (_netObjects.ContainsKey(id))
-        {
-            CatLog.Net($"[NetObjectRegistry] 重复上报的 NetID: {id}");
-            return;
-        }
+        if (_netObjects.ContainsKey(netId)) return;
 
-        var netobj = new NetObject(id, pos, rot, hash, userId);
-        netobj.sceneHash = sceneHash;
-        _netObjects[id] = netobj;
+        var netobj = new NetObject(netId, prefabHash, pos, rot);
+        _netObjects[netId] = netobj;
 
         long senderId = Multiplayer.GetRemoteSenderId();
         foreach (long peerId in Multiplayer.GetPeers())
         {
             if (peerId != senderId && peerId != NetCore.ServerID)
             {
-                RpcId(peerId, nameof(Rpc_HostSyncRegister), id.UserID, id.ID, hash, pos, rot, sceneHash);
+                RpcId(peerId, nameof(Rpc_HostSyncRegister), netId.OwnerPeerID, netId.LocalSeqId, netId.SceneHash, netobj.PrefabHash, pos, rot);
             }
         }
 
-        OnSpawned?.Invoke(id, null);
+        OnSpawned?.Invoke(netId, null);
     }
 
     /// <summary>注：通知所有客户端销毁指定网络对象</summary>
     [Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
-    public void Rpc_DestroyNetObject(long userId, uint objId, int sceneHash)
+    public void Rpc_DestroyNetObject(long ownerPeer, uint seqId, int sceneHash)
     {
         if (NetCore.Instance.IsHost) return;
 
-        NetID id = new(userId, objId, sceneHash);
+        NetID id = new(ownerPeer, seqId, sceneHash);
 
         if (!_netObjects.ContainsKey(id))
         {
@@ -144,8 +137,8 @@ public partial class NetObjectRegistry : Node
         if (netObject == null) return;
         if (!NetCore.Instance.IsHost) return;
 
-        NetID id = netObject.Id;
-        Rpc(nameof(Rpc_DestroyNetObject), id.UserID, id.ID, id.SceneHash);
+        NetID id = netObject.netId;
+        Rpc(nameof(Rpc_DestroyNetObject), id.OwnerPeerID, id.LocalSeqId, id.SceneHash);
         CatLog.Net($"[NetObjectRegistry] 主机广播销毁对象：{id}");
     }
 
@@ -185,14 +178,7 @@ public partial class NetObjectRegistry : Node
 
         foreach (var netObj in netObjects)
         {
-            RpcId(senderId, nameof(Rpc_HostSyncRegister),
-                netObj.Id.UserID,
-                netObj.Id.ID,
-                netObj.PrefabHash,
-                netObj.Position,
-                netObj.Rotation,
-                netObj.Id.SceneHash
-            );
+            RpcId(senderId, nameof(Rpc_HostSyncRegister), netObj.netId.OwnerPeerID, netObj.netId.LocalSeqId, netObj.netId.SceneHash, netObj.PrefabHash, netObj.Position, netObj.Rotation);
         }
     }
 
@@ -206,7 +192,7 @@ public partial class NetObjectRegistry : Node
 
         foreach (var netobj in _netObjects)
         {
-            if (netobj.Value.sceneHash != sceneHash) continue;
+            if (netobj.Key.SceneHash != sceneHash) continue;
             arr.Add(netobj.Value);
         }
 
@@ -219,7 +205,7 @@ public partial class NetObjectRegistry : Node
     {
         foreach (var netObj in _netObjects)
         {
-            CatLog.Debug($"[NetObjectRegistry] NetID: {netObj.Key}, PrefabHash: {netObj.Value.PrefabHash}, sceneHash: {netObj.Value.sceneHash}, Pos: {netObj.Value.Position}");
+            CatLog.Debug($"[NetObjectRegistry] NetID: {netObj.Key}, PrefabHash: {netObj.Value.PrefabHash}, Pos: {netObj.Value.Position}");
         }
     }
 }

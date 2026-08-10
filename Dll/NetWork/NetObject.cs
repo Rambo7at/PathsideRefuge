@@ -4,35 +4,32 @@ using 途畔归所.Dll.Interface;
 
 namespace 途畔归所.Dll.NetWork;
 
+/// <summary>注：网络对象数据载体，包含位置、旋转、自定义数据及唯一标识</summary>
 public partial class NetObject : Resource, ISerializable
 {
-	public NetID Id { get; set; }
 	[Export] public int PrefabHash { get; set; }
-	[Export] public long OwnerPeerID { get; set; }
-	[Export] public int sceneHash { get; set; }
 	[Export] public Vector3 Position { get; set; }
 	[Export] public Vector3 Rotation { get; set; }
 	[Export] public Variant m_customData { get; set; }
 
+	public NetID netId { get; set; }
+
 	public NetObject() { }
-	public NetObject(NetID id, Vector3 position, Vector3 rotation, int prefabHash, long ownerPeerID)
+
+	public NetObject(NetID id, int prefabHash, Vector3 position, Vector3 rotation)
 	{
-		Id = id;
+		netId = id;
+		PrefabHash = prefabHash;
 		Position = position;
 		Rotation = rotation;
-		PrefabHash = prefabHash;
-		OwnerPeerID = ownerPeerID;
 	}
 
-	public bool IsOwner(long localPeerID) => OwnerPeerID == localPeerID;
-	
-	private struct NetObjectDto
+	private struct NetObjectDto    // 优化标记，之后可能会发现 netId 内的数据不需要进行到反序列化，本身都是需要重建的
 	{
 		public long UserID { get; set; }
 		public uint ID { get; set; }
 		public int SceneHash { get; set; }
 		public int PrefabHash { get; set; }
-		public long OwnerPeerID { get; set; }
 		public float PosX { get; set; }
 		public float PosY { get; set; }
 		public float PosZ { get; set; }
@@ -46,11 +43,10 @@ public partial class NetObject : Resource, ISerializable
 	{
 		var dto = new NetObjectDto
 		{
-			UserID = Id.UserID,
-			ID = Id.ID,
-			SceneHash = sceneHash,
+			UserID = netId.OwnerPeerID,
+			ID = netId.LocalSeqId,
+			SceneHash = netId.SceneHash,
 			PrefabHash = PrefabHash,
-			OwnerPeerID = OwnerPeerID,
 			PosX = Position.X,
 			PosY = Position.Y,
 			PosZ = Position.Z,
@@ -66,10 +62,8 @@ public partial class NetObject : Resource, ISerializable
 	public void Deserialize(byte[] data)
 	{
 		var dto = JsonSerializer.Deserialize<NetObjectDto>(data);
-		Id = new NetID(dto.UserID, dto.ID, dto.SceneHash);
+		netId = new NetID(dto.UserID, dto.ID, dto.SceneHash);
 		PrefabHash = dto.PrefabHash;
-		OwnerPeerID = dto.OwnerPeerID;
-		sceneHash = dto.SceneHash;
 		Position = new Vector3(dto.PosX, dto.PosY, dto.PosZ);
 		Rotation = new Vector3(dto.RotX, dto.RotY, dto.RotZ);
 		m_customData = Json.ParseString(dto.CustomData);

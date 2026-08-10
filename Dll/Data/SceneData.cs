@@ -18,7 +18,13 @@ public partial class SceneData : Resource, ISerializable
 
     public SceneData DeepCopy() => this.DuplicateDeep() as SceneData;
 
-    // ─── 序列化接口实现 ───
+    private struct SceneDataDto
+    {
+        public string SceneName { get; set; }
+        public int SceneHash { get; set; }
+        public bool IsNewScene { get; set; }
+        public List<byte[]> NetObjects { get; set; }
+    }
 
     public byte[] Serialize()
     {
@@ -26,7 +32,8 @@ public partial class SceneData : Resource, ISerializable
 
         foreach (var netObj in NetObjectList)
         {
-            serializedObjects.Add(netObj?.Serialize());
+            if (netObj == null) continue;
+            serializedObjects.Add(netObj.Serialize());
         }
 
         var dto = new SceneDataDto
@@ -51,25 +58,12 @@ public partial class SceneData : Resource, ISerializable
         NetObjectList.Clear();
         foreach (var objData in dto.NetObjects)
         {
-            if (objData == null)
-            {
-                NetObjectList.Add(null);
-                continue;
-            }
-
+            if (objData == null) continue;
             var netObj = new NetObject();
             netObj.Deserialize(objData);
             NetObjectList.Add(netObj);
         }
     }
 
-    // ─── DTO ───
 
-    private struct SceneDataDto
-    {
-        public string SceneName { get; set; }
-        public int SceneHash { get; set; }
-        public bool IsNewScene { get; set; }
-        public List<byte[]> NetObjects { get; set; }
-    }
 }

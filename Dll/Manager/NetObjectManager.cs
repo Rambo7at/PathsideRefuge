@@ -153,9 +153,9 @@ public partial class NetObjectManager : Node
             return;
         }
 
-        if (netobj.sceneHash != 0 && netobj.sceneHash != currentScene.SceneData.SceneHash)
+        if (netId.SceneHash != 0 && netId.SceneHash != currentScene.SceneData.SceneHash)
         {
-            CatLog.Net($"[NetObjectManager] 忽略跨场景对象：{netobj.sceneHash} != {currentScene.SceneData.SceneHash}");
+            CatLog.Net($"[NetObjectManager] 忽略跨场景对象：{netId.SceneHash} != {currentScene.SceneData.SceneHash}");
             return;
         }
 

@@ -18,7 +18,7 @@ namespace 途畔归所.Dll.Core
 
 		public bool IsMultiplayer => Multiplayer?.MultiplayerPeer != null;
 
-		public bool IsHost => Multiplayer.IsServer();
+		public bool IsHost => Multiplayer?.IsServer() ?? true;
 
 		public bool IsClient => !IsHost;
 

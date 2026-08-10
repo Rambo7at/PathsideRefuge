@@ -4,106 +4,100 @@ using 途畔归所.Dll.Manager;
 using 途畔归所.Dll.Utils;
 using static System.Net.Mime.MediaTypeNames;
 
-namespace 途畔归所.Dll.NetWork
+namespace 途畔归所.Dll.NetWork;
+
+[GlobalClass]
+public partial class NetTransformSync : Node
 {
-	[GlobalClass]
-	public partial class NetTransformSync : Node
-	{
-		[Export] private float _syncInterval = 0.05f;
-		[Export] private float _smoothLerpSpeed = 15.0f;
+    [Export] private float _syncInterval = 0.05f;
+    [Export] private float _smoothLerpSpeed = 15.0f;
 
+    private float _timer;
+    private Node3D _node3D;
+    private NetSyncBase _sync;
+    private NetObject _netobj;
 
-		private float _timer;
+    private Vector3 _curPos { get => _node3D.GlobalPosition; set => _node3D.GlobalPosition = value; }
+    private Vector3 _curRot { get => _node3D.GlobalRotation; set => _node3D.GlobalRotation = value; }
+    private Vector3 _targetPos { get => _netobj.Position; set => _netobj.Position = value; }
+    private Vector3 _targetRot { get => _netobj.Rotation; set => _netobj.Rotation = value; }
 
-		private Node3D _node3D;
-		private NetSyncBase _sync;
-		private NetObject _netobj;
+    public override void _Ready()
+    {
+        if (GetParent() is Node3D node3D) _node3D = node3D;
 
-		private Vector3 _curPos  { get=> _node3D.GlobalPosition; set => _node3D.GlobalPosition = value; }
-		private Vector3 _curRot { get=> _node3D.GlobalRotation; set => _node3D.GlobalRotation = value; }
+        foreach (var comp in _node3D.GetChildren())
+        {
+            if (comp is NetSyncBase netSyncBase)
+            {
+                _sync = netSyncBase;
+                break;
+            }
+        }
 
-		private Vector3 _targetPos { get=> _netobj.Position ; set => _netobj.Position = value; }
-		private Vector3 _targetRot { get => _netobj.Rotation; set => _netobj.Rotation = value; }
+        if (_sync == null)
+        {
+            CatLog.Err("[NetTransformSync._Ready]：未有在挂载对象中找到 NetSyncBase 组件，已销毁");
+            CatUtils.StopAndExit(this);
+            return;
+        }
 
+        if (_sync.NetObj == null) return;
 
-		public override void _Ready()
-		{
-			if (GetParent() is Node3D node3D) _node3D = node3D;
+        _netobj = _sync.NetObj;
 
-			foreach (var comp in _node3D.GetChildren())
-			{
-				if (comp is NetSyncBase netSyncBase)
-				{
-					_sync = netSyncBase;
-					break;
-				}
-			}
+        // 注册变换同步 RPC
+        _sync.RegisterRpc<Vector3, Vector3>("NetTransformSync", RPC_NetTransformSync);
+        _sync.RegisterRpc<Vector3, Vector3>("ClientTransformReport", RPC_ClientTransformReport);
+    }
 
-			if (_sync == null)
-			{
-				CatLog.Err("[NetTransformSync._Ready]：未有在挂载对象中找到 NetSyncBase 组件，已销毁");
-				CatUtils.StopAndExit(this);
-				return;
-			}
+    public override void _Process(double delta)
+    {
+        if (!_sync.IsOwner) return;
+        if (_targetPos == _curPos && _targetRot == _curRot) return;
 
-			if (_sync.NetObj == null) return;
+        _targetPos = _curPos;
+        _targetRot = _curRot;
 
-			_netobj = _sync.NetObj;
-		}
+        if (NetCore.Instance.IsHost)
+        {
+            _sync.CallAllRpc("NetTransformSync", _curPos, _curRot, reliable: false);
+        }
+        else
+        {
+            _sync.CallRpc("ClientTransformReport", new Godot.Collections.Array { _curPos, _curRot }, NetCore.ServerID, reliable: false);
+        }
+    }
 
-		public override void _Process(double delta)
-		{
-			if (!_sync.IsOwner) return;
+    // 客户端上报给主机（由主机转发给其他客户端）
+    private void RPC_ClientTransformReport(long senderId, Vector3 pos, Vector3 rot)
+    {
+        if (NetCore.Instance.IsClient) return;
 
-			if (_targetPos == _curPos && _targetRot == _curRot) return;
+        // 更新目标位置
+        _curPos = pos;
+        _curRot = rot;
+        _targetPos = pos;
+        _targetRot = rot;
 
-			_targetPos = _curPos;
-			_targetRot = _curRot;
+        // 转发给其他客户端（排除发送者）
+        foreach (long peerId in Multiplayer.GetPeers())
+        {
+            if (peerId != senderId && peerId != NetCore.ServerID)
+            {
+                _sync.CallRpc("NetTransformSync", new Godot.Collections.Array { pos, rot }, peerId, reliable: false);
+            }
+        }
+    }
 
-			if (NetCore.Instance.IsHost)
-			{
-				Rpc(nameof(Rpc_NetTransformSync), _curPos, _curRot);
-			}
-			else
-			{
-				RpcId(NetCore.ServerID, nameof(Rpc_ClientTransformReport),_curPos, _curRot);
-			}
-		}
+    // 所有客户端接收变换
+    private void RPC_NetTransformSync(long senderId, Vector3 pos, Vector3 rot)
+    {
+        if (NetCore.Instance.IsHost) return;
 
-		// 客户端上报给主机
-		[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.Unreliable)]
-		private void Rpc_ClientTransformReport(Vector3 pos, Vector3 rot)
-		{
-			if (NetCore.Instance.IsClient) return;
-			
-			_curPos = pos;
-			_curRot = rot;
-			_targetPos = pos;
-			_targetRot = rot;
-
-			long senderId = Multiplayer.GetRemoteSenderId();
-			foreach (long peerId in Multiplayer.GetPeers())
-			{
-				if (peerId != senderId && peerId != NetCore.ServerID)
-				{
-					RpcId(peerId, nameof(Rpc_NetTransformSync), _curPos, _curRot);
-				}
-			}
-		}
-
-
-
-
-		// 所有客户端接收变换（原 RPC 保持不变）
-		[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.Unreliable)]
-		private void Rpc_NetTransformSync(Vector3 pos, Vector3 rot)
-		{
-			if (NetCore.Instance.IsHost) return;
-
-			_curPos = pos;
-			_curRot = rot;
-			_targetPos = pos;  
-			_targetRot = rot;
-		}
-	}
+        _curPos = pos;
+        _curRot = rot;
+        _targetPos = pos;
+        _targetRot = rot;
+    }
 }
