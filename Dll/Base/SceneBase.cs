@@ -1,9 +1,13 @@
 using Godot;
 using System;
+using System.Collections.Generic;
+using System.Xml.Linq;
 using 途畔归所.Dll.Core;
 using 途畔归所.Dll.Data;
 using 途畔归所.Dll.Manager;
+using 途畔归所.Dll.NetWork;
 using 途畔归所.Dll.Utils;
+using static System.Collections.Specialized.BitVector32;
 
 namespace 途畔归所.Dll.Base;
 
@@ -20,51 +24,145 @@ public partial class SceneBase : Node3D
 
     [Export] public E_SceneType SceneType { get; set; }
 
+    private bool IsGameScene => SceneType == E_SceneType.GameScene;
+    private bool IsViewScene => SceneType == E_SceneType.ViewScene; 
     public bool IsReady { get; private set; } = false;  // 场景是否已完成初始化/加载
-
     public long OwnerPeerID { get;  set; }
     public bool HasOwner => OwnerPeerID != 0;
 
-    public event Action OnSaveState;                            // 触发时，订阅者应将自身状态保存到 NetObj.m_customData
+    public Dictionary<string, Action<long, Variant>> RpcDict { get; set; } = [];
+
+    public event Action OnSaveState;  // 触发时，订阅者应将自身状态保存到 NetObj.m_customData                          
 
     public override void _EnterTree()
     {
-        SetupCurrentScene();
+        WorldManager.Instance.SetCurrentSceneType(this);
 
-        // 2. 如果是客户端，检查场景拥有者
-        if (NetCore.Instance.IsClient && SceneType == E_SceneType.GameScene)
+        if (IsViewScene)
         {
-            if (OwnerPeerID == 0)
-            {
-                // 场景无主 → 向主机请求分配拥有者，或等待主机进入
-                CatLog.Net($"[SceneBase] 场景 {SceneData.SceneHash} 无拥有者，向主机请求...");
-                // 发送 RPC 给主机：RequestSceneOwnership
-                // 或者直接请求场景数据（如果主机在该场景）
-                NetObjectRegistry.Instance.RequestSceneData(SceneData.SceneHash);
-            }
-            else
-            {
-                // 场景已有拥有者 → 向拥有者请求数据同步
-                CatLog.Net($"[SceneBase] 场景拥有者为 {OwnerPeerID}，请求数据同步...");
-                // 直接向 OwnerPeerID 发送 RPC 请求场景数据
-                // 或通过主机中转
-            }
-
             IsReady = true;
             return;
         }
 
+        var peers = Multiplayer.GetPeers();
 
-        SetupCurrentScene();
-        RestoreNetObjects();
+        // 注册场景级 RPC
+        RpcDict["Rpc_RequestOwner"] = RpcGateway.Instance.MakeRpcHandler<int>(Rpc_RequestOwner);
+        RpcDict["Rpc_ReplyOwner"] = RpcGateway.Instance.MakeRpcHandler(Rpc_ReplyOwner);
+        RpcDict["Rpc_TakeOwnership"] = RpcGateway.Instance.MakeRpcHandler(Rpc_TakeOwnership);
+
+        RpcGateway.Instance.SendSceneRpcBroadcast("Rpc_RequestOwner", SceneData.SceneHash);
 
 
-        if (NetCore.Instance.IsHost && SceneType == E_SceneType.GameScene)
+        if (NetCore.Instance.IsHost)
         {
-            OwnerPeerID = NetCore.Instance.LocalPeerID;
-            CatLog.Ok($"[SceneBase] 主机成为场景 {SceneData.SceneHash} 的拥有者");
+            OwnerPeerID = NetCore.Instance.LocalPeerID; // 这里不等待 回复，直接先将自己赋值进去，不影响后续流程
+            RestoreNetObjects();
+            IsReady = true;        // 如果是服务端，那么直接开始自己恢复
+
+            return;
+        }
+
+        if (NetCore.Instance.IsClient)
+        { 
+        
+        
+
+
         }
     }
+
+
+
+    public override void _Ready()
+    {
+        
+
+
+
+
+
+
+    }
+
+
+    /// <summary>注：广播询问场景拥有者</summary>
+    private void Rpc_RequestOwner(long senderId, int sceneHash)
+    {
+        if (WorldManager.Instance.CurrentSceneHash != sceneHash) return;
+        if (OwnerPeerID != NetCore.Instance.LocalPeerID) return;
+
+        RpcGateway.Instance.SendSceneRpcToPeer("Rpc_ReplyOwner", sceneHash, senderId);
+    }
+
+    /// <summary>注：接收拥有者回复</summary>
+    private void Rpc_ReplyOwner(long senderId)
+    {
+        if (NetCore.Instance.IsClient)
+        {
+            OwnerPeerID = senderId;
+            return;
+        }
+
+        OwnerPeerID = NetCore.Instance.LocalPeerID;
+        RpcGateway.Instance.SendSceneRpcBroadcast("Rpc_TakeOwnership", SceneData.SceneHash);
+    }
+
+    /// <summary>注：服务器通知客户端取回所有权</summary>
+    private void Rpc_TakeOwnership(long senderId)
+    {
+        if (NetCore.Instance.IsHost) return;
+        OwnerPeerID = senderId;
+    }
+
+
+
+
+
+
+
+
+    //////////////下方代码不动
+
+    /// <summary>注：触发所有订阅者保存状态，并将场景标记为"非新场景"。</summary>
+    public void SaveAllStates()
+    {
+        if (SceneType == E_SceneType.ViewScene) return;
+
+        OnSaveState?.Invoke();
+
+        var netObjects = NetObjectRegistry.Instance.GetNetObjectsForScene(SceneData.SceneHash);
+        SceneData.NetObjectList.Clear();
+
+        foreach (var obj in netObjects) SceneData.NetObjectList.Add(obj);
+
+        SceneData.IsNewScene = false;
+    }
+
+
+    /// <summary>注：从场景存档中恢复网络对象，跳过玩家对象（由 PlayerManager 独立管理）。</summary>
+    private void RestoreNetObjects()
+    {
+        if (WorldManager.Instance.LoadSceneData(this) is not SceneData sceneData) return;
+
+        SceneData = sceneData.DeepCopy();
+
+        if (SceneData.NetObjectList.Count == 0) return;
+
+        foreach (var netObject in SceneData.NetObjectList)
+        {
+            if (netObject.PrefabHash == PlayerManager.Instance.PlayerHash) continue;
+            NetObjectManager.Instance.SpawnObject(netObject, netObject.Position, netObject.Rotation);
+        }
+
+        IsReady = true;
+    }
+
+    public void DispatchRpc(string name, Variant variant)
+    { 
+    
+    }
+
 
     /// <summary>注：调试打印场景数据详情（仅 debug 构建）</summary>
     private void DebugPrintSceneData()
@@ -97,55 +195,5 @@ public partial class SceneBase : Node3D
             }
         }
         CatLog.Debug($"[SceneBase] └─────────────────");
-    }
-
-    //////////////下方代码不动
-
-    /// <summary>注：触发所有订阅者保存状态，并将场景标记为"非新场景"。</summary>
-    public void SaveAllStates()
-    {
-        if (SceneType == E_SceneType.ViewScene) return;
-
-        OnSaveState?.Invoke();
-
-        var netObjects = NetObjectRegistry.Instance.GetNetObjectsForScene(SceneData.SceneHash);
-        SceneData.NetObjectList.Clear();
-
-        foreach (var obj in netObjects) SceneData.NetObjectList.Add(obj);
-
-        SceneData.IsNewScene = false;
-    }
-
-    /// <summary>注：初始化当前场景，向 WorldManager 汇报场景引用，并加载场景数据。</summary>
-    private void SetupCurrentScene()
-    {
-        WorldManager.Instance.SetCurrentSceneType(this);
-
-        if (SceneType == E_SceneType.ViewScene) return;
-
-        if (NetCore.Instance.IsClient) return;
-
-        if (WorldManager.Instance.LoadSceneData(this) is not SceneData sceneData) return;
-
-        SceneData = sceneData.DeepCopy();
-    }
-
-    /// <summary>注：从场景存档中恢复网络对象，跳过玩家对象（由 PlayerManager 独立管理）。</summary>
-    private void RestoreNetObjects()
-    {
-        if (SceneData.NetObjectList.Count == 0) return;
-
-        foreach (var netObject in SceneData.NetObjectList)
-        {
-            if (netObject.PrefabHash == PlayerManager.Instance.PlayerHash) continue;
-            NetObjectManager.Instance.SpawnObject(netObject, netObject.Position, netObject.Rotation);
-        }
-
-        IsReady = true;
-    }
-
-    public void DispatchRpc(string name, Variant variant)
-    { 
-    
     }
 }

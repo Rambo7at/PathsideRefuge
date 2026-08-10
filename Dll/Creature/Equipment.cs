@@ -132,11 +132,11 @@ public partial class Equipment : Node, IEquipmentHolder
 		{
 			if (NetCore.Instance.IsHost)
 			{
-				NetSyncBase?.CallAllRpc("RPC_SyncEquip", (int)equip, data?.ID ?? "");
+				NetSyncBase?.SendRpcBroadcast("RPC_SyncEquip", (int)equip, data?.ID ?? "");
 			}
 			else if (NetCore.Instance.IsClient)
 			{
-				NetSyncBase?.CallRpc("RPC_RequestChangeEquip", (int)equip, data?.ID ?? "");
+				NetSyncBase?.SendRpcToHost("RPC_RequestChangeEquip", (int)equip, data?.ID ?? "");
 			}
 		}
 		return true;
@@ -150,7 +150,7 @@ public partial class Equipment : Node, IEquipmentHolder
 		var data = string.IsNullOrEmpty(itemId) ? null : ItemManager.Instance.GetItemData(itemId);
 
 		TrySetEquipData((E_EquipAVL)equipSlot, data, false);
-		NetSyncBase?.CallAllRpc("RPC_SyncEquip", equipSlot, itemId);
+		NetSyncBase?.SendRpcBroadcast("RPC_SyncEquip", equipSlot, itemId);
 	}
 
 	/// <summary>注：主机广播装备状态给所有客户端</summary>

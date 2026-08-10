@@ -17,7 +17,9 @@ public class WorldManager
 
 	private Dictionary<int, WorldData> WorldDataDict { get; set; } = [];
 
-	public int SelWorldIdx { get; set; }
+    private Dictionary<int, long> _sceneOwners = [];
+
+    public int SelWorldIdx { get; set; }
 
 	private SceneBase _currentScene;                              // 当前加载的场景
 

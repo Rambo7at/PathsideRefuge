@@ -148,12 +148,12 @@ public partial class StateMachine : Node
 		if (NetCore.Instance.IsHost)
 		{
 			CurrentAnimState = newState;
-			m_NetSyncBase.CallAllRpc("RPC_SyncAnimState", (int)newState);
+			m_NetSyncBase.SendRpcBroadcast("RPC_SyncAnimState", (int)newState);
 		}
 		else
 		{
 			CurrentAnimState = newState;
-			m_NetSyncBase.CallRpc("RPC_RequestAnimState", (int)newState);
+			m_NetSyncBase.SendRpcToHost("RPC_RequestAnimState", (int)newState);
 		}
 	}
 
@@ -193,13 +193,13 @@ public partial class StateMachine : Node
 		if (NetCore.Instance.IsHost)
 		{
 			AttackAnimIndex = index;
-			m_NetSyncBase.CallAllRpc("RPC_SyncAttackAnimIndex", index);
+			m_NetSyncBase.SendRpcBroadcast("RPC_SyncAttackAnimIndex", index);
 		}
 		else
 		{
 			AttackAnimIndex = index;
-			m_NetSyncBase.CallRpc("RPC_RequestAttackAnimIndex", index, 1);
-		}
+            m_NetSyncBase.SendRpcToHost("RPC_RequestAttackAnimIndex", index);
+        }
 	}
 
 	/// <summary>注：切换持械姿态（根据装备类型驱动 Stance 混合）</summary>
@@ -291,12 +291,12 @@ public partial class StateMachine : Node
 		if (NetCore.Instance.IsHost)
 		{
 			IsCombo = true;
-			m_NetSyncBase.CallAllRpc("RPC_SyncCombo");
+			m_NetSyncBase.SendRpcBroadcast("RPC_SyncCombo");
 		}
 		else
 		{
 			IsCombo = true;
-			m_NetSyncBase.CallRpc("RPC_RequestCombo");
+			m_NetSyncBase.SendRpcToHost("RPC_RequestCombo");
 		}
 	}
 
@@ -305,12 +305,12 @@ public partial class StateMachine : Node
 		if (NetCore.Instance.IsHost)
 		{
 			FireOneShotLocal();
-			m_NetSyncBase.CallAllRpc("RPC_SyncOneShot");
+			m_NetSyncBase.SendRpcBroadcast("RPC_SyncOneShot");
 		}
 		else
 		{
 			FireOneShotLocal();
-			m_NetSyncBase.CallRpc("RPC_RequestOneShot", 1);
+			m_NetSyncBase.SendRpcToHost("RPC_RequestOneShot", 1);
 		}
 	}
 
@@ -346,16 +346,16 @@ public partial class StateMachine : Node
 	{
 		if (NetCore.Instance.IsClient) return;
 		FireOneShotLocal();
-		m_NetSyncBase.CallAllRpc("SyncOneShot");
-	}
+        m_NetSyncBase.SendRpcBroadcast("RPC_SyncOneShot");
+    }
 
-	private void RPC_SyncAnimState(int state)
+	private void RPC_SyncAnimState(long senderId,  int state)
 	{
 		if (NetCore.Instance.IsHost) return;
 		CurrentAnimState = (AnimState)state;
 	}
 
-	private void RPC_RequestAnimState(int state)
+	private void RPC_RequestAnimState(long senderId, int state)
 	{
 		if (NetCore.Instance.IsClient) return;
 
@@ -363,24 +363,24 @@ public partial class StateMachine : Node
 
 		if (CurrentAnimState == newState) return;
 		CurrentAnimState = newState;
-		m_NetSyncBase.CallAllRpc("RPC_RequestAnimState", state);
+		m_NetSyncBase.SendRpcBroadcast("RPC_RequestAnimState", state);
 	}
 
 	/// <summary>注：客户端接收主机同步的攻击动画索引</summary>
-	private void RPC_SyncAttackAnimIndex(int index)
+	private void RPC_SyncAttackAnimIndex(long senderId, int index)
 	{
 		if (NetCore.Instance.IsHost) return;
 		AttackAnimIndex = index;
 	}
 
 	/// <summary>注：主机接收客户端发来的攻击索引变更请求</summary>
-	private void RPC_RequestAttackAnimIndex(int index)
+	private void RPC_RequestAttackAnimIndex(long senderId, int index)
 	{
 		if (NetCore.Instance.IsClient) return;
 		if (AttackAnimIndex == index) return;
 
 		AttackAnimIndex = index;
-		m_NetSyncBase.CallAllRpc("RPC_SyncAttackAnimIndex", index);
+		m_NetSyncBase.SendRpcBroadcast("RPC_SyncAttackAnimIndex", index);
 	}
 
 	/// <summary>注：客户端接收主机同步的连段标记</summary>
@@ -397,7 +397,7 @@ public partial class StateMachine : Node
 		if (IsCombo) return;
 
 		IsCombo = true;
-		m_NetSyncBase.CallAllRpc("RPC_SyncCombo");
+		m_NetSyncBase.SendRpcBroadcast("RPC_SyncCombo");
 	}
 	#endregion
 
