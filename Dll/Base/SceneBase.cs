@@ -1,6 +1,8 @@
 using Godot;
+using Godot.Collections;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using 途畔归所.Dll.Core;
 using 途畔归所.Dll.Data;
@@ -25,13 +27,15 @@ public partial class SceneBase : Node3D
     private bool IsGameScene => SceneType == E_SceneType.GameScene;
     private bool IsViewScene => SceneType == E_SceneType.ViewScene;
     public bool IsReady { get; private set; } = false;         // 场景是否已完成初始化/加载
-    public long OwnerPeerID { get; private set; }
+    public long OwnerPeerID { get;  set; }
 
-    public Dictionary<string, Action<long, Variant>> RpcDict { get; set; } = [];
+    public long SyncDataTargetPeer { get; set; }
+
+    public System.Collections.Generic.Dictionary<string, Action<long, Variant>> RpcDict { get; set; } = [];
 
     public event Action OnSaveState;  // 触发时，订阅者应将自身状态保存到 NetObj.m_customData                          
 
-    public override void _EnterTree()
+    public override async void _EnterTree()
     {
         WorldManager.Instance.SetCurrentSceneType(this);
 
@@ -41,26 +45,79 @@ public partial class SceneBase : Node3D
             return;
         }
 
-        if (NetCore.Instance.IsHost)
+        RpcDict[nameof(Rpc_GetSceneObject)] = RpcGateway.Instance.MakeRpcHandler(Rpc_GetSceneObject);
+        RpcDict[nameof(Rpc_SendSceneObject)] = RpcGateway.Instance.MakeRpcHandler<byte[]>(Rpc_SendSceneObject);
+
+        SetupSceneAsHost();
+        SetupSceneAsClient();
+    }
+
+
+    public override void _ExitTree()
+    {
+        if (OwnerPeerID != NetCore.Instance.LocalPeerID) return;
+
+        // 拥有者离开场景，转移所有权
+        SceneOwnerManager.Instance.TransferOwnership(SceneData.SceneHash, NetCore.Instance.LocalPeerID);
+        CatLog.Ok($"[SceneBase] 场景拥有者 {OwnerPeerID} 离开场景 {SceneData.SceneHash}，已触发所有权转移");
+    }
+
+
+
+
+    public void Rpc_GetSceneObject(long sendPeer)
+    {
+        SaveAllStates();
+        RpcGateway.Instance.SendSceneRpcToPeer(nameof(Rpc_SendSceneObject), SceneData.SceneHash, sendPeer, true, SceneData.Serialize());
+    }
+
+    public void Rpc_SendSceneObject(long sendPeer, byte[] sceneData)
+    {
+        try
         {
-            OwnerPeerID = NetCore.Instance.LocalPeerID;       // 先占位
-            RestoreNetObjects();                                // 恢复存档数据
-            IsReady = true;
-            return;
+            SceneData data = new();
+            data.Deserialize(sceneData);
+            NetObjectRegistry.Instance.RegisterObjectLocal(data.NetObjectList);
+        }
+        catch (Exception ex)
+        {
+            CatLog.Err($"[Rpc_SendSceneObject] 反序列化异常：{ex.Message}");
         }
 
 
+        IsReady = true;
     }
 
-
-    /// <summary>注：广播询问场景拥有者（拥有者收到后回复）</summary>
-    private void Rpc_RequestOwner(long senderId, int sceneHash)
+    private async void SetupSceneAsHost()
     {
-        if (WorldManager.Instance.CurrentSceneHash != sceneHash) return;
-        if (OwnerPeerID != NetCore.Instance.LocalPeerID) return;
+        if (NetCore.Instance.IsClient) return;
+        long host = await SceneOwnerManager.Instance.TryAcquireOwnership(SceneData.SceneHash, NetCore.Instance.LocalPeerID);
+        OwnerPeerID = host;
 
-        RpcGateway.Instance.SendSceneRpcToPeer("Rpc_ReplyOwner", sceneHash, senderId);
+        RestoreNetObjects();
+        if (SyncDataTargetPeer != default)
+        {
+            RpcGateway.Instance.SendSceneRpcToPeer(nameof(Rpc_GetSceneObject), SceneData.SceneHash, SyncDataTargetPeer);
+            SyncDataTargetPeer = default;
+        }
+
+        IsReady = true;
     }
+
+    private async void SetupSceneAsClient()
+    {
+        if (NetCore.Instance.IsHost) return;
+        long owner = await SceneOwnerManager.Instance.TryAcquireOwnership(SceneData.SceneHash, NetCore.Instance.LocalPeerID);
+        RpcGateway.Instance.SendSceneRpcToPeer(nameof(Rpc_GetSceneObject), SceneData.SceneHash, owner);
+        OwnerPeerID = owner;
+        while (!IsReady)
+        {
+            await ToSignal(GetTree(), "process_frame");
+        }
+    }
+
+
+
 
 
 
@@ -87,6 +144,7 @@ public partial class SceneBase : Node3D
         OnSaveState?.Invoke();
 
         var netObjects = NetObjectRegistry.Instance.GetNetObjectsForScene(SceneData.SceneHash);
+
         SceneData.NetObjectList.Clear();
 
         foreach (var obj in netObjects) SceneData.NetObjectList.Add(obj);

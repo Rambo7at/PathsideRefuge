@@ -130,6 +130,8 @@ public class PlayerManager
 		NetObjectManager.Instance.SpawnObject(LocalPlayer,Pos, rot);
 	}
 
+
+
 	public void SaveLocalPlayerData()
 	{
 		if (LocalPlayer == null) return;

@@ -9,10 +9,16 @@ public partial class MainWorld : SceneBase
 {
 	[Export] public Node3D SpawnPian;
 
-	public override void _Ready()
-	{
+    public override async void _Ready()
+    {
 		base._Ready();
-		Vector3 spawnPos;
+
+        while (!IsReady)
+        {
+            await ToSignal(GetTree(), "process_frame");
+        }
+
+        Vector3 spawnPos;
 		Vector3 spawnrot;
 
 		if (PlayerManager.Instance.CanUseSavedPosition())

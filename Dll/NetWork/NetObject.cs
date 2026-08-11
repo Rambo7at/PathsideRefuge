@@ -1,6 +1,8 @@
 using Godot;
 using System.Text.Json;
+using 途畔归所.Dll.Base;
 using 途畔归所.Dll.Interface;
+using 途畔归所.Dll.Utils;
 
 namespace 途畔归所.Dll.NetWork;
 
@@ -24,10 +26,10 @@ public partial class NetObject : Resource, ISerializable
 		Rotation = rotation;
 	}
 
-	private struct NetObjectDto    // 优化标记，之后可能会发现 netId 内的数据不需要进行到反序列化，本身都是需要重建的
+	public struct NetObjectDto
 	{
-		public long UserID { get; set; }
-		public uint ID { get; set; }
+		public long OwnerPeerID { get; set; }
+		public uint LocalSeqId { get; set; }
 		public int SceneHash { get; set; }
 		public int PrefabHash { get; set; }
 		public float PosX { get; set; }
@@ -36,15 +38,21 @@ public partial class NetObject : Resource, ISerializable
 		public float RotX { get; set; }
 		public float RotY { get; set; }
 		public float RotZ { get; set; }
-		public string CustomData { get; set; }
+		public byte[] CustomData { get; set; }
 	}
 
 	public byte[] Serialize()
 	{
+		byte[] customDataBytes = null;
+		if (m_customData.VariantType != Variant.Type.Nil)
+		{
+			customDataBytes = GD.VarToBytes(m_customData);
+		}
+
 		var dto = new NetObjectDto
 		{
-			UserID = netId.OwnerPeerID,
-			ID = netId.LocalSeqId,
+			OwnerPeerID = netId.OwnerPeerID,
+			LocalSeqId = netId.LocalSeqId,
 			SceneHash = netId.SceneHash,
 			PrefabHash = PrefabHash,
 			PosX = Position.X,
@@ -53,7 +61,7 @@ public partial class NetObject : Resource, ISerializable
 			RotX = Rotation.X,
 			RotY = Rotation.Y,
 			RotZ = Rotation.Z,
-			CustomData = Json.Stringify(m_customData)
+			CustomData = customDataBytes  // 可能为 null
 		};
 
 		return JsonSerializer.SerializeToUtf8Bytes(dto);
@@ -62,10 +70,21 @@ public partial class NetObject : Resource, ISerializable
 	public void Deserialize(byte[] data)
 	{
 		var dto = JsonSerializer.Deserialize<NetObjectDto>(data);
-		netId = new NetID(dto.UserID, dto.ID, dto.SceneHash);
+		netId = new NetID(dto.OwnerPeerID, dto.LocalSeqId, dto.SceneHash);
+
 		PrefabHash = dto.PrefabHash;
 		Position = new Vector3(dto.PosX, dto.PosY, dto.PosZ);
 		Rotation = new Vector3(dto.RotX, dto.RotY, dto.RotZ);
-		m_customData = Json.ParseString(dto.CustomData);
+
+		if (dto.CustomData != null && dto.CustomData.Length >= 4)
+		{
+			m_customData = GD.BytesToVar(dto.CustomData);
+		}
+		else
+		{
+			m_customData = default;  // Variant 的空值
+		}
 	}
+
+
 }

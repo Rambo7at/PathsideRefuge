@@ -1,11 +1,11 @@
 using Godot;
-using Godot.Collections;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using 途畔归所.Dll.Base;
 using 途畔归所.Dll.Core;
+using 途畔归所.Dll.Manager;
 using 途畔归所.Dll.Utils;
 using static Godot.MultiplayerPeer;
-
-namespace 途畔归所.Dll.Manager;
 
 /// <summary>注：场景拥有者管理器，全局单例，负责管理各场景所有权归属</summary>
 public partial class SceneOwnerManager : Node
@@ -13,8 +13,8 @@ public partial class SceneOwnerManager : Node
     private static SceneOwnerManager _instance;
     public static SceneOwnerManager Instance => _instance ??= new();
 
-    private Dictionary<int, long> _sceneOwners = []; // 场景拥有者字典：SceneHash → OwnerPeerID
-    private bool _isSynced = false;                  // 客户端是否已完成首次全量同步
+    private Dictionary<int, long> _sceneOwners = [];                              // 场景拥有者字典：SceneHash → OwnerPeerID
+    private Dictionary<int, TaskCompletionSource<long>> _pendingRequests = [];    // 待处理的请求队列（.NET Dictionary）
 
     public override void _Ready()
     {
@@ -23,94 +23,150 @@ public partial class SceneOwnerManager : Node
     }
 
 
-    /// <summary>注：尝试获取场景拥有者，若无主则由请求者自动占用</summary>
-    public void TryAcquireOwnership(int sceneHash, long requestingPeer)
+    /// <summary>注：获取或创建场景拥有者（若主机则直接分配，若客户端则异步请求）</summary>
+    public async Task<long> TryAcquireOwnership(int sceneHash, long requestingPeer)
     {
         if (NetCore.Instance.IsHost)
         {
+            if (_sceneOwners.TryGetValue(sceneHash, out long peer))
+            {
+                WorldManager.Instance.CurrentScene.SyncDataTargetPeer = peer;
+            }
+
             _sceneOwners[sceneHash] = requestingPeer;
-            CatLog.Ok($"[SceneOwnerManager] 主机直接接管{sceneHash}");
+
+            Rpc(nameof(Rpc_TakeOwnershipNotification), sceneHash, requestingPeer);
+            return requestingPeer;
+        }
+
+        // 客户端：发起请求
+        var tcs = new TaskCompletionSource<long>();
+        _pendingRequests[sceneHash] = tcs;
+
+        RpcId(NetCore.ServerID, nameof(Rpc_RequestOwners), sceneHash);
+
+        // 等待主机回复
+        long owner = await tcs.Task;
+        _pendingRequests.Remove(sceneHash);
+
+        return owner;
+    }
+
+
+    /// <summary>注：转移场景拥有权（拥有者离开时调用）</summary>
+    public void TransferOwnership(int sceneHash, long requestingPeer)
+    {
+        if (NetCore.Instance.IsHost)
+        {
+            _sceneOwners.Remove(sceneHash);
+            Rpc(nameof(Rpc_RequestOccupants), sceneHash);
             return;
         }
 
-
-
-
-
-
-
-
+        RpcId(NetCore.ServerID, nameof(Rpc_NotifyLeave), sceneHash);
     }
+
 
     /// <summary>注：清空所有场景拥有权（用于主机启动新游戏会话时重置）</summary>
     public void ClearAll()
     {
         _sceneOwners.Clear();
-        _isSynced = false;
         CatLog.Debug("[SceneOwnerManager] 所有场景拥有权已清空");
     }
 
 
+    // ─── RPC 通信 ──────────────────────────────────────────────────────
 
-    /// <summary>注：客户端请求全量场景拥有者数据，异步等待回复</summary>
-    public async Task WaitForAllOwnersAsync()
-    {
-        if (NetCore.Instance.IsHost) return;
-        if (_isSynced) return;
-
-        _isSynced = false;
-        RpcId(NetCore.ServerID, nameof(Rpc_RequestAllOwners));
-
-        // 等待主机回复（每帧检查，直到 _isSynced 为 true）
-        while (!_isSynced)
-        {
-            await ToSignal(GetTree(), "process_frame");
-        }
-
-        CatLog.Ok($"[SceneOwnerManager] 场景拥有者数据同步完成，共 {_sceneOwners.Count} 个场景");
-    }
-
-    /// <summary>注：客户端请求全量场景拥有者数据（仅主机响应）</summary>
+    /// <summary>注：客户端请求场景拥有者（仅主机响应）</summary>
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, TransferMode = TransferModeEnum.Reliable)]
-    public void Rpc_RequestAllOwners()
+    public void Rpc_RequestOwners(int sceneHash)
     {
         if (NetCore.Instance.IsClient) return;
 
         long sendpeer = Multiplayer.GetRemoteSenderId();
-        var data = new Dictionary<int, long>();
 
-        foreach (var kvp in _sceneOwners)
+        if (_sceneOwners.TryGetValue(sceneHash, out long peer))
         {
-            data[kvp.Key] = kvp.Value;
+            RpcId(sendpeer, nameof(Rpc_ReceiveAllOwners), sceneHash, peer);
+            return;
         }
 
-        RpcId(sendpeer, nameof(Rpc_ReceiveAllOwners), data);
-        CatLog.Ok($"[SceneOwnerManager] 主机向 {sendpeer} 发送场景拥有者数据，共 {data.Count} 个场景");
+        RpcId(sendpeer, nameof(Rpc_ReceiveAllOwners), sceneHash, sendpeer);
     }
 
-    /// <summary>注：主机发送全量场景拥有者数据给客户端（仅客户端接收）</summary>
+    /// <summary>注：主机回复拥有者（仅客户端接收）</summary>
     [Rpc(MultiplayerApi.RpcMode.Authority, TransferMode = TransferModeEnum.Reliable, CallLocal = false)]
-    public void Rpc_ReceiveAllOwners(Dictionary<int, long> data)
+    public void Rpc_ReceiveAllOwners(int sceneHash, long ownerPeer)
     {
         if (NetCore.Instance.IsHost) return;
 
-        _sceneOwners.Clear();
-
-        foreach (var kvp in data)
+        if (_pendingRequests.TryGetValue(sceneHash, out var tcs))
         {
-            _sceneOwners[kvp.Key] = kvp.Value;
+            tcs.SetResult(ownerPeer);
+        }
+    }
+
+
+    // ─── 所有权转移 RPC ──────────────────────────────────────────────
+
+    // ─── 所有权转移 RPC ──────────────────────────────────────────────
+
+    /// <summary>注：客户端通知主机自己离开场景（由拥有者调用）</summary>
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, TransferMode = TransferModeEnum.Reliable)]
+    public void Rpc_NotifyLeave(int sceneHash)
+    {
+        if (NetCore.Instance.IsClient) return;
+
+        CatLog.Ok($"[SceneOwnerManager] 主机收到场景 {sceneHash} 的离开通知，当前拥有者 {_sceneOwners.GetValueOrDefault(sceneHash, 0)}");
+        _sceneOwners.Remove(sceneHash);
+        CatLog.Ok($"[SceneOwnerManager] 已移除场景 {sceneHash} 的拥有权，广播询问占据者");
+        Rpc(nameof(Rpc_RequestOccupants), sceneHash);
+    }
+
+    /// <summary>注：询问场景是否还有人（由主机广播）</summary>
+    [Rpc(MultiplayerApi.RpcMode.Authority, TransferMode = TransferModeEnum.Reliable, CallLocal = false)]
+    public void Rpc_RequestOccupants(int sceneHash)
+    {
+        if (NetCore.Instance.IsHost) return;
+        if (sceneHash != WorldManager.Instance.CurrentSceneHash) return;
+
+        CatLog.Net($"[SceneOwnerManager] 客户端 {NetCore.Instance.LocalPeerID} 收到场景 {sceneHash} 的占据者询问，回复主机");
+        RpcId(NetCore.ServerID, nameof(Rpc_ReplyOccupant), sceneHash);
+    }
+
+    /// <summary>注：回复主机自己仍在场景中（客户端回复）</summary>
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, TransferMode = TransferModeEnum.Reliable)]
+    public void Rpc_ReplyOccupant(int sceneHash)
+    {
+        if (NetCore.Instance.IsClient) return;
+        long sendpeer = Multiplayer.GetRemoteSenderId();
+
+        // 已有拥有者则忽略（RPC 有序，第一个到达的生效）
+        if (_sceneOwners.TryGetValue(sceneHash, out long currentOwner))
+        {
+            CatLog.Debug($"[SceneOwnerManager] 场景 {sceneHash} 已有拥有者 {currentOwner}，忽略客户端 {sendpeer} 的回复");
+            return;
         }
 
-        _isSynced = true;
-        CatLog.Ok($"[SceneOwnerManager] 客户端接收场景拥有者数据，共 {_sceneOwners.Count} 个场景");
+        _sceneOwners[sceneHash] = sendpeer;
+        Rpc(nameof(Rpc_TakeOwnershipNotification), sceneHash, sendpeer);
+        CatLog.Ok($"[SceneOwnerManager] 客户端 {sendpeer} 成为场景 {sceneHash} 的新拥有者");
     }
 
-    /// <summary>注：主机宣告接管所有权（广播通知所有客户端）</summary>
-    [Rpc(MultiplayerApi.RpcMode.AnyPeer, TransferMode = TransferModeEnum.Reliable)]
-    public void Rpc_TakeOwnership(int sceneHash, long newOwner)
+
+    [Rpc(MultiplayerApi.RpcMode.Authority, TransferMode = TransferModeEnum.Reliable, CallLocal = false)]
+    public void Rpc_TakeOwnershipNotification(int sceneHash, long newOwner)
     {
         if (NetCore.Instance.IsHost) return;
-        _sceneOwners[sceneHash] = newOwner;
-        CatLog.Debug($"[SceneOwnerManager] 客户端接收场景 {sceneHash} 拥有者变更为 {newOwner}");
+        if (sceneHash != WorldManager.Instance.CurrentSceneHash) return;
+
+        if (WorldManager.Instance.CurrentScene is SceneBase scene)
+        {
+            if (scene.OwnerPeerID == newOwner) return;
+
+            scene.OwnerPeerID = newOwner;
+            CatLog.Ok($"[SceneOwnerManager] 客户端 {NetCore.Instance.LocalPeerID} 收到场景 {sceneHash} 的接管通知，新拥有者 {newOwner}");
+        }
     }
+
 }

@@ -119,16 +119,6 @@ public partial class NetObjectManager : Node
     /// <summary>注：处理网络对象生成，实例化节点并添加到当前场景</summary>
     private void HandleSpawned(NetID netId, Node node = null)
     {
-        // 1. 客户端场景未就绪时，忽略所有生成请求
-        if (NetCore.Instance.IsClient)
-        {
-            var scene = WorldManager.Instance.GetCurrentScene();
-            if (scene == null || !scene.IsReady)
-            {
-                CatLog.Net($"[NetObjectManager] 客户端场景未就绪，忽略生成 NetID：{netId}");
-                return;
-            }
-        }
 
         // 2. 检查是否已存在
         if (_netObjectInstances.ContainsKey(netId))

@@ -38,7 +38,7 @@ public partial class SceneData : Resource, ISerializable
 
         var dto = new SceneDataDto
         {
-            SceneName = SceneName ?? string.Empty,
+            SceneName = SceneName,
             SceneHash = SceneHash,
             IsNewScene = IsNewScene,
             NetObjects = serializedObjects
@@ -58,10 +58,10 @@ public partial class SceneData : Resource, ISerializable
         NetObjectList.Clear();
         foreach (var objData in dto.NetObjects)
         {
-            if (objData == null) continue;
-            var netObj = new NetObject();
-            netObj.Deserialize(objData);
-            NetObjectList.Add(netObj);
+            var obj = new NetObject();
+            obj.Deserialize(objData);
+
+            NetObjectList.Add((obj));
         }
     }
 

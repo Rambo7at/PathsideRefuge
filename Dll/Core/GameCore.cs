@@ -31,19 +31,9 @@ public partial class GameCore : Node
     }
 
     /// <summary>注：从主菜单进入游戏，加载玩家最后所在场景或默认场景</summary>
-    public async System.Threading.Tasks.Task EnterGame()
+    public void EnterGame()
     {
         if (PlayerManager.Instance.LocalPlayerData == null) return;
-
-
-        if (NetCore.Instance.IsClient)
-        {
-            CatLog.Ok("[GameCore] 客户端请求同步场景拥有者数据.......");
-            await SceneOwnerManager.Instance.WaitForAllOwnersAsync();
-            CatLog.Ok("[GameCore] 场景拥有者数据同步完成");
-        }
-
-
 
         if (!WorldManager.Instance.ChangeScene(PlayerManager.Instance.LocalPlayerData.LastSceneHash))
         {

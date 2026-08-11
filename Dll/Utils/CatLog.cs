@@ -24,6 +24,8 @@ public static class CatLog
         if (NetCore.Instance != null && NetCore.Instance.IsMultiplayer)
         {
             peerid = $"[{NetCore.Instance.LocalPeerID}]";
+
+            if (peerid == "1") peerid = string.Empty;
         }
         GD.Print($"{peerid}{msg}");
     }
@@ -35,6 +37,7 @@ public static class CatLog
         if (NetCore.Instance != null && NetCore.Instance.IsMultiplayer)
         {
             peerid = $"[{NetCore.Instance.LocalPeerID}]";
+            if (peerid == "1") peerid = string.Empty;
         }
         GD.PrintRich($"[color=green]{peerid}{msg}[/color]");
     }
@@ -42,7 +45,14 @@ public static class CatLog
     public static void Warn(string msg)
     {
         if (!onWarn) return;
-        GD.PrintRich($"[color=yellow]{msg}[/color]");
+        string peerid = string.Empty;
+        if (NetCore.Instance != null && NetCore.Instance.IsMultiplayer)
+        {
+            peerid = $"[{NetCore.Instance.LocalPeerID}]";
+            if (peerid == "1") peerid = string.Empty;
+        }
+
+        GD.PrintRich($"[color=yellow]{peerid}{msg}[/color]");
     }
 
     public static void Err(string msg)
@@ -52,6 +62,7 @@ public static class CatLog
         if (NetCore.Instance != null && NetCore.Instance.IsMultiplayer)
         {
             peerid = $"[{NetCore.Instance.LocalPeerID}]";
+            if (peerid == "1") peerid = string.Empty;
         }
         GD.PrintErr($"{peerid}{msg}");
     }

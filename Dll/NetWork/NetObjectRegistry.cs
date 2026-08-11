@@ -14,7 +14,7 @@ public partial class NetObjectRegistry : Node
     private static NetObjectRegistry _instance;
     public static NetObjectRegistry Instance { get => _instance ??= new(); set => _instance ??= value; }
 
-    private readonly System.Collections.Generic.Dictionary<NetID, NetObject> _netObjects = new();
+    private readonly System.Collections.Generic.Dictionary<NetID, NetObject> _netObjects = [];
 
     private uint _nextObjID = 1;
 
@@ -71,6 +71,16 @@ public partial class NetObjectRegistry : Node
         {
             Rpc(nameof(Rpc_ReportToServer), id.OwnerPeerID, id.LocalSeqId, id.SceneHash, netobj.PrefabHash, pos, rot);
             return id;
+        }
+    }
+
+    public void RegisterObjectLocal(Array<NetObject> netObjects)
+    {
+        foreach (var item in netObjects)
+        {
+            if (_netObjects.ContainsKey(item.netId)) continue;
+            _netObjects[item.netId] = item;
+            OnSpawned?.Invoke(item.netId, null);
         }
     }
 
@@ -149,39 +159,6 @@ public partial class NetObjectRegistry : Node
         OnDestroyed?.Invoke(ID);
     }
 
-
-    /// <summary>注：客户端请求补发指定场景的网络对象</summary>
-    public void RequestSceneData(int sceneHash)
-    {
-        RpcId(1, nameof(RPC_RequestSceneData), sceneHash);
-    }
-
-    /// <summary>注：主机接收客户端场景补发请求，返回该场景所有网络对象</summary>
-    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
-    private void RPC_RequestSceneData(int sceneHash)
-    {
-        if (NetCore.Instance.IsClient) return;
-
-        long senderId = Multiplayer.GetRemoteSenderId();
-
-        if (sceneHash != WorldManager.Instance.CurrentSceneHash) return;
-
-        var netObjects = GetNetObjectsForScene(sceneHash);
-
-        if (netObjects == null || netObjects.Count == 0)
-        {
-            CatLog.Ok($"[NetObjectRegistry] 场景 {sceneHash} 无对象需要补发");
-            return;
-        }
-
-        CatLog.Ok($"[NetObjectRegistry] 向客户端 {senderId} 补发场景 {sceneHash}，共 {netObjects.Count} 个对象");
-
-        foreach (var netObj in netObjects)
-        {
-            RpcId(senderId, nameof(Rpc_HostSyncRegister), netObj.netId.OwnerPeerID, netObj.netId.LocalSeqId, netObj.netId.SceneHash, netObj.PrefabHash, netObj.Position, netObj.Rotation);
-        }
-    }
-
     /// <summary>注：根据网络对象 ID 获取网络对象。</summary>
     public NetObject GetNetObject(NetID id) => _netObjects.TryGetValue(id, out var netobj) ? netobj : null;
 
@@ -199,13 +176,11 @@ public partial class NetObjectRegistry : Node
         return arr;
     }
 
-
-
     public void GetAllNetObjects()
     {
         foreach (var netObj in _netObjects)
         {
-            CatLog.Debug($"[NetObjectRegistry] NetID: {netObj.Key}, PrefabHash: {netObj.Value.PrefabHash}, Pos: {netObj.Value.Position}");
+            CatLog.Debug($"[NetObjectRegistry] NetID: {netObj.Key}, PrefabHash: {netObj.Value.PrefabHash}，ObjNetID：{netObj.Value.netId}");
         }
     }
 }

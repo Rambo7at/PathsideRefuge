@@ -19,14 +19,14 @@ public class WorldManager
 
 	public int SelWorldIdx { get; set; }
 
-	private SceneBase _currentScene;                              // 当前加载的场景
+	public SceneBase CurrentScene { get; set; }                          // 当前加载的场景
 
-	private Camera3D _gameCamera;                                 // 游戏相机（ViewScene时停用，GameScene由PlayerCamera接管）
+    private Camera3D _gameCamera;                                 // 游戏相机（ViewScene时停用，GameScene由PlayerCamera接管）
 
 	public WorldData CurrentWorld => GetCurrentWorld();
 	public bool HasWorlds => WorldDataDict.Count > 0;
 
-	public int CurrentSceneHash => _currentScene?.SceneData.SceneHash ?? -1;
+	public int CurrentSceneHash => CurrentScene?.SceneData.SceneHash ?? -1;
 
 	public WorldManager()
 	{
@@ -137,16 +137,16 @@ public class WorldManager
 			return false;
 		}
 
-		if (_currentScene == null)
+		if (CurrentScene == null)
 		{
 			CatLog.Err("[WorldManager.ChangeScene] 当前场景为空，无法获取场景树执行切换");
 			return false;
 		}
 
-		SaveSceneData(_currentScene);
-		CatLog.Ok($"[WorldManager] 场景切换至：{_currentScene.Name} -> {scene.Name}");
+		SaveSceneData(CurrentScene);
+		CatLog.Ok($"[WorldManager] 场景切换至：{CurrentScene.Name} -> {scene.Name}");
 
-		_currentScene.GetTree().ChangeSceneToNode(scene);
+		CurrentScene.GetTree().ChangeSceneToNode(scene);
 		return true;
 	}
 
@@ -178,7 +178,7 @@ public class WorldManager
 	/// <summary>注：获取游戏相机（仅 GameScene 返回有效）</summary>
 	public Camera3D GetCamera()
 	{
-		if (_currentScene.SceneType != E_SceneType.GameScene)
+		if (CurrentScene.SceneType != E_SceneType.GameScene)
 		{
 			return null;
 		}
@@ -201,19 +201,19 @@ public class WorldManager
 			Input.MouseMode = Input.MouseModeEnum.Visible;
 		}
 
-		_currentScene = node3D;
+		CurrentScene = node3D;
 	}
 
 	/// <summary>注：获取当前场景</summary>
-	public SceneBase GetCurrentScene() => _currentScene;
+	public SceneBase GetCurrentScene() => CurrentScene;
 
 	/// <summary>注：获取当前场景哈希</summary>
-	public int GetCurrentScenehash() => _currentScene.SceneData?.SceneHash ?? default;
+	public int GetCurrentScenehash() => CurrentScene.SceneData?.SceneHash ?? default;
 
 	/// <summary>注：保存当前场景数据，返回世界存档（供 SaveManager 调用）</summary>
 	public Dictionary<int, WorldData> SaveWorldDataDict()
 	{
-		SaveSceneData(_currentScene);
+		SaveSceneData(CurrentScene);
 
 		Dictionary<int, WorldData> data = [];
 

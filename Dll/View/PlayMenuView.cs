@@ -35,12 +35,12 @@ namespace 途畔归所.Dll.View
 		}
 
 		/// <summary>回调函数：在线游戏 </summary>
-		public async void MultiplayerGame()
+		public  void MultiplayerGame()
 		{
             if (CheckSaveDataBeforeAction() == false) return;
 
             NetCore.Instance.StartLANHost();
-            await GameCore.Instance.EnterGame();
+             GameCore.Instance.EnterGame();
         }
 
 
@@ -77,7 +77,7 @@ namespace 途畔归所.Dll.View
 			{
 				await ToSignal(GetTree(), "process_frame");
 			}
-            await  GameCore.Instance.EnterGame();
+              GameCore.Instance.EnterGame();
 		}
 
 
