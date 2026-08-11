@@ -21,14 +21,11 @@ public partial class SceneBase : Node3D
     }
 
     [Export] public SceneData SceneData { get; set; }          // 场景数据（场景名、哈希、网络对象列表等）
-
     [Export] public E_SceneType SceneType { get; set; }
-
     private bool IsGameScene => SceneType == E_SceneType.GameScene;
-    private bool IsViewScene => SceneType == E_SceneType.ViewScene; 
-    public bool IsReady { get; private set; } = false;  // 场景是否已完成初始化/加载
-    public long OwnerPeerID { get;  set; }
-    public bool HasOwner => OwnerPeerID != 0;
+    private bool IsViewScene => SceneType == E_SceneType.ViewScene;
+    public bool IsReady { get; private set; } = false;         // 场景是否已完成初始化/加载
+    public long OwnerPeerID { get; private set; }
 
     public Dictionary<string, Action<long, Variant>> RpcDict { get; set; } = [];
 
@@ -44,49 +41,19 @@ public partial class SceneBase : Node3D
             return;
         }
 
-        var peers = Multiplayer.GetPeers();
-
-        // 注册场景级 RPC
-        RpcDict["Rpc_RequestOwner"] = RpcGateway.Instance.MakeRpcHandler<int>(Rpc_RequestOwner);
-        RpcDict["Rpc_ReplyOwner"] = RpcGateway.Instance.MakeRpcHandler(Rpc_ReplyOwner);
-        RpcDict["Rpc_TakeOwnership"] = RpcGateway.Instance.MakeRpcHandler(Rpc_TakeOwnership);
-
-        RpcGateway.Instance.SendSceneRpcBroadcast("Rpc_RequestOwner", SceneData.SceneHash);
-
-
         if (NetCore.Instance.IsHost)
         {
-            OwnerPeerID = NetCore.Instance.LocalPeerID; // 这里不等待 回复，直接先将自己赋值进去，不影响后续流程
-            RestoreNetObjects();
-            IsReady = true;        // 如果是服务端，那么直接开始自己恢复
-
+            OwnerPeerID = NetCore.Instance.LocalPeerID;       // 先占位
+            RestoreNetObjects();                                // 恢复存档数据
+            IsReady = true;
             return;
         }
 
-        if (NetCore.Instance.IsClient)
-        { 
-        
-        
-
-
-        }
-    }
-
-
-
-    public override void _Ready()
-    {
-        
-
-
-
-
-
 
     }
 
 
-    /// <summary>注：广播询问场景拥有者</summary>
+    /// <summary>注：广播询问场景拥有者（拥有者收到后回复）</summary>
     private void Rpc_RequestOwner(long senderId, int sceneHash)
     {
         if (WorldManager.Instance.CurrentSceneHash != sceneHash) return;
@@ -95,34 +62,22 @@ public partial class SceneBase : Node3D
         RpcGateway.Instance.SendSceneRpcToPeer("Rpc_ReplyOwner", sceneHash, senderId);
     }
 
-    /// <summary>注：接收拥有者回复</summary>
-    private void Rpc_ReplyOwner(long senderId)
+
+
+    /// <summary>注：由 RpcGateway.Rpc_SceneReliable 调用，分发场景级 RPC</summary>
+    public void DispatchRpc(string name, Variant variant)
     {
-        if (NetCore.Instance.IsClient)
+        long senderId = Multiplayer.GetRemoteSenderId();
+        if (RpcDict.TryGetValue(name, out var action))
         {
-            OwnerPeerID = senderId;
-            return;
+            action?.Invoke(senderId, variant);
         }
-
-        OwnerPeerID = NetCore.Instance.LocalPeerID;
-        RpcGateway.Instance.SendSceneRpcBroadcast("Rpc_TakeOwnership", SceneData.SceneHash);
+        else
+        {
+            CatLog.Warn($"[SceneBase] 未注册的场景 RPC：{name}，场景：{SceneData?.SceneHash}");
+        }
     }
 
-    /// <summary>注：服务器通知客户端取回所有权</summary>
-    private void Rpc_TakeOwnership(long senderId)
-    {
-        if (NetCore.Instance.IsHost) return;
-        OwnerPeerID = senderId;
-    }
-
-
-
-
-
-
-
-
-    //////////////下方代码不动
 
     /// <summary>注：触发所有订阅者保存状态，并将场景标记为"非新场景"。</summary>
     public void SaveAllStates()
@@ -138,7 +93,6 @@ public partial class SceneBase : Node3D
 
         SceneData.IsNewScene = false;
     }
-
 
     /// <summary>注：从场景存档中恢复网络对象，跳过玩家对象（由 PlayerManager 独立管理）。</summary>
     private void RestoreNetObjects()
@@ -157,12 +111,6 @@ public partial class SceneBase : Node3D
 
         IsReady = true;
     }
-
-    public void DispatchRpc(string name, Variant variant)
-    { 
-    
-    }
-
 
     /// <summary>注：调试打印场景数据详情（仅 debug 构建）</summary>
     private void DebugPrintSceneData()

@@ -101,16 +101,7 @@ public class PlayerManager
 		return data;
 	}
 
-	/// <summary>注：从主菜单进入游戏，加载玩家最后所在场景或默认场景</summary>
-	public void EnterGame()
-	{
-		if (LocalPlayerData == null) return;
 
-		if (!WorldManager.Instance.ChangeScene(LocalPlayerData.LastSceneHash))
-		{
-			WorldManager.Instance.LoadDefaultScene();
-		}
-	}
 
 	/// <summary>注：在指定位置生成本地玩家（若玩家实例无效则自动重建）</summary>
 	public void SpawnLocalPlayer(Vector3 Pos, Vector3 rot)

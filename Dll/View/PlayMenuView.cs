@@ -35,17 +35,17 @@ namespace 途畔归所.Dll.View
 		}
 
 		/// <summary>回调函数：在线游戏 </summary>
-		public void MultiplayerGame()
+		public async void MultiplayerGame()
 		{
             if (CheckSaveDataBeforeAction() == false) return;
 
             NetCore.Instance.StartLANHost();
-            PlayerManager.Instance.EnterGame();
+            await GameCore.Instance.EnterGame();
         }
 
 
 		/// <summary>回调函数：搜索大厅 </summary>
-		public void FindLobby()
+		public async void FindLobby()
 		{
             if (CheckSaveDataBeforeAction() == false) return;
 
@@ -77,8 +77,7 @@ namespace 途畔归所.Dll.View
 			{
 				await ToSignal(GetTree(), "process_frame");
 			}
-            PlayerManager.Instance.EnterGame();
-            GD.Print("[MainWorld] 连接已就绪，发送玩家请求");
+            await  GameCore.Instance.EnterGame();
 		}
 
 

@@ -239,7 +239,8 @@ public partial class ContainerComp : PlacedBase, IInteractable, IInventoryHolder
     /// <summary>注：客户端接收主机同步的容器库存数据 → 显示视图</summary>
     private void RPC_ReceiveContainerInventory(long senderId, byte[] data)
     {
-        if (senderId != NetCore.ServerID || NetCore.Instance.IsHost) return;
+        if (NetCore.Instance.IsHost) return;
+
         if (data == null)
         {
             CatLog.Warn("[ContainerComp] RPC_ReceiveInventoryData：数据包为空");
