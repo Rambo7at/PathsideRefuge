@@ -1,4 +1,5 @@
 using Godot;
+using System;
 using 维修公司.Dll.data;
 using 维修公司.Dll.Interface;
 using 途畔归所.Dll.Base;
@@ -10,7 +11,7 @@ using 途畔归所.Dll.Manager;
 using 途畔归所.Dll.NetWork;
 using 途畔归所.Dll.Utils;
 using 途畔归所.Dll.View;
-
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace 途畔归所.Dll.Comp;
 
@@ -19,279 +20,196 @@ public partial class ContainerComp : PlacedBase, IInteractable, IInventoryHolder
 {
     [Export] private InventoryData m_inventoryData;
     [Export] private Node3D m_dropPos;
-
     private InventoryView _inventoryView;
     private NetSyncBase _netSyncBase;
 
+    public const long NoInteractPeer = -1;
+
     /// <summary>注：容器是否处于打开状态</summary>
-    public bool m_IsOpen { get; private set; }
+    public bool IsOpen { get => m_inventoryData.IsOpen; set => m_inventoryData.IsOpen = value; }
+
+    /// <summary>注：当前占用容器的玩家 PeerID</summary>
+    public long InteractPeer { get => m_inventoryData.InteractPeer; set => m_inventoryData.InteractPeer = value; }
 
     InventoryData IInventoryHolder.InventoryData { get => m_inventoryData; set => m_inventoryData = value; }
     Vector3 IInventoryHolder.DropPos => m_dropPos.GlobalPosition;
 
+    /// <summary>注：容器名称</summary>
     public string ObjectName => m_placedData.m_Name;
 
     public override void _Ready()
     {
+        if (ValidateDeps())
+        {
+            CatUtils.StopAndExit(this);
+            return;
+        }
+
+        _netSyncBase.RegisterRpc(nameof(Rpc_ToggleContainer), Rpc_ToggleContainer);
+        _netSyncBase.RegisterRpc<bool, long>(nameof(Rpc_ContainerInteract), Rpc_ContainerInteract);
+    }
+
+    /// <summary>注：校验运行必需依赖，依赖缺失返回 true，校验成功返回 false</summary>
+    private bool ValidateDeps()
+    {
         if (CatUtils.FindChildNode<NetSyncBase>(this) is not NetSyncBase sync)
         {
-            CatUtils.StopAndExit(this);
-            return;
+            CatLog.Err("[ContainerComp.ValidateDeps]：缺少 NetSyncBase 组件");
+            return true;
         }
-
         if (m_inventoryData == null)
         {
-            CatUtils.StopAndExit(this);
-            CatLog.Err("[ContainerComp._Ready]：ContainerComp 缺少 m_inventoryData 数据 ，已销毁");
-            return;
+            CatLog.Err("[ContainerComp.ValidateDeps]：缺少 InventoryData 数据");
+            return true;
         }
-
-        _netSyncBase = sync;
-
-        if (InitSync(_netSyncBase) == false)
-        {
-            CatUtils.StopAndExit(this);
-            return;
-        }
-
         if (GUIManager.Instance.GetView(m_inventoryData.m_UIname) is not InventoryView view)
         {
-            CatLog.Err("[ContainerComp._Ready] 箱子视图加载失败");
-            CatUtils.StopAndExit(this);
-            return;
+            CatLog.Err("[ContainerComp.ValidateDeps]：InventoryView 加载失败");
+            return true;
         }
         _inventoryView = view;
         _inventoryView.m_holder = this;
         _inventoryView.Visible = false;
-
-        // ─── RPC 注册 ──────────────────────────────────────────────
-        // 注：状态同步使用 int（0/1）而非 bool，规避 Godot 序列化问题
-        _netSyncBase.RegisterRpc("RPC_RequestOpenContainer", RPC_RequestOpenContainer);
-        _netSyncBase.RegisterRpc<byte[]>("RPC_ReceiveContainerInventory", RPC_ReceiveContainerInventory);
-        _netSyncBase.RegisterRpc<int>("RPC_SyncContainerOpenState", RPC_SyncContainerOpenState); // ✅ int 参数
-        _netSyncBase.RegisterRpc("RPC_RequestCloseContainer", RPC_RequestCloseContainer);
-        _netSyncBase.RegisterRpc("RPC_ReceiveCloseContainer", RPC_ReceiveCloseContainer);
-        _netSyncBase.RegisterRpc<byte[]>("RPC_SubmitFinalInventory", RPC_SubmitFinalInventory);
+        _netSyncBase = sync;
+        return false;
     }
 
-    private bool InitSync(NetSyncBase netSync)
+    /// <summary>注：玩家交互入口，按 E 触发容器开关操作</summary>
+    public void PlayerInteract(bool InputE, bool InputF, CreatureBase creature)
     {
-        if (netSync == null || netSync.NetObj == null)
+        if (creature is not Player) return;
+        if (InputE) _netSyncBase.SendRpcToPeer(nameof(Rpc_ToggleContainer), _netSyncBase.OwnedPeer);
+    }
+
+    /// <summary>注：RPC 入口，接收容器开关请求，主机直接执行，客户端先请求数据再执行</summary>
+    private void Rpc_ToggleContainer(long sendPeer)
+    {
+        if (!_netSyncBase.IsOwner) return;
+
+        if (NetCore.Instance.IsHost)
         {
-            CatLog.Warn("[ContainerComp.InitContainerNetSync] NetSyncBase 或 NetSyncBase.NetObj 为空");
-            return false;
+            ResolveContainerToggle(sendPeer);
+            return;
         }
-        NetObject netObject = netSync.NetObj;
-
-        netSync.OnSaveState += () => FlushInventory(netSync.NetObj);
-
-        var custdata = netObject.m_customData.As<PlacedData>();
-        m_placedData = custdata != null ? custdata.DeepCopy() : m_placedData;
-
-        var data = m_placedData.m_data.As<InventoryData>();
-        m_inventoryData = (data?.m_itemArr == null || data.m_itemArr.Count == 0) ? m_inventoryData : data;
-
-        return true;
+        _netSyncBase.RequestCustomData(() =>
+        {
+            ResolveContainerToggle(sendPeer);
+            CatLog.Debug($"用户：成功打开容器");
+        });
     }
 
-    public override void _Process(double delta)
+    /// <summary>注：核心决策方法，根据当前容器状态决定执行打开或关闭操作</summary>
+    private void ResolveContainerToggle(long sendPeer)
     {
-        if (m_IsOpen && _inventoryView.GetParent() == PlayerManager.Instance.LocalPlayer.GUI)
+        LoadFromNetObject();
+
+        CatLog.Ok($"服务端：读取目前箱子状态：开关{IsOpen}/操作人{InteractPeer}");
+
+        if (IsOpen)
         {
-            float distance = GlobalPosition.DistanceTo(PlayerManager.Instance.LocalPlayer.GlobalPosition);
-            if (distance >= 3f)
+            if (InteractPeer != sendPeer)
             {
-                CloseContainer();
+                CatLog.Warn($"服务端：拒绝{sendPeer}请求目前箱子非申请人操作-状态：开关{IsOpen}/操作人{InteractPeer}");
+                return;
             }
-        }
-    }
 
-    public void OpenContainer(Player player)
-    {
-        if (player == null || _inventoryView == null) return;
-        if (m_IsOpen) return;
-
-        if (NetCore.Instance.IsClient)
-        {
-            CatLog.Ok("[ContainerComp] 客户端请求打开容器");
-            _netSyncBase.SendRpcToHost("RPC_RequestOpenContainer");
+            SaveToNetObject();
+            _netSyncBase.SendRpcToPeer(nameof(Rpc_ContainerInteract), sendPeer, true, InteractPeer);
+            CatLog.Ok($"服务端：回复用户关闭操作-状态：操作方式{true}/操作人{InteractPeer}");
             return;
         }
 
-        CatLog.Ok($"[ContainerComp] 主机打开容器，m_IsOpen 当前值：{m_IsOpen}");
-        PlayerManager.Instance.LocalPlayer.GUI.AddChild(_inventoryView);
-        _inventoryView.Visible = true;
-        m_IsOpen = true;
+        IsOpen = true;
+        InteractPeer = sendPeer;
+        SaveToNetObject();
 
-        // ✅ 发送 int（1 = true）
-        _netSyncBase.SendRpcBroadcast("RPC_SyncContainerOpenState", m_IsOpen ? 1 : 0);
-        CatLog.Ok($"[ContainerComp] 主机打开完成，m_IsOpen 设为 true");
+        _netSyncBase.SendRpcToPeer(nameof(Rpc_ContainerInteract), sendPeer, false, InteractPeer);
+        CatLog.Ok($"服务端：回复用户开箱操作-状态：操作方式{false}/操作人{InteractPeer}");
     }
 
-    public void CloseContainer()
+    /// <summary>注：RPC 回传入口，接收权威端执行结果，打开或关闭容器 UI</summary>
+    private void Rpc_ContainerInteract(long sendPeer, bool open, long interactPeer)
     {
-        if (!m_IsOpen) return;
-        bool isUser = _inventoryView.GetParent() == PlayerManager.Instance.LocalPlayer.GUI;
-        if (isUser == false) return;
+        CatLog.Debug($"用户：收到服务端操作指令-状态：操作方式{open}/操作人{interactPeer}");
 
-        if (NetCore.Instance.IsClient)
+        if (open)
         {
-            CatLog.Ok("[ContainerComp] 客户端请求关闭容器");
-            _netSyncBase.SendRpcToHost("RPC_RequestCloseContainer");
+            if (interactPeer != _netSyncBase.LocalPeer)
+            {
+                CatLog.Debug($"用户：操作指令送达的，操作人不符，停止操作");
+                return;
+            }
+            if (NetCore.Instance.IsHost)
+            {
+                CloseContainerView();
+                return;
+            }
+            CloseContainerView();
+            _netSyncBase.SubmitCustomData();
+            CatLog.Ok($"用户：提交修改数据信息-状态：开关{IsOpen}/操作人{InteractPeer}");
             return;
         }
 
-        CatLog.Ok($"[ContainerComp] 主机关闭容器，m_IsOpen 当前值：{m_IsOpen}");
-        _inventoryView.GetParent()?.RemoveChild(_inventoryView);
-        m_IsOpen = false;
-
-        // ✅ 发送 int（0 = false）
-        _netSyncBase.SendRpcBroadcast("RPC_SyncContainerOpenState", m_IsOpen ? 1 : 0);
-        CatLog.Ok($"[ContainerComp] 主机关闭完成，m_IsOpen 设为 false");
-    }
-
-    // ─── RPC 接收方法 ──────────────────────────────────────────────
-
-    private void RPC_RequestOpenContainer()
-    {
-        if (NetCore.Instance.IsClient) return;
-        if (m_IsOpen)
+        if (interactPeer != _netSyncBase.LocalPeer && interactPeer != NoInteractPeer)
         {
-            CatLog.Warn("[ContainerComp] RPC_RequestOpenContainer：容器已打开，忽略");
+            CatLog.Debug($"用户：操作指令送达的，操作人不符，停止操作");
             return;
         }
 
-        long requesterId = Multiplayer.GetRemoteSenderId();
-        CatLog.Ok($"[ContainerComp] 主机收到客户端 {requesterId} 的打开请求");
-
-        byte[] bytes = m_inventoryData.Serialize();
-        m_IsOpen = true;
-
-        // ✅ 发送 int（1 = true）
-        _netSyncBase.SendRpcBroadcast("RPC_SyncContainerOpenState", m_IsOpen ? 1 : 0);
-        _netSyncBase.SendRpcToPeer("RPC_ReceiveContainerInventory", requesterId, bytes);
-
-        CatLog.Ok($"[ContainerComp] 主机已打开容器，m_IsOpen 设为 true，已发送库存数据给 {requesterId}");
-    }
-
-    private void RPC_RequestCloseContainer()
-    {
-        if (NetCore.Instance.IsClient) return;
-        if (!m_IsOpen)
+        if (NetCore.Instance.IsHost)
         {
-            CatLog.Warn("[ContainerComp] RPC_RequestCloseContainer：容器已关闭，忽略");
+            OpenContainerView();
             return;
         }
 
-        long requesterId = Multiplayer.GetRemoteSenderId();
-        CatLog.Ok($"[ContainerComp] 主机收到客户端 {requesterId} 的关闭请求");
-
-        m_IsOpen = false;
-
-        // ✅ 发送 int（0 = false）
-        _netSyncBase.SendRpcBroadcast("RPC_SyncContainerOpenState", m_IsOpen ? 1 : 0);
-        _netSyncBase.SendRpcToPeer("RPC_ReceiveCloseContainer", requesterId);
-
-        CatLog.Ok($"[ContainerComp] 主机已关闭容器，m_IsOpen 设为 false，已通知 {requesterId}");
+        _netSyncBase.RequestCustomData(() =>
+        {
+            OpenContainerView();
+            CatLog.Debug($"用户：成功打开容器");
+        });
     }
 
-    /// <summary>注：客户端接收主机关闭通知 → 关闭视图 + 提交最终库存</summary>
-    private void RPC_ReceiveCloseContainer(long senderId)
+    /// <summary>注：打开容器 UI，加载数据并刷新显示</summary>
+    private void OpenContainerView()
     {
-        if (senderId != NetCore.ServerID || NetCore.Instance.IsHost) return;
-
-        CatLog.Ok($"[ContainerComp] 客户端收到主机关闭通知");
-        _inventoryView.GetParent()?.RemoveChild(_inventoryView);
-        m_IsOpen = false;
-
-        byte[] finalInventoryData = m_inventoryData.Serialize();
-        _netSyncBase.SendRpcToHost("RPC_SubmitFinalInventory", finalInventoryData);
-
-        CatLog.Ok("[ContainerComp] 客户端已关闭视图，已提交最终库存数据");
-    }
-
-    /// <summary>注：主机接收客户端提交的最终库存数据并保存</summary>
-    private void RPC_SubmitFinalInventory(long requesterId, byte[] data)
-    {
-        if (NetCore.Instance.IsClient) return;
-
-        if (m_IsOpen)
-        {
-            CatLog.Warn($"[ContainerComp] 客户端 {requesterId} 在容器未关闭时提交数据，已拒绝");
-            return;
-        }
-        if (data == null || data.Length == 0)
-        {
-            CatLog.Warn($"[ContainerComp] 客户端 {requesterId} 提交了空的库存数据");
-            return;
-        }
-
-        InventoryData finalData = new InventoryData();
-        finalData.Deserialize(data);
-        m_inventoryData = finalData.DeepCopy();
-
-        if (_inventoryView.GetParent() == PlayerManager.Instance.LocalPlayer.GUI)
-            _inventoryView.RefreshAllSlots();
-
-        CatLog.Ok($"[ContainerComp] 客户端 {requesterId} 的最终库存数据已保存");
-    }
-
-    /// <summary>注：客户端接收主机同步的容器库存数据 → 显示视图</summary>
-    private void RPC_ReceiveContainerInventory(long senderId, byte[] data)
-    {
-        if (NetCore.Instance.IsHost) return;
-
-        if (data == null)
-        {
-            CatLog.Warn("[ContainerComp] RPC_ReceiveInventoryData：数据包为空");
-            return;
-        }
-
-        CatLog.Ok("[ContainerComp] 客户端收到库存数据，显示视图");
-        InventoryData inventoryData = new InventoryData();
-        inventoryData.Deserialize(data);
-        m_inventoryData = inventoryData.DeepCopy();
-
+        LoadFromNetObject();
         PlayerManager.Instance.LocalPlayer.GUI.AddChild(_inventoryView);
         _inventoryView.Visible = true;
         _inventoryView.RefreshAllSlots();
-
-        CatLog.Ok("[ContainerComp] 客户端视图已显示");
     }
 
-    /// <summary>注：客户端接收主机广播的开关状态同步（int 参数，0=false，1=true）</summary>
-    private void RPC_SyncContainerOpenState(long senderId, int state)
+    /// <summary>注：关闭容器 UI，重置状态并保存数据</summary>
+    private void CloseContainerView()
     {
-        if (NetCore.Instance.IsHost) return;
-
-        bool b = state == 1;
-        CatLog.Debug($"[ContainerComp] 客户端收到状态同步：state = {state}, m_IsOpen = {b}");
-
-        m_IsOpen = b;
-        if (!b) _inventoryView.GetParent()?.RemoveChild(_inventoryView);
+        _inventoryView.GetParent()?.RemoveChild(_inventoryView);
+        IsOpen = false;
+        InteractPeer = NoInteractPeer;
+        SaveToNetObject();
     }
 
-    // ─── 交互接口实现 ──────────────────────────────────────────────
-
-    public void PlayerInteract(bool InputE, bool InputF, CreatureBase creature)
+    /// <summary>注：将 m_inventoryData 序列化写入 NetObject.CustomData</summary>
+    private void SaveToNetObject()
     {
-        if (creature is not Player pl) return;
-
-        if (InputE)
-        {
-            if (m_IsOpen) CloseContainer();
-            else OpenContainer(pl);
-        }
+        byte[] data = m_inventoryData.Serialize();
+        _netSyncBase.CustomData = data;
     }
 
-    // ─── 存档与数据操作 ──────────────────────────────────────────────
-
-    private void FlushInventory(NetObject netObject)
+    /// <summary>注：从 NetObject.CustomData 反序列化读取数据到 m_inventoryData</summary>
+    private void LoadFromNetObject()
     {
-        base.m_placedData.m_data = m_inventoryData.DeepCopy();
-        netObject.m_customData = base.m_placedData.DeepCopy();
+        if (_netSyncBase.CustomData == null) return;
+
+        var data = new InventoryData();
+        data.Deserialize(_netSyncBase.CustomData);
+
+        if (data.m_itemArr.Count == 0) return;
+
+        m_inventoryData.IsOpen = data.IsOpen;
+        m_inventoryData.InteractPeer = data.InteractPeer;
+        m_inventoryData.m_itemArr = data.m_itemArr;
     }
 
+    /// <summary>注：在指定索引设置物品数据</summary>
     public bool TrySetInventoryItem(int index, ItemData data)
     {
         if (index < 0 || index >= m_inventoryData.m_capacity) return false;
@@ -299,5 +217,3 @@ public partial class ContainerComp : PlacedBase, IInteractable, IInventoryHolder
         return true;
     }
 }
-
-

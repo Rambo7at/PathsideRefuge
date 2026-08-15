@@ -23,12 +23,16 @@ public partial class Player : Humanoid, IInventoryHolder
 	public HudView HudView;
 	public DialogView DialogView;
 
-	public override void _Ready()
+
+	public override bool IsOwner => m_NetSyncBase != null && m_NetSyncBase.NetID.PeerID == m_NetSyncBase.LocalPeer;
+
+
+    public override void _Ready()
 	{
-        CatLog.Debug($"[Player._Ready] 进入，m_IsOwner={m_IsOwner}，树状态：{IsInsideTree()}");
+        CatLog.Debug($"[Player._Ready] 进入，IsOwner={IsOwner}，树状态：{IsInsideTree()}");
         base._Ready();
 
-        if (!m_IsOwner)
+        if (!IsOwner)
 		{
 			CatLog.Net("[Player._Ready]：当前并非本地玩家，已关闭运行逻辑");
 			SetProcess(false);
@@ -61,7 +65,7 @@ public partial class Player : Humanoid, IInventoryHolder
         base._ExitTree();
         PlayerManager.Instance.SaveLocalPlayerData();
 
-        if (NetCore.Instance.IsHost && m_IsOwner && m_NetSyncBase.NetObj != null)
+        if (NetCore.Instance.IsHost && IsOwner && m_NetSyncBase.NetObj != null)
         {
             NetObjectRegistry.Instance.BroadcastDestroyNetObject(m_NetSyncBase.NetObj);
         }

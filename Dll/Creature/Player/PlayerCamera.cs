@@ -25,7 +25,7 @@ public partial class PlayerCamera : SpringArm3D
 
 
 
-		if (pl.m_IsOwner == false)
+		if (pl.IsOwner == false)
 		{
 			CatLog.Net($"[PlayerCamera._Ready]：非所有组件，已销毁");
 			CatUtils.StopAndExit(this);

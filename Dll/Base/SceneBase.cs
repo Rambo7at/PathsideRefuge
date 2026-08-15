@@ -35,6 +35,8 @@ public partial class SceneBase : Node3D
 
     public event Action OnSaveState;  // 触发时，订阅者应将自身状态保存到 NetObj.m_customData                          
 
+    public event Action OnOwnershipAcquired;
+
     public override async void _EnterTree()
     {
         WorldManager.Instance.SetCurrentSceneType(this);
@@ -52,9 +54,48 @@ public partial class SceneBase : Node3D
         SetupSceneAsClient();
     }
 
+    private async void SetupSceneAsHost()
+    {
+        if (NetCore.Instance.IsClient) return;
+
+        long host = await SceneOwnerManager.Instance.TryAcquireOwnership(SceneData.SceneHash, NetCore.Instance.LocalPeerID);
+        OwnerPeerID = host;
+
+
+        RestoreNetObjects();
+        if (SyncDataTargetPeer != default)
+        {
+            RpcGateway.Instance.SendSceneRpcToPeer(nameof(Rpc_GetSceneObject), SceneData.SceneHash, SyncDataTargetPeer);
+            SyncDataTargetPeer = default;
+        }
+
+        IsReady = true;
+    }
+
+    private async void SetupSceneAsClient()
+    {
+        if (NetCore.Instance.IsHost) return;
+        long owner = await SceneOwnerManager.Instance.TryAcquireOwnership(SceneData.SceneHash, NetCore.Instance.LocalPeerID);
+
+        RpcGateway.Instance.SendSceneRpcToPeer(nameof(Rpc_GetSceneObject), SceneData.SceneHash, owner);
+        OwnerPeerID = owner;
+        while (!IsReady)
+        {
+            await ToSignal(GetTree(), "process_frame");
+        }
+    }
+
+
+
+
+
+
+
+
 
     public override void _ExitTree()
     {
+        if (IsViewScene) return;
         if (OwnerPeerID != NetCore.Instance.LocalPeerID) return;
 
         // 拥有者离开场景，转移所有权
@@ -68,7 +109,7 @@ public partial class SceneBase : Node3D
     public void Rpc_GetSceneObject(long sendPeer)
     {
         SaveAllStates();
-        RpcGateway.Instance.SendSceneRpcToPeer(nameof(Rpc_SendSceneObject), SceneData.SceneHash, sendPeer, true, SceneData.Serialize());
+        RpcGateway.Instance.SendSceneRpcToPeer(nameof(Rpc_SendSceneObject), SceneData.SceneHash, sendPeer, SceneData.Serialize());
     }
 
     public void Rpc_SendSceneObject(long sendPeer, byte[] sceneData)
@@ -86,34 +127,6 @@ public partial class SceneBase : Node3D
 
 
         IsReady = true;
-    }
-
-    private async void SetupSceneAsHost()
-    {
-        if (NetCore.Instance.IsClient) return;
-        long host = await SceneOwnerManager.Instance.TryAcquireOwnership(SceneData.SceneHash, NetCore.Instance.LocalPeerID);
-        OwnerPeerID = host;
-
-        RestoreNetObjects();
-        if (SyncDataTargetPeer != default)
-        {
-            RpcGateway.Instance.SendSceneRpcToPeer(nameof(Rpc_GetSceneObject), SceneData.SceneHash, SyncDataTargetPeer);
-            SyncDataTargetPeer = default;
-        }
-
-        IsReady = true;
-    }
-
-    private async void SetupSceneAsClient()
-    {
-        if (NetCore.Instance.IsHost) return;
-        long owner = await SceneOwnerManager.Instance.TryAcquireOwnership(SceneData.SceneHash, NetCore.Instance.LocalPeerID);
-        RpcGateway.Instance.SendSceneRpcToPeer(nameof(Rpc_GetSceneObject), SceneData.SceneHash, owner);
-        OwnerPeerID = owner;
-        while (!IsReady)
-        {
-            await ToSignal(GetTree(), "process_frame");
-        }
     }
 
 

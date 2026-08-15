@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using 维修公司.Dll.data;
+using 途畔归所.Dll.Core;
 using 途畔归所.Dll.Interface;
 using 途畔归所.Dll.Manager;
 using 途畔归所.Dll.Utils;
@@ -27,8 +28,11 @@ namespace 途畔归所.Dll.Data
 
         [Export] public int m_maxRow = 10;
         
-
         [Export] public Array<ItemData> m_itemArr = [];
+
+        public long InteractPeer { get; set; } = -1;
+        public bool IsOpen { get; set; }
+
 
         public int m_capacity => m_maxCol * m_maxRow;
 
@@ -80,28 +84,42 @@ namespace 途畔归所.Dll.Data
             return itemData.Stack < 1;
         }
 
+
+        private struct Dto
+        {
+            public long InteractPeer { get; set; } 
+            public bool IsOpen { get; set; } 
+            public List<byte[]> ItemList { get; set; }
+        }
+
         public byte[] Serialize()
         {
-            List<byte[]> list = [];
+            var dataPack = new Dto
+            {
+                InteractPeer = InteractPeer,
+                IsOpen = IsOpen
+            };
+
+            dataPack.ItemList = [];
 
             foreach (var item in m_itemArr)
             {
-                list.Add(item?.Serialize());
+                dataPack.ItemList.Add(item?.Serialize());
             }
 
-            return JsonSerializer.SerializeToUtf8Bytes(list);
+            return JsonSerializer.SerializeToUtf8Bytes(dataPack);
         }
 
         public void Deserialize(byte[] data)
         {
             m_itemArr.Clear();
 
-            var dto = JsonSerializer.Deserialize<List<byte[]>>(data);
+            var dto = JsonSerializer.Deserialize<Dto>(data);
 
-            if (dto == null) return;
+            if (dto.ItemList == null) return;
 
 
-            foreach (var slotdata in dto)
+            foreach (var slotdata in dto.ItemList)
             {
                 if (slotdata == null)
                 {
@@ -115,6 +133,10 @@ namespace 途畔归所.Dll.Data
                     m_itemArr.Add(itemdata);
                 }
             }
+
+            InteractPeer = dto.InteractPeer;
+            IsOpen = dto.IsOpen;
+
         }
 
         public InventoryData DeepCopy() => this.DuplicateDeep() as InventoryData;

@@ -95,7 +95,7 @@ public partial class StateMachine : Node
 
 		m_Creature = cr;
 
-		if (!m_Creature.m_IsOwner) SetPhysicsProcess(false);
+		if (!m_Creature.IsOwner) SetPhysicsProcess(false);
 
 		// 动画状态同步
 		m_NetSyncBase.RegisterRpc<int>("RPC_SyncAnimState", RPC_SyncAnimState);

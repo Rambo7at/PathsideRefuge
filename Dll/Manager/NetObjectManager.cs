@@ -137,6 +137,7 @@ public partial class NetObjectManager : Node
 
         // 4. 检查场景是否匹配
         var currentScene = WorldManager.Instance.GetCurrentScene();
+
         if (currentScene == null)
         {
             CatLog.Net("[NetObjectManager] 当前场景为空，无法生成对象");
@@ -163,18 +164,19 @@ public partial class NetObjectManager : Node
         }
 
         // 6. 设置名称和位置
-        node3D.Name = $"{node3D.Name}-{netId}";
+        node3D.Name = $"{node3D.Name}-{netId.SceneHash}-{netId.PeerID}-{netId.LocalSeqId}";
         node3D.Position = netobj.Position;
         node3D.Rotation = netobj.Rotation;
 
-        // 7. 绑定 NetSyncBase
-        var sync = node3D.GetNodeOrNull<NetSyncBase>("NetSyncBase");
-        if (sync != null)
+
+
+        if (CatUtils.FindChildNode<NetSyncBase>(node3D) is not NetSyncBase sync)
         {
-            sync.NetObj = netobj;
+            CatLog.Err($"[NetObjectManager] 没有对应的网络对象！ ");
+            return;
         }
 
-        // 8. 记录实例并添加到场景
+        sync.NetID = netId;
         _netObjectInstances[netId] = node3D;
         currentScene.AddChild(node3D);
 

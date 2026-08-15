@@ -21,7 +21,7 @@ public class WorldManager
 
 	public SceneBase CurrentScene { get; set; }                          // 当前加载的场景
 
-    private Camera3D _gameCamera;                                 // 游戏相机（ViewScene时停用，GameScene由PlayerCamera接管）
+	private Camera3D _gameCamera;                                 // 游戏相机（ViewScene时停用，GameScene由PlayerCamera接管）
 
 	public WorldData CurrentWorld => GetCurrentWorld();
 	public bool HasWorlds => WorldDataDict.Count > 0;
@@ -143,7 +143,6 @@ public class WorldManager
 			return false;
 		}
 
-		SaveSceneData(CurrentScene);
 		CatLog.Ok($"[WorldManager] 场景切换至：{CurrentScene.Name} -> {scene.Name}");
 
 		CurrentScene.GetTree().ChangeSceneToNode(scene);
@@ -213,7 +212,8 @@ public class WorldManager
 	/// <summary>注：保存当前场景数据，返回世界存档（供 SaveManager 调用）</summary>
 	public Dictionary<int, WorldData> SaveWorldDataDict()
 	{
-		SaveSceneData(CurrentScene);
+
+		SaveSceneData();
 
 		Dictionary<int, WorldData> data = [];
 
@@ -228,25 +228,21 @@ public class WorldManager
 	}
 
 	/// <summary>注：保存指定场景数据到世界存档，触发场景内所有对象保存状态</summary>
-	public void SaveSceneData(SceneBase sceneBase)
+	public void SaveSceneData()
 	{
-		if (sceneBase == null || CurrentWorld == null)
+		foreach (var objects in NetObjectRegistry.Instance.GetNetObjectsDict())
 		{
-			CatLog.Err("[WorldManager.SaveSceneData]：传入的 SceneData 为空，无法保存。");
-			return;
+			if (!CurrentWorld.SceneDataDict.TryGetValue(objects.Key, out SceneData sceneData))
+			{
+				var datax = new SceneData();
+				datax.SceneHash = objects.Key;
+				datax.IsNewScene = false;
+				datax.NetObjectList = objects.Value;
+				CurrentWorld.SceneDataDict[objects.Key] = sceneData;
+			}
+			sceneData.SceneHash = objects.Key;
+			sceneData.IsNewScene = false;
+			sceneData.NetObjectList = objects.Value;
 		}
-
-		if (sceneBase.SceneType != E_SceneType.GameScene) return;
-
-		var data = sceneBase.SceneData;
-		if (data == null) return;
-
-		CatLog.Debug($"[WorldManager] 开始保存场景：{data.SceneName} (Hash:{data.SceneHash})");
-
-		sceneBase.SaveAllStates();
-
-		CurrentWorld.SceneDataDict[data.SceneHash] = data.DeepCopy();
-
-		CatLog.Ok($"[WorldManager] 场景 {data.SceneName} 数据已保存到世界存档");
 	}
 }

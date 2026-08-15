@@ -1,4 +1,5 @@
 using Godot;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using 途畔归所.Dll.Base;
@@ -24,7 +25,7 @@ public partial class SceneOwnerManager : Node
 
 
     /// <summary>注：获取或创建场景拥有者（若主机则直接分配，若客户端则异步请求）</summary>
-    public async Task<long> TryAcquireOwnership(int sceneHash, long requestingPeer)
+    public void TryAcquireOwnership(int sceneHash, long requestingPeer, Action action)
     {
         if (NetCore.Instance.IsHost)
         {
@@ -36,11 +37,10 @@ public partial class SceneOwnerManager : Node
             _sceneOwners[sceneHash] = requestingPeer;
 
             Rpc(nameof(Rpc_TakeOwnershipNotification), sceneHash, requestingPeer);
-            return requestingPeer;
+            action.Invoke();
         }
 
-        // 客户端：发起请求
-        var tcs = new TaskCompletionSource<long>();
+
         _pendingRequests[sceneHash] = tcs;
 
         RpcId(NetCore.ServerID, nameof(Rpc_RequestOwners), sceneHash);

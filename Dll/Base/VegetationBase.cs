@@ -47,11 +47,17 @@ public partial class VegetationBase : StaticBody3D, IDamageable
 
     public override void _Ready()
     {
-        if (NetCore.Instance.IsClient && m_netSyncBase.IsInit)
+        if (m_netSyncBase.NetID.IsNone)
         {
-
-            m_netSyncBase.SendRpcToHost("RPC_RequestHealth");
+            CatLog.Warn($"[VegetationBase] {ObjectName} NetID 无效，跳过 RPC 请求");
+            return;
         }
+
+        if (m_netSyncBase.IsOwner) return;
+
+
+
+        m_netSyncBase.SendRpcToPeer("RPC_RequestHealth", m_netSyncBase.OwnedPeer);
     }
 
     /// <summary>实际伤害结算（仅主机调用）</summary>
@@ -59,11 +65,9 @@ public partial class VegetationBase : StaticBody3D, IDamageable
     {
         Health -= amount;
 
-        // 主机广播血量给所有客户端
         m_netSyncBase.SendRpcBroadcast("RPC_SyncHealth", Health);
         CatLog.Debug($"{ObjectName}被命中 {Health} 剩余 ");
         if (IsDead) OnDeath();
-
     }
 
     /// <summary>客户端请求主机结算伤害</summary>
@@ -88,7 +92,6 @@ public partial class VegetationBase : StaticBody3D, IDamageable
         m_netSyncBase.SendRpcToPeer("RPC_SyncHealth", senderId, Health);
     }
 
-
     /// <summary>死亡钩子，子类重写以生成掉落物等</summary>
     protected virtual void OnDeath()
     {
@@ -102,7 +105,6 @@ public partial class VegetationBase : StaticBody3D, IDamageable
         }
         CatUtils.StopAndExit(this);
     }
-
 
     /// <summary>外部调用入口，区分主机/客户端</summary>
     public virtual void TakeDamage(float amount, Node node = null)

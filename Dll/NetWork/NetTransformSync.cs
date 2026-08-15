@@ -1,5 +1,6 @@
 using Godot;
 using 途畔归所.Dll.Core;
+using 途畔归所.Dll.Creature;
 using 途畔归所.Dll.Manager;
 using 途畔归所.Dll.Utils;
 using static System.Net.Mime.MediaTypeNames;
@@ -22,6 +23,10 @@ public partial class NetTransformSync : Node
     private Vector3 TargetPos { get => _netobj.Position; set => _netobj.Position = value; }
     private Vector3 TargetRot { get => _netobj.Rotation; set => _netobj.Rotation = value; }
 
+    private bool isPlayer;
+
+    private bool IsOwner => isPlayer ? _netSyncBase?.NetID.PeerID == _netSyncBase?.LocalPeer : _netSyncBase.IsOwner;
+
     public override void _Ready()
     {
         if (GetParent() is not Node3D node3D)
@@ -31,6 +36,8 @@ public partial class NetTransformSync : Node
         }
 
         _parentNode = node3D;
+
+        if (_parentNode is Player) isPlayer = true;
 
         if (CatUtils.FindChildNode<NetSyncBase>(_parentNode) is not NetSyncBase Sync)
         {
@@ -47,20 +54,20 @@ public partial class NetTransformSync : Node
 
     public override void _Process(double delta)
     {
-        if (!_netSyncBase.IsOwner) return;
+        if (!IsOwner) return;
 
         if (TargetPos == CurPos && TargetRot == CurRot) return;
 
         TargetPos = CurPos;
         TargetRot = CurRot;
 
-        if (NetCore.Instance.IsHost)
+        if (_netSyncBase.IsOwner)
         {
-            _netSyncBase.SendRpcBroadcast("RPC_TransformSync", false, CurPos, CurRot);
+            _netSyncBase.SendFastRpcBroadcast("RPC_TransformSync",  CurPos, CurRot);
         }
         else
         {
-            _netSyncBase.SendRpcToHost("RPC_ClientTransformReport", false, CurPos, CurRot);
+            _netSyncBase.SendFastRpcToPeer("RPC_ClientTransformReport", _netSyncBase.OwnedPeer, CurPos, CurRot);
         }
     }
 
@@ -81,7 +88,7 @@ public partial class NetTransformSync : Node
         {
             if (peerId != senderId && peerId != NetCore.ServerID)
             {
-                _netSyncBase.SendRpcToPeer("RPC_TransformSync", peerId, false, pos, rot);
+                _netSyncBase.SendFastRpcToPeer("RPC_TransformSync", peerId, pos, rot);
             }
         }
     }

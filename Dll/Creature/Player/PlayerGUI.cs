@@ -47,7 +47,7 @@ namespace 途畔归所.Dll.Creature
 
 			player = pl;
 
-			if (pl.m_IsOwner == false)
+			if (pl.IsOwner == false)
 			{
 				CatUtils.StopAndExit(this);
 				CatLog.Net($"[PlayerGUI._Ready]：当前player 属于镜像，已销毁");

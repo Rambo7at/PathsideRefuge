@@ -66,7 +66,8 @@ public partial class CreatureBase : CharacterBody3D, IDamageable
 
 	// 公共成员
 	public Array<ItemComp> m_AttackItems = [];
-	public bool m_IsOwner => m_NetSyncBase != null && m_NetSyncBase.IsOwner;
+
+    public virtual bool IsOwner => m_NetSyncBase != null && m_NetSyncBase.IsOwner;
 	public bool IsDead => m_Health <= 0;
 	public Vector3 DropPos => GlobalPosition + Vector3.Up * 1f;
 
@@ -105,7 +106,7 @@ public partial class CreatureBase : CharacterBody3D, IDamageable
 
 	public override void _Ready()
 	{
-		if (NetCore.Instance.IsClient && m_NetSyncBase.IsInit)
+		if (NetCore.Instance.IsClient)
 		{
             m_NetSyncBase.SendRpcToHost("RPC_RequestHealth");
         }
@@ -262,7 +263,6 @@ public partial class CreatureBase : CharacterBody3D, IDamageable
 	/// <summary> 辅助：初始化RPC </summary>
 	private void InitRegisterRpc()
 	{
-		if (!m_NetSyncBase.IsInit) return;
 		m_NetSyncBase.RegisterRpc<float>("RPC_RequestDamage", RPC_RequestDamage);
 		m_NetSyncBase.RegisterRpc<float>("RPC_SyncHealth", RPC_SyncHealth);
 		m_NetSyncBase.RegisterRpc("RPC_RequestHealth", RPC_RequestHealth);
