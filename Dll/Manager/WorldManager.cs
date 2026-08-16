@@ -2,6 +2,7 @@ using Godot;
 using Godot.Collections;
 using 途畔归所.Dll.Base;
 using 途畔归所.Dll.Data;
+using 途畔归所.Dll.NetWork;
 using 途畔归所.Dll.Utils;
 using static 途畔归所.Dll.Base.SceneBase;
 
@@ -156,6 +157,7 @@ public class WorldManager
 		return ChangeScene(defaultScene);
 	}
 
+
 	/// <summary>注：从世界存档中加载指定场景的数据，若不存在则初始化新数据</summary>
 	public SceneData LoadSceneData(SceneBase scene)
 	{
@@ -165,14 +167,25 @@ public class WorldManager
 			return null;
 		}
 
-		if (!CurrentWorld.SceneDataDict.TryGetValue(scene.SceneData.SceneHash, out var sceneData))
+		CatLog.Ok($"load调用场景哈希：{scene.SceneData.SceneHash}");
+
+		if (CurrentWorld.SceneDataDict.TryGetValue(scene.SceneData.SceneHash, out var sceneData))
 		{
-			CurrentWorld.SceneDataDict[scene.SceneData.SceneHash] = scene.SceneData;
-			return scene.SceneData;
+			return sceneData;
 		}
 
+		return null;
+	}
+
+	/// <summary>注：从世界存档中加载指定场景的数据，若不存在则初始化新数据</summary>
+	public SceneData LoadSceneData(int sceneHash)
+	{
+		if (!CurrentWorld.SceneDataDict.TryGetValue(sceneHash, out var sceneData)) return null;
 		return sceneData;
 	}
+
+
+
 
 	/// <summary>注：获取游戏相机（仅 GameScene 返回有效）</summary>
 	public Camera3D GetCamera()
@@ -227,22 +240,38 @@ public class WorldManager
 		return data;
 	}
 
-	/// <summary>注：保存指定场景数据到世界存档，触发场景内所有对象保存状态</summary>
+
 	public void SaveSceneData()
 	{
-		foreach (var objects in NetObjectRegistry.Instance.GetNetObjectsDict())
+		if (CurrentWorld == null) return;
+
+
+		var netObjectDict = NetObjectRegistry.Instance.GetNetObjectsDict();
+		if (netObjectDict.Count == 0) return;
+
+		Dictionary<int, Array<NetObject>> newSceneData = [];
+
+		foreach (var kvp in netObjectDict)
 		{
-			if (!CurrentWorld.SceneDataDict.TryGetValue(objects.Key, out SceneData sceneData))
+			int sceneHash = kvp.Key.SceneHash;
+			var netObjCopy = kvp.Value.DeepCopy();
+
+			if (!newSceneData.ContainsKey(sceneHash))
 			{
-				var datax = new SceneData();
-				datax.SceneHash = objects.Key;
-				datax.IsNewScene = false;
-				datax.NetObjectList = objects.Value;
-				CurrentWorld.SceneDataDict[objects.Key] = sceneData;
+				newSceneData[sceneHash] = [];
 			}
-			sceneData.SceneHash = objects.Key;
-			sceneData.IsNewScene = false;
-			sceneData.NetObjectList = objects.Value;
+			newSceneData[sceneHash].Add(netObjCopy);
+		}
+
+		foreach (var data in newSceneData)
+		{
+			if (!CurrentWorld.SceneDataDict.TryGetValue(data.Key, out _))
+			{
+				CurrentWorld.SceneDataDict[data.Key] = new SceneData();
+			}
+
+			CurrentWorld.SceneDataDict[data.Key].NetObjectList.Clear();
+			CurrentWorld.SceneDataDict[data.Key].NetObjectList.AddRange(data.Value);
 		}
 	}
 }

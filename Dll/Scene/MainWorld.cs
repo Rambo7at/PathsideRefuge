@@ -7,30 +7,25 @@ namespace 途畔归所.Dll.Scene;
 
 public partial class MainWorld : SceneBase
 {
-	[Export] public Node3D SpawnPian;
+    [Export] public Node3D SpawnPian;
 
-    public override async void _Ready()
+    public override void _Ready()
     {
-		base._Ready();
-
-        while (!IsReady)
-        {
-            await ToSignal(GetTree(), "process_frame");
-        }
-
         Vector3 spawnPos;
-		Vector3 spawnrot;
+        Vector3 spawnrot;
 
-		if (PlayerManager.Instance.CanUseSavedPosition())
-		{
-			spawnPos = PlayerManager.Instance.LocalPlayerData.LastPosition;
-			spawnrot = PlayerManager.Instance.LocalPlayerData.LastRotation;
-		}
-		else
-		{
-			spawnPos = SpawnPian.GlobalPosition;
-			spawnrot = SpawnPian.GlobalRotation;
-		}
-		PlayerManager.Instance.SpawnLocalPlayer(spawnPos, spawnrot);
-	}
+        if (PlayerManager.Instance.CanUseSavedPosition())
+        {
+            spawnPos = PlayerManager.Instance.LocalPlayerData.LastPosition;
+            spawnrot = PlayerManager.Instance.LocalPlayerData.LastRotation;
+        }
+        else
+        {
+            spawnPos = SpawnPian.GlobalPosition;
+            spawnrot = SpawnPian.GlobalRotation;
+        }
+        PlayerManager.Instance.SpawnLocalPlayer(spawnPos, spawnrot);
+
+        CatLog.Ok("场景 _EnterTree 已完成 " + this.Name);
+    }
 }

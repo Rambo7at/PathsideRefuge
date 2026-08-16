@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using System.Text.Json;
+using 途畔归所.Dll.Data;
 using 途畔归所.Dll.Interface;
 using 途畔归所.Dll.Utils;
 
@@ -15,19 +16,27 @@ public partial class NetObject : Resource, ISerializable
 
     [Export] private byte[] _customData;
 
-    public uint DataRevision { get; private set; }
-
-    public NetID netId { get; set; }
 
     public byte[] CustomData
     {
         get => _customData;
         set
         {
+            if (_customData == value) return;
             _customData = value;
             DataRevision++;
+            OnDataChanged?.Invoke();
         }
     }
+
+
+
+
+    public uint DataRevision { get; private set; }
+
+    public NetID netId { get; set; }
+
+
 
     public event Action OnDataChanged;
 
@@ -40,6 +49,12 @@ public partial class NetObject : Resource, ISerializable
         Position = position;
         Rotation = rotation;
     }
+
+
+    public NetObject DeepCopy() => this.DuplicateDeep() as NetObject;
+
+
+
 
     /// <summary>应用权威数据（客户端同步专用，直接设置数据并标记版本）</summary>
     public void ApplyAuthoritativeData(uint revision, byte[] data)
@@ -99,4 +114,5 @@ public partial class NetObject : Resource, ISerializable
         Position = new Vector3(dto.PosX, dto.PosY, dto.PosZ);
         Rotation = new Vector3(dto.RotX, dto.RotY, dto.RotZ);
     }
+
 }

@@ -23,34 +23,84 @@ public partial class SceneOwnerManager : Node
         CatLog.Ok("[SceneOwnerManager] 初始化完成");
     }
 
+    public void RequestSceneOwnership(int sceneHash, long requestingPeer) => RpcId(NetCore.ServerID, nameof(Rpc_RequestSceneOwnership), sceneHash, requestingPeer);
 
-    /// <summary>注：获取或创建场景拥有者（若主机则直接分配，若客户端则异步请求）</summary>
-    public void TryAcquireOwnership(int sceneHash, long requestingPeer, Action action)
+
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, TransferMode = TransferModeEnum.Reliable, CallLocal = true)]
+    public void Rpc_RequestSceneOwnership(int sceneHash, long requestingPeer)
     {
-        if (NetCore.Instance.IsHost)
+        if (NetCore.Instance.IsClient) return;
+
+        long sendPeer = Multiplayer.GetRemoteSenderId();
+
+        if (!_sceneOwners.TryGetValue(sceneHash, out long peer))
         {
-            if (_sceneOwners.TryGetValue(sceneHash, out long peer))
-            {
-                WorldManager.Instance.CurrentScene.SyncDataTargetPeer = peer;
-            }
-
             _sceneOwners[sceneHash] = requestingPeer;
-
-            Rpc(nameof(Rpc_TakeOwnershipNotification), sceneHash, requestingPeer);
-            action.Invoke();
+            RpcId(sendPeer, nameof(Rpc_GrantSceneOwnership), sceneHash, requestingPeer);
+            CatLog.Ok($"[SceneOwnerManager]此场景无拥有者，[{requestingPeer}] 已成为拥有者");
+            return;
         }
 
+        long ownerPeer = requestingPeer == NetCore.ServerID ? requestingPeer : peer;
 
-        _pendingRequests[sceneHash] = tcs;
+        if (ownerPeer == NetCore.ServerID)
+        {
+            _sceneOwners[sceneHash] = ownerPeer;
+            // 这里先不写接管逻辑
+        }
 
-        RpcId(NetCore.ServerID, nameof(Rpc_RequestOwners), sceneHash);
+        RpcId(sendPeer, nameof(Rpc_NotifySceneOwnership), sceneHash, ownerPeer);
 
-        // 等待主机回复
-        long owner = await tcs.Task;
-        _pendingRequests.Remove(sceneHash);
-
-        return owner;
     }
+
+    /// <summary>注：主机回复拥有者（仅客户端接收）</summary>
+    [Rpc(MultiplayerApi.RpcMode.Authority, TransferMode = TransferModeEnum.Reliable, CallLocal = true)]
+    public void Rpc_GrantSceneOwnership(int sceneHash, long ownerPeer)
+    {
+        if (sceneHash != WorldManager.Instance.CurrentSceneHash) return;
+
+        WorldManager.Instance.CurrentScene.OnOwnershipAcquired(ownerPeer); 
+    }
+
+
+    [Rpc(MultiplayerApi.RpcMode.Authority, TransferMode = TransferModeEnum.Reliable, CallLocal = true)]
+    public void Rpc_NotifySceneOwnership(int sceneHash, long ownerPeer)
+    {
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    [Rpc(MultiplayerApi.RpcMode.Authority, TransferMode = TransferModeEnum.Reliable, CallLocal = false)]
+    public void Rpc_TakeOwnershipNotification(int sceneHash, long newOwner)
+    {
+        if (NetCore.Instance.IsHost) return;
+        if (sceneHash != WorldManager.Instance.CurrentSceneHash) return;
+
+        if (WorldManager.Instance.CurrentScene is SceneBase scene)
+        {
+            if (scene.OwnerPeerID == newOwner) return;
+
+            scene.OwnerPeerID = newOwner;
+            CatLog.Ok($"[SceneOwnerManager] 客户端 {NetCore.Instance.LocalPeerID} 收到场景 {sceneHash} 的接管通知，新拥有者 {newOwner}");
+        }
+    }
+
+
 
 
     /// <summary>注：转移场景拥有权（拥有者离开时调用）</summary>
@@ -75,36 +125,8 @@ public partial class SceneOwnerManager : Node
     }
 
 
-    // ─── RPC 通信 ──────────────────────────────────────────────────────
 
-    /// <summary>注：客户端请求场景拥有者（仅主机响应）</summary>
-    [Rpc(MultiplayerApi.RpcMode.AnyPeer, TransferMode = TransferModeEnum.Reliable)]
-    public void Rpc_RequestOwners(int sceneHash)
-    {
-        if (NetCore.Instance.IsClient) return;
 
-        long sendpeer = Multiplayer.GetRemoteSenderId();
-
-        if (_sceneOwners.TryGetValue(sceneHash, out long peer))
-        {
-            RpcId(sendpeer, nameof(Rpc_ReceiveAllOwners), sceneHash, peer);
-            return;
-        }
-
-        RpcId(sendpeer, nameof(Rpc_ReceiveAllOwners), sceneHash, sendpeer);
-    }
-
-    /// <summary>注：主机回复拥有者（仅客户端接收）</summary>
-    [Rpc(MultiplayerApi.RpcMode.Authority, TransferMode = TransferModeEnum.Reliable, CallLocal = false)]
-    public void Rpc_ReceiveAllOwners(int sceneHash, long ownerPeer)
-    {
-        if (NetCore.Instance.IsHost) return;
-
-        if (_pendingRequests.TryGetValue(sceneHash, out var tcs))
-        {
-            tcs.SetResult(ownerPeer);
-        }
-    }
 
 
     // ─── 所有权转移 RPC ──────────────────────────────────────────────
@@ -154,19 +176,6 @@ public partial class SceneOwnerManager : Node
     }
 
 
-    [Rpc(MultiplayerApi.RpcMode.Authority, TransferMode = TransferModeEnum.Reliable, CallLocal = false)]
-    public void Rpc_TakeOwnershipNotification(int sceneHash, long newOwner)
-    {
-        if (NetCore.Instance.IsHost) return;
-        if (sceneHash != WorldManager.Instance.CurrentSceneHash) return;
 
-        if (WorldManager.Instance.CurrentScene is SceneBase scene)
-        {
-            if (scene.OwnerPeerID == newOwner) return;
-
-            scene.OwnerPeerID = newOwner;
-            CatLog.Ok($"[SceneOwnerManager] 客户端 {NetCore.Instance.LocalPeerID} 收到场景 {sceneHash} 的接管通知，新拥有者 {newOwner}");
-        }
-    }
 
 }

@@ -87,7 +87,7 @@ public partial class NetObjectManager : Node
     public bool SpawnObject(int hash, Vector3 pos, Vector3 rot)
     {
         if (GetPrefab(hash) == null) return false;
-        var netId = NetObjectRegistry.Instance.RegisterObject(hash, pos, rot);
+        var netId = NetObjectRegistry.Instance.RegisterAndSpawn(hash, pos, rot);
         HandleSpawned(netId);
         return true;
     }
@@ -98,7 +98,7 @@ public partial class NetObjectManager : Node
         if (!IsInstanceValid(node3D)) return false;
         int hash = CatUtils.GetStableHashCode(node3D.Name);
         if (GetPrefab(hash) == null) return false;
-        var netId = NetObjectRegistry.Instance.RegisterObject(hash, pos, rot);
+        var netId = NetObjectRegistry.Instance.RegisterAndSpawn(hash, pos, rot);
         HandleSpawned(netId, node3D);
         return true;
     }
@@ -109,7 +109,7 @@ public partial class NetObjectManager : Node
         if (netObject == null) return false;
         if (GetPrefab(netObject.PrefabHash) == null) return false;
 
-        var netId = NetObjectRegistry.Instance.RegisterObject(netObject, pos, rot);
+        var netId = NetObjectRegistry.Instance.RegisterAndSpawn(netObject, pos, rot);
 
 
         HandleSpawned(netId);
@@ -119,15 +119,12 @@ public partial class NetObjectManager : Node
     /// <summary>注：处理网络对象生成，实例化节点并添加到当前场景</summary>
     private void HandleSpawned(NetID netId, Node node = null)
     {
-
-        // 2. 检查是否已存在
         if (_netObjectInstances.ContainsKey(netId))
         {
             CatLog.Net($"[NetObjectManager] NetID {netId} 已存在，跳过生成");
             return;
         }
 
-        // 3. 获取 NetObject 数据
         NetObject netobj = NetObjectRegistry.Instance.GetNetObject(netId);
         if (netobj == null)
         {
@@ -168,8 +165,6 @@ public partial class NetObjectManager : Node
         node3D.Position = netobj.Position;
         node3D.Rotation = netobj.Rotation;
 
-
-
         if (CatUtils.FindChildNode<NetSyncBase>(node3D) is not NetSyncBase sync)
         {
             CatLog.Err($"[NetObjectManager] 没有对应的网络对象！ ");
@@ -178,10 +173,12 @@ public partial class NetObjectManager : Node
 
         sync.NetID = netId;
         _netObjectInstances[netId] = node3D;
-        currentScene.AddChild(node3D);
+        currentScene.CallDeferred("add_child", node3D);    // 标记：这里延迟了一帧生成，未来待考虑 优化
 
         CatLog.Net($"[NetObjectManager] 生成网络对象：{node3D.Name}，NetID：{netId}");
     }
+
+
 
     /// <summary>注：网络对象注销时，从管理器中移除并清理场景实例。</summary>
     private void HandleDestroyed(NetID id)

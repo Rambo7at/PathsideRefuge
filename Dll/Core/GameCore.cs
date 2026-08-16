@@ -24,7 +24,7 @@ public partial class GameCore : Node
 
         if (Input.IsActionJustPressed("cat_F6"))
         {
-            NetObjectRegistry.Instance.GetAllNetObjects();
+            NetObjectRegistry.Instance.Debug_GetAllNetObjects();
 
         }
            

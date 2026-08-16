@@ -6,7 +6,7 @@
 
 [sub_resource type="BoxMesh" id="BoxMesh_q5k7f"]
 
-[node name="7at_传送测试" type="Node3D" unique_id=370073041 node_paths=PackedStringArray("triggerArea")]
+[node name="7at_传送测试2" type="Node3D" unique_id=370073041 node_paths=PackedStringArray("triggerArea")]
 script = ExtResource("1_jmfrg")
 triggerArea = NodePath("Area3D")
 targetScene = "测试场景"

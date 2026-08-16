@@ -1,10 +1,10 @@
 using Godot;
-using Godot.Collections;
 using System;
+using System.Collections.Generic;
 using 途畔归所.Dll.Core;
+using 途畔归所.Dll.Data;
 using 途畔归所.Dll.NetWork;
 using 途畔归所.Dll.Utils;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace 途畔归所.Dll.Manager;
 
@@ -14,7 +14,10 @@ public partial class NetObjectRegistry : Node
 	private static NetObjectRegistry _instance;
 	public static NetObjectRegistry Instance { get => _instance ??= new(); set => _instance ??= value; }
 
-	private readonly System.Collections.Generic.Dictionary<NetID, NetObject> _netObjects = [];
+	private readonly Dictionary<NetID, NetObject> _netObjects = [];
+
+	/// <summary>注：场景哈希 → 该场景所有 NetID 列表，用于快速检索场景对象</summary>
+	private readonly Dictionary<int, List<NetID>> _sceneNetObjectsList = [];
 
 	private uint _nextObjID = 1;
 
@@ -28,72 +31,171 @@ public partial class NetObjectRegistry : Node
 	}
 
 	/// <summary>注：获取一个新的网络对象 ID（包含当前场景哈希）。</summary>
-	public NetID GetNetID()
+	private NetID GetNetID()
 	{
 		int sceneHash = WorldManager.Instance.CurrentSceneHash;
 		return new NetID(NetCore.Instance.LocalPeerID, _nextObjID++, sceneHash);
 	}
 
-	/// <summary>注：注册网络对象，主机同步或报告给服务器，并返回对象 ID。</summary>
-	public NetID RegisterObject(int hash, Vector3 pos, Vector3 rot)
+	/// <summary>注：获取指定场景哈希的新网络对象 ID。</summary>
+	private NetID GetNetID(int sceneHash) => new(NetCore.Instance.LocalPeerID, _nextObjID++, sceneHash);
+
+	/// <summary>注：注册并生成网络对象，同步信息给其他节点，返回 NetID。</summary>
+	public NetID RegisterAndSpawn(int hash, Vector3 pos, Vector3 rot)
 	{
 		NetID id = GetNetID();
-
 		NetObject netobj = new(id, hash, pos, rot);
-
 		_netObjects[id] = netobj;
 
-		if (NetCore.Instance.IsHost)
-		{
-			Rpc(nameof(Rpc_HostSyncRegister), id.PeerID, id.LocalSeqId, id.SceneHash, netobj.PrefabHash, pos, rot);
-			return id;
-		}
-		else
-		{
-			Rpc(nameof(Rpc_ReportToServer), id.PeerID, id.LocalSeqId, id.SceneHash, netobj.PrefabHash, pos, rot);
-			return id;
-		}
+		if (!_sceneNetObjectsList.ContainsKey(id.SceneHash)) _sceneNetObjectsList[id.SceneHash] = [];
+		_sceneNetObjectsList[id.SceneHash].Add(id);
+
+		SyncRegister(id.PeerID, id.LocalSeqId, id.SceneHash, netobj.PrefabHash, pos, rot);
+		return id;
 	}
 
-	/// <summary>注：注册网络对象，主机同步或报告给服务器，并返回对象 ID。</summary>
-	public NetID RegisterObject(NetObject netobj, Vector3 pos, Vector3 rot)
+	/// <summary>注：注册并生成网络对象（使用已有 NetObject），同步信息给其他节点，返回 NetID。</summary>
+	public NetID RegisterAndSpawn(NetObject netobj, Vector3 pos, Vector3 rot)
 	{
 		NetID id = GetNetID();
-		netobj.netId = id;
 
+
+
+		netobj.netId = id;
 		_netObjects[id] = netobj;
 
+		if (!_sceneNetObjectsList.ContainsKey(id.SceneHash)) _sceneNetObjectsList[id.SceneHash] = [];
+		_sceneNetObjectsList[id.SceneHash].Add(id);
+
+		SyncRegister(id.PeerID, id.LocalSeqId, id.SceneHash, netobj.PrefabHash, pos, rot);
+		return id;
+	}
+
+
+	public void RegisterAndSpawn(NetID netid, NetObject netobj)
+	{
+		if (_netObjects.TryGetValue(netid, out var _)) return;
+
+		_netObjects[netid] = netobj;
+		OnSpawned?.Invoke(netid, null);
+		SyncRegister(netid.PeerID, netid.LocalSeqId, netid.SceneHash, netobj.PrefabHash, netobj.Position, netobj.Rotation);
+
+		return;
+	}
+
+
+
+
+	/// <summary>注：同步注册信息到其他节点，主机走 Rpc_HostSyncRegister，客户端走 Rpc_ReportToServer。</summary>
+	private void SyncRegister(long peer, uint seqId, int sceneHash, int prefabHash, Vector3 pos, Vector3 rot)
+	{
 		if (NetCore.Instance.IsHost)
 		{
-			Rpc(nameof(Rpc_HostSyncRegister), id.PeerID, id.LocalSeqId, id.SceneHash, netobj.PrefabHash, pos, rot);
-			return id;
+			Rpc(nameof(Rpc_HostSyncRegister), peer, seqId, sceneHash, prefabHash, pos, rot);
 		}
 		else
 		{
-			Rpc(nameof(Rpc_ReportToServer), id.PeerID, id.LocalSeqId, id.SceneHash, netobj.PrefabHash, pos, rot);
-			return id;
+			Rpc(nameof(Rpc_ReportToServer), peer, seqId, sceneHash, prefabHash, pos, rot);
 		}
 	}
 
-	public void RegisterObjectLocal(Godot.Collections.Array<NetObject> netObjects)
+	/// <summary>注：批量注册网络对象（用于场景数据恢复），触发 OnSpawned 事件。</summary>
+	public void RegistryNetObjects(Godot.Collections.Array<NetObject> netObjects)
 	{
 		foreach (var item in netObjects)
 		{
 			if (_netObjects.ContainsKey(item.netId)) continue;
 			_netObjects[item.netId] = item;
+
+			if (!_sceneNetObjectsList.ContainsKey(item.netId.SceneHash)) _sceneNetObjectsList[item.netId.SceneHash] = [];
+			_sceneNetObjectsList[item.netId.SceneHash].Add(item.netId);
+
 			OnSpawned?.Invoke(item.netId, null);
 		}
 	}
 
+	/// <summary>注：空重载，预留扩展。</summary>
+	public bool LoadNetObjects(int sceneHash)
+	{
+		if (!_sceneNetObjectsList.TryGetValue(sceneHash, out var netids)) return false;
+
+		foreach (var id in netids)
+		{
+			OnSpawned?.Invoke(id, null);
+		}
+
+		return true;
+	}
+
+	/// <summary>注：客户端向服务器请求场景存档数据。</summary>
+	public void RequestSceneData(int sceneHash) => RpcId(NetCore.ServerID, nameof(Rpc_RequestSceneData), sceneHash);
+
+
+	#region 同步
+
+	/// <summary>注：服务器处理场景存档请求，有存档则下发，无存档则通知客户端按预设生成。</summary>
+	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
+	private void Rpc_RequestSceneData(int sceneHash)
+	{
+		if (NetCore.Instance.IsClient) return;
+		long sendPeer = Multiplayer.GetRemoteSenderId();
+
+		// 搜寻场景数据
+		if (_sceneNetObjectsList.TryGetValue(sceneHash, out var netIDs))
+		{
+			foreach (var netid in netIDs)
+			{
+				if (!_netObjects.TryGetValue(netid, out var netobj)) continue;
+				RpcId(sendPeer, nameof(Rpc_SendNetObject), netid.PeerID, netid.LocalSeqId, netid.SceneHash, netobj.PrefabHash, netobj.Position, netobj.Rotation);
+			}
+			RpcId(sendPeer, nameof(Rpc_SceneDataReady), false);
+			return;
+		}
+
+		// 从世界管理 加载场景存档数据
+		if (WorldManager.Instance.LoadSceneData(sceneHash) is SceneData sceneData)
+		{
+			foreach (var netObj in sceneData.NetObjectList)
+			{
+				RpcId(sendPeer, nameof(Rpc_SendNetObject), netObj.netId.PeerID, netObj.netId.LocalSeqId, netObj.netId.SceneHash, netObj.PrefabHash, netObj.Position, netObj.Rotation);
+			}
+			RpcId(sendPeer, nameof(Rpc_SceneDataReady), false);
+			return;
+		}
+
+		RpcId(sendPeer, nameof(Rpc_SceneDataReady), true);
+	}
+
+	/// <summary>注：服务器下发单个 NetObject 注册信息，客户端收到后注册并生成对象。</summary>
+	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
+	private void Rpc_SendNetObject(long peer, uint seqId, int sceneHash, int prefabHash, Vector3 pos, Vector3 rot)
+	{
+		if (NetCore.Instance.IsHost) return;
+		NetID id = new(peer, seqId, sceneHash);
+		NetObject netobj = new(id, prefabHash, pos, rot);
+		RegisterAndSpawn(id, netobj);
+	}
+
+	/// <summary>注：服务器通知客户端没有场景存档，客户端按场景预设自行生成。</summary>
+	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
+	private void Rpc_SceneDataReady(bool IsNewScene)
+	{
+		if (NetCore.Instance.IsHost) return;
+
+		WorldManager.Instance.CurrentScene.OnSceneDataReady(IsNewScene);
+	}
+
 	/// <summary>注：主机同步注册网络对象信息，并触发对象生成事件。</summary>
 	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
-	private void Rpc_HostSyncRegister(long ownerPeer, uint seqId, int sceneHash,int prefabHash, Vector3 pos, Vector3 rot )
+	private void Rpc_HostSyncRegister(long ownerPeer, uint seqId, int sceneHash, int prefabHash, Vector3 pos, Vector3 rot)
 	{
+		if (NetCore.Instance.IsHost) return;
+
 		NetID netId = new(ownerPeer, seqId, sceneHash);
 
 		if (_netObjects.ContainsKey(netId)) return;
 
-		var netobj = new NetObject(netId, prefabHash,pos, rot);
+		var netobj = new NetObject(netId, prefabHash, pos, rot);
 
 		_netObjects[netId] = netobj;
 
@@ -105,15 +207,13 @@ public partial class NetObjectRegistry : Node
 	private void Rpc_ReportToServer(long ownerPeer, uint seqId, int sceneHash, int prefabHash, Vector3 pos, Vector3 rot)
 	{
 		if (NetCore.Instance.IsClient) return;
+		long senderId = Multiplayer.GetRemoteSenderId();
 
 		NetID netId = new(ownerPeer, seqId, sceneHash);
-
-		if (_netObjects.ContainsKey(netId)) return;
-
 		var netobj = new NetObject(netId, prefabHash, pos, rot);
-		_netObjects[netId] = netobj;
 
-		long senderId = Multiplayer.GetRemoteSenderId();
+		if (!_netObjects.ContainsKey(netId)) _netObjects[netId] = netobj;
+
 		foreach (long peerId in Multiplayer.GetPeers())
 		{
 			if (peerId != senderId && peerId != NetCore.ServerID)
@@ -125,7 +225,7 @@ public partial class NetObjectRegistry : Node
 		OnSpawned?.Invoke(netId, null);
 	}
 
-	/// <summary>注：通知所有客户端销毁指定网络对象</summary>
+	/// <summary>注：通知所有客户端销毁指定网络对象。</summary>
 	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
 	public void Rpc_DestroyNetObject(long ownerPeer, uint seqId, int sceneHash)
 	{
@@ -141,31 +241,29 @@ public partial class NetObjectRegistry : Node
 
 		RemoveNet(id);
 	}
+	#endregion
 
+	#region 自定义数据传输
 
-	#region 自定义数据传输 
-
-	/// <summary>客户端请求拉取最新数据</summary>
+	/// <summary>注：客户端请求拉取指定 NetObject 的最新自定义数据。</summary>
 	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
 	private void Rpc_RequestCustomData(long peerID, uint localSeqId, int sceneHash)
 	{
 		if (NetCore.Instance.IsClient) return;
 		long sendPeer = Multiplayer.GetRemoteSenderId();
 
-
-
 		NetID netID = new(peerID, localSeqId, sceneHash);
 
 		if (_netObjects.TryGetValue(netID, out var netObj))
 		{
-			RpcId(sendPeer, nameof(Rpc_ReceiveCustomData),peerID, localSeqId, sceneHash,netObj.DataRevision, netObj.CustomData);
+			RpcId(sendPeer, nameof(Rpc_ReceiveCustomData), peerID, localSeqId, sceneHash, netObj.DataRevision, netObj.CustomData);
 			CatLog.Ok($"[Registry] 服务器发出数据信息");
 		}
 
-			// 这里还有 没有找到目标的 逻辑，只是目前先不编写
+		// TODO: 未找到目标 NetID 时的处理逻辑
 	}
 
-	/// <summary>接收权威端下发的数据</summary>
+	/// <summary>注：服务器下发自定义数据，客户端接收并应用。</summary>
 	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
 	private void Rpc_ReceiveCustomData(long peerID, uint localSeqId, int sceneHash, uint revision, byte[] data)
 	{
@@ -175,8 +273,7 @@ public partial class NetObjectRegistry : Node
 		CatLog.Ok($"[Registry] 收到版本数据，   。NetID:{netID} 收到:{revision} 本地:{netObj.DataRevision}");
 	}
 
-
-	/// <summary>客户端提交修改后的数据</summary>
+	/// <summary>注：客户端提交修改后的自定义数据给服务器。</summary>
 	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
 	private void Rpc_SubmitCustomData(long peerID, uint localSeqId, int sceneHash, uint clientRevision, byte[] data)
 	{
@@ -199,10 +296,9 @@ public partial class NetObjectRegistry : Node
 		netObj.CustomData = data;
 		CatLog.Ok($"[Registry] 服务器收到版本数据。NetID:{netID} 新版本:{netObj.DataRevision}");
 		RpcId(sendPeer, nameof(Rpc_AcknowledgeCustomData), peerID, localSeqId, sceneHash);
-
 	}
 
-	/// <summary>接收权威端下发的数据</summary>
+	/// <summary>注：服务器确认收到客户端提交的数据，触发客户端 OnDataChanged 事件。</summary>
 	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
 	private void Rpc_AcknowledgeCustomData(long peerID, uint localSeqId, int sceneHash)
 	{
@@ -212,22 +308,15 @@ public partial class NetObjectRegistry : Node
 		netObj.NotifyDataConfirmed();
 	}
 
-
-
-
-
-
+	/// <summary>注：客户端主动请求自定义数据。</summary>
 	public void SendRequestCustomData(NetID netID) => RpcId(NetCore.ServerID, nameof(Rpc_RequestCustomData), netID.PeerID, netID.LocalSeqId, netID.SceneHash);
 
+	/// <summary>注：客户端主动提交自定义数据。</summary>
 	public void SendSubmitCustomData(NetID netID, uint revision, byte[] data) => RpcId(NetCore.ServerID, nameof(Rpc_SubmitCustomData), netID.PeerID, netID.LocalSeqId, netID.SceneHash, revision, data);
 
 	#endregion
 
-
-
-
-
-	/// <summary>注：主机广播销毁网络对象（由主机调用，广播给所有客户端）</summary>
+	/// <summary>注：主机广播销毁网络对象。</summary>
 	public void BroadcastDestroyNetObject(NetObject netObject)
 	{
 		if (netObject == null) return;
@@ -238,6 +327,7 @@ public partial class NetObjectRegistry : Node
 		CatLog.Net($"[NetObjectRegistry] 主机广播销毁对象：{id}");
 	}
 
+	/// <summary>注：从注册表中移除指定 NetID 的网络对象。</summary>
 	public void RemoveNet(NetID ID)
 	{
 		if (!_netObjects.TryGetValue(ID, out var netObj)) return;
@@ -245,10 +335,10 @@ public partial class NetObjectRegistry : Node
 		OnDestroyed?.Invoke(ID);
 	}
 
-	/// <summary>注：根据网络对象 ID 获取网络对象。</summary>
+	/// <summary>注：根据 NetID 获取对应的 NetObject。</summary>
 	public NetObject GetNetObject(NetID id) => _netObjects.TryGetValue(id, out var netobj) ? netobj : null;
 
-	/// <summary>注：获取指定场景的所有网络对象身份信息列表</summary>
+	/// <summary>注：获取指定场景的所有 NetObject 列表。</summary>
 	public Godot.Collections.Array<NetObject> GetNetObjectsForScene(int sceneHash)
 	{
 		Godot.Collections.Array<NetObject> arr = [];
@@ -262,35 +352,19 @@ public partial class NetObjectRegistry : Node
 		return arr;
 	}
 
-
-
-	public System.Collections.Generic.Dictionary<int, Godot.Collections.Array<NetObject>> GetNetObjectsDict()
-	{
-		var dict = new System.Collections.Generic.Dictionary<int, Godot.Collections.Array<NetObject>>();
-
-		foreach (var kvp in _netObjects)
-		{
-			int sceneHash = kvp.Key.SceneHash;
-			if (!dict.ContainsKey(sceneHash))
-			{
-				dict[sceneHash] = [];
-			}
-			dict[sceneHash].Add(kvp.Value);
-		}
-
-
-		return dict;
-	}
+	/// <summary>注：获取所有场景的 NetObject 字典（场景哈希 → NetObject 列表）。</summary>
+	public Dictionary<NetID, NetObject> GetNetObjectsDict() => _netObjects;
 
 
 
 
-	public void GetAllNetObjects()
+	/// <summary>注：调试方法，打印所有 NetObject 信息。</summary>
+	public void Debug_GetAllNetObjects()
 	{
 		foreach (var netObj in _netObjects)
 		{
-			CatLog.Debug($"[NetObjectRegistry] NetID: {netObj.Key}, PrefabHash: {netObj.Value.PrefabHash}，ObjNetID：{netObj.Value.netId}");
+			CatLog.Warn($"[NetObjectRegistry]: NetID: {netObj.Key}, PrefabHash: {netObj.Value.PrefabHash}，ObjNetID：{netObj.Value.netId}");
+			CatLog.Warn($"[NetObjectRegistry]: 数据检测 {netObj.Value.CustomData?.Length}");
 		}
 	}
-
 }

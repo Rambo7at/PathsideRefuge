@@ -21,7 +21,6 @@ public partial class NetSyncBase : Node
 	public bool IsOwner => _scene != null && _scene.OwnerPeerID == NetCore.Instance.LocalPeerID;
 	public long OwnedPeer => _scene.OwnerPeerID;
 	public long LocalPeer => NetCore.Instance.LocalPeerID;
-	public event Action OnSaveState;
 
 	public byte[] CustomData { get => GetCustomData(); set => SetCustomData(value); }
 
@@ -35,8 +34,10 @@ public partial class NetSyncBase : Node
 	public override void _EnterTree()
 	{
 		if (ValidateDeps()) CatUtils.StopAndExit(GetParent());
-		RegisterManual();
+		
 	}
+
+	public override void _Ready() => RegisterManual();
 
 	private bool ValidateDeps()
 	{
@@ -62,25 +63,19 @@ public partial class NetSyncBase : Node
 
 	private void RegisterManual()
 	{
-		if (NetCore.Instance.IsClient && NetID.IsNone)
+		if (_scene.SceneData.IsNewScene && NetID.IsNone)
 		{
-			CatUtils.StopAndExit(_node3D);
-			return;
-		}
-
-		if (NetID.IsNone && _scene.SceneData.IsNewScene)
-		{
-			NetID = NetObjectRegistry.Instance.RegisterObject(_nodeHash, _node3D.GlobalPosition, _node3D.GlobalRotation);
-			CatLog.Ok($"[NetSyncBase]：新场景预置物品，已注册 NetID:{NetID}");
+			NetObjectManager.Instance.SpawnObject(_nodeHash, _node3D.GlobalPosition, _node3D.GlobalRotation);
+			CatLog.Ok($"[NetSyncBase]：新场景预置物品，已注册 NetID:{_node3D.Name}");
 		}
 
 		if (NetID.IsNone)
 		{
+			CatLog.Ok($"[NetSyncBase]：销毁前检测 NetID:{NetID}，{_node3D.Name}");
 			CatUtils.StopAndExit(_node3D);
-			return;
 		}
 
-		_scene.OnSaveState += () => OnSaveState?.Invoke();
+
 	}
 
 	/// <summary>请求最新权威数据，数据就绪后执行回调</summary>
