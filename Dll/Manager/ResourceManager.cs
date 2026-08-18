@@ -73,7 +73,7 @@ public class ResourceManager
                 ItemManager.Instance.RegisterItem(prefabHash, prefab, item.Data);
             }
 
-            NetObjectManager.Instance.RegisterNetObject(prefabHash, prefab);
+            NetObjectInstance.Instance.RegisterNetObject(prefabHash, prefab);
 
             node.QueueFree();
         }

@@ -36,7 +36,7 @@ public partial class ContainerComp : PlacedBase, IInteractable, IInventoryHolder
 	/// <summary>注：容器名称</summary>
 	public string ObjectName => m_placedData.m_Name;
 
-	public int _dataRevision = -1;
+	private uint _dataRevision;
 
 	public override void _Ready()
 	{
@@ -45,6 +45,14 @@ public partial class ContainerComp : PlacedBase, IInteractable, IInventoryHolder
 			CatUtils.StopAndExit(this);
 			return;
 		}
+
+		if (_netSyncBase.IsOwner)
+		{
+			LoadFromNetObject();
+		}
+
+
+
 
 		_netSyncBase.RegisterRpc(nameof(Rpc_ToggleContainer), Rpc_ToggleContainer);
 		_netSyncBase.RegisterRpc<bool, long>(nameof(Rpc_ContainerInteract), Rpc_ContainerInteract);
@@ -79,7 +87,10 @@ public partial class ContainerComp : PlacedBase, IInteractable, IInventoryHolder
 	public void PlayerInteract(bool InputE, bool InputF, CreatureBase creature)
 	{
 		if (creature is not Player) return;
-		if (InputE) _netSyncBase.SendRpcToPeer(nameof(Rpc_ToggleContainer), _netSyncBase.OwnedPeer);
+		if (InputE)
+		{
+			_netSyncBase.SendRpcToPeer(nameof(Rpc_ToggleContainer), _netSyncBase.OwnedPeer);
+		}
 	}
 
 	/// <summary>注：RPC 入口，接收容器开关请求，主机直接执行，客户端先请求数据再执行</summary>
@@ -90,45 +101,48 @@ public partial class ContainerComp : PlacedBase, IInteractable, IInventoryHolder
 			ResolveContainerToggle(sendPeer);
 			return;
 		}
-
-		_netSyncBase.RequestCustomData(() =>
-		{
-			ResolveContainerToggle(sendPeer);
-			CatLog.Debug($"用户：成功打开容器");
-		});
+		CatLog.Err($"非服务器已发送数据请求");
+		_netSyncBase.RequestCustomData(() => ResolveContainerToggle(sendPeer));
 	}
 
 	/// <summary>注：核心决策方法，根据当前容器状态决定执行打开或关闭操作</summary>
 	private void ResolveContainerToggle(long sendPeer)
 	{
+		LoadFromNetObject();
 
-		if (_netSyncBase.NetObj.DataRevision != _dataRevision)
-		{
-			LoadFromNetObject();
-			_dataRevision = (int)_netSyncBase.NetObj.DataRevision;
-		}
-
-		CatLog.Ok($"服务端：读取目前箱子状态：开关{IsOpen}/操作人{InteractPeer}");
+		CatLog.Ok($"拥有者：读取目前箱子状态：开关{IsOpen}/操作人{InteractPeer}");
 
 		if (IsOpen)
 		{
 			if (InteractPeer != sendPeer)
 			{
-				CatLog.Warn($"服务端：拒绝{sendPeer}请求目前箱子非申请人操作-状态：开关{IsOpen}/操作人{InteractPeer}");
+				CatLog.Warn($"拥有者：拒绝{sendPeer}请求目前箱子非申请人操作-状态：开关{IsOpen}/操作人{InteractPeer}");
 				return;
 			}
 
 			_netSyncBase.SendRpcToPeer(nameof(Rpc_ContainerInteract), sendPeer, true, InteractPeer);
-			CatLog.Ok($"服务端：回复用户关闭操作-状态：操作方式{true}/操作人{InteractPeer}");
+			CatLog.Ok($"拥有者：回复用户关闭操作-状态：操作方式{true}/操作人{InteractPeer}");
 			return;
 		}
 
+
 		IsOpen = true;
 		InteractPeer = sendPeer;
-
 		SaveToNetObject();
-		_netSyncBase.SendRpcToPeer(nameof(Rpc_ContainerInteract), sendPeer, false, InteractPeer);
-		CatLog.Ok($"服务端：回复用户开箱操作-状态：操作方式{false}/操作人{InteractPeer}");
+		CatLog.Ok($"拥有者：回复用户开箱操作-状态：操作方式{false}/操作人{InteractPeer}");
+
+ 
+		if (NetCore.Instance.IsHost)
+		{
+			
+			_netSyncBase.SendRpcToPeer(nameof(Rpc_ContainerInteract), sendPeer, false, InteractPeer);
+			return;
+		}
+		else
+		{
+			_netSyncBase.SubmitCustomData(() => _netSyncBase.SendRpcToPeer(nameof(Rpc_ContainerInteract), sendPeer, false, InteractPeer) );
+		}
+	   
 	}
 
 	/// <summary>注：RPC 回传入口，接收权威端执行结果，打开或关闭容器 UI</summary>
@@ -177,6 +191,7 @@ public partial class ContainerComp : PlacedBase, IInteractable, IInventoryHolder
 		});
 	}
 
+
 	/// <summary>注：打开容器 UI，加载数据并刷新显示</summary>
 	private void OpenContainerView()
 	{
@@ -200,9 +215,7 @@ public partial class ContainerComp : PlacedBase, IInteractable, IInventoryHolder
 	{
 		byte[] data = m_inventoryData.Serialize();
 		_netSyncBase.CustomData = data;
-
-		// ✅ 保存后更新本地缓存版本号
-		_dataRevision = (int)_netSyncBase.NetObj.DataRevision;
+		_dataRevision += 1;
 	}
 
 	/// <summary>注：从 NetObject.CustomData 反序列化读取数据到 m_inventoryData</summary>
@@ -215,12 +228,12 @@ public partial class ContainerComp : PlacedBase, IInteractable, IInventoryHolder
 
 		if (data.m_itemArr.Count == 0) return;
 
+		if (_dataRevision >= _netSyncBase.NetObj.DataRevision) return;
+		_dataRevision = _netSyncBase.NetObj.DataRevision;
+
 		m_inventoryData.IsOpen = data.IsOpen;
 		m_inventoryData.InteractPeer = data.InteractPeer;
 		m_inventoryData.m_itemArr = data.m_itemArr;
-
-		// ✅ 更新本地缓存版本号
-		_dataRevision = (int)_netSyncBase.NetObj.DataRevision;
 	}
 
 	/// <summary>注：在指定索引设置物品数据</summary>

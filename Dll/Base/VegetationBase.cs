@@ -100,7 +100,7 @@ public partial class VegetationBase : StaticBody3D, IDamageable
             if (drop == null) continue;
             foreach (var item in drop.GetItemDrop())
             {
-                NetObjectManager.Instance.SpawnObject(item, DropPos, Vector3.Zero);
+                NetObjectInstance.Instance.SpawnObject(item, DropPos, Vector3.Zero);
             }
         }
         CatUtils.StopAndExit(this);

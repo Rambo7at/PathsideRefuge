@@ -181,7 +181,7 @@ public partial class CreatureBase : CharacterBody3D, IDamageable
 			if (drop == null) continue;
 			foreach (var item in drop.GetItemDrop())
 			{
-				NetObjectManager.Instance.SpawnObject(item, Vector3.Zero, default);
+				NetObjectInstance.Instance.SpawnObject(item, Vector3.Zero, default);
 			}
 		}
 	}

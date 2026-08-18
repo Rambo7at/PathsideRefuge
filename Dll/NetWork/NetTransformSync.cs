@@ -20,7 +20,7 @@ public partial class NetTransformSync : Node
 	private Vector3 CurRot { get => _parentNode.GlobalRotation; set => _parentNode.GlobalRotation = value; }
 	private Vector3 TargetPos { get => _netobj.Position; set => _netobj.Position = value; }
 	private Vector3 TargetRot { get => _netobj.Rotation; set => _netobj.Rotation = value; }
-
+	
 	private bool isPlayer;
 
 	private bool IsOwner => isPlayer ? _netSyncBase?.NetID.PeerID == _netSyncBase?.LocalPeer : _netSyncBase.IsOwner;

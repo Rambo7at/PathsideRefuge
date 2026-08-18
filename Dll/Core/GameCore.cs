@@ -56,7 +56,7 @@ public partial class GameCore : Node
         AddChild(RpcGateway.Instance);
         AddChild(NetObjectRegistry.Instance);
         ResourceManager.Instance.Init();
-        AddChild(NetObjectManager.Instance);
+        AddChild(NetObjectInstance.Instance);
 
 
 

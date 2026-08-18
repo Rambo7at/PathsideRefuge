@@ -27,11 +27,11 @@ public partial class RpcGateway : Node
         NetID targetId = new(ownerPeer, seqId, sceneHash);
 
         if (WorldManager.Instance.CurrentSceneHash != sceneHash) return;
-        if (NetObjectManager.Instance.GetNetObject(targetId) is not Node node) return;
+        if (NetObjectInstance.Instance.GetNetObject(targetId) is not Node node) return;
 
         if (!node.IsInsideTree())
         {
-            NetObjectManager.Instance.RemoveObject(targetId);
+            NetObjectInstance.Instance.RemoveObject(targetId);
             return;
         }
 
@@ -47,11 +47,11 @@ public partial class RpcGateway : Node
         NetID targetId = new(ownerPeer, seqId, sceneHash);
 
         if (WorldManager.Instance.CurrentSceneHash != sceneHash) return;
-        if (NetObjectManager.Instance.GetNetObject(targetId) is not Node node) return;
+        if (NetObjectInstance.Instance.GetNetObject(targetId) is not Node node) return;
 
         if (!node.IsInsideTree())
         {
-            NetObjectManager.Instance.RemoveObject(targetId);
+            NetObjectInstance.Instance.RemoveObject(targetId);
             return;
         }
 

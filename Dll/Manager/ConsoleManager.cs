@@ -2,6 +2,7 @@ using Godot;
 using System;
 using System.Collections.Generic;
 using 途畔归所.Dll.Manager;
+using 途畔归所.Dll.NetWork;
 using 途畔归所.Dll.Utils;
 using 途畔归所.Dll.View;
 
@@ -62,7 +63,7 @@ public partial class ConsoleManager : Node
         Vector3 finalPos = consoleComp.m_player.GlobalPosition + offset;
 
 
-        return NetObjectManager.Instance.SpawnObject(CatUtils.GetStableHashCode(consoleComp.m_Command[1]),finalPos, default);
+        return NetObjectInstance.Instance.SpawnObject(CatUtils.GetStableHashCode(consoleComp.m_Command[1]),finalPos, default);
     }
 
     private bool PlayerInfo(ConsoleView consoleComp)

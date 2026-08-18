@@ -42,7 +42,7 @@ public partial class NetSyncBase : Node
 
 	public override void _ExitTree()
 	{
-		NetObjectManager.Instance.RemoveObject(NetID);
+		NetObjectInstance.Instance.RemoveObject(NetID);
 
 	}
 
@@ -80,7 +80,7 @@ public partial class NetSyncBase : Node
 
 		if (_scene.SceneData.IsNewScene && NetID.IsNone)
 		{
-			NetObjectManager.Instance.SpawnObject(_nodeHash, _node3D.GlobalPosition, _node3D.GlobalRotation);
+			NetObjectInstance.Instance.SpawnObject(_nodeHash, _node3D.GlobalPosition, _node3D.GlobalRotation);
 			CatLog.Ok($"[NetSyncBase]：新场景预置物品，已注册 NetID:{_node3D.Name}");
 		}
 
@@ -105,9 +105,9 @@ public partial class NetSyncBase : Node
 		// 订阅一次数据更新，触发后自动解绑
 		void DataReadyHandler()
 		{
-			onDataReady?.Invoke();
 			NetObj.OnDataChanged -= DataReadyHandler;
 			IsDataSyncing = false;
+			onDataReady?.Invoke();
 		}
 
 		NetObj.OnDataChanged += DataReadyHandler;
@@ -149,10 +149,10 @@ public partial class NetSyncBase : Node
 
 		void DataReadyHandler()
 		{
-			CatLog.Ok($"[NetSyncBase] Submit 收到确认。NetID:{NetID} 新版本:{NetObj?.DataRevision}");
-			onDataReady?.Invoke();
 			NetObj.OnDataChanged -= DataReadyHandler;
 			IsDataSyncing = false;
+			onDataReady?.Invoke();
+			CatLog.Ok($"[NetSyncBase] Submit 收到确认。NetID:{NetID} 新版本:{NetObj?.DataRevision}");
 		}
 
 		NetObj.OnDataChanged += DataReadyHandler;

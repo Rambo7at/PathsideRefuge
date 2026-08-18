@@ -25,14 +25,13 @@ public partial class NetObject : Resource, ISerializable
             if (_customData == value) return;
             _customData = value;
             DataRevision++;
-            OnDataChanged?.Invoke();
         }
     }
 
 
 
 
-    public uint DataRevision { get; private set; }
+    public uint DataRevision { get; private set; } = 1;  // 标记版本 是从1开始 ，方便其他组件同步
 
     public NetID netId { get; set; }
 

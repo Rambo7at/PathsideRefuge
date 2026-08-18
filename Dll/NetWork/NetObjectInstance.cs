@@ -1,17 +1,18 @@
 using Godot;
 using System.Collections.Generic;
 using 途畔归所.Dll.Core;
+using 途畔归所.Dll.Manager;
 using 途畔归所.Dll.NetWork;
 using 途畔归所.Dll.Utils;
 using static 途畔归所.Dll.Base.SceneBase;
 
-namespace 途畔归所.Dll.Manager;
+namespace 途畔归所.Dll.NetWork;
 
 /// <summary>注：网络对象管理器，负责预制体管理、对象生成与销毁，主机调用生成方法，客户端被动同步。</summary>
-public partial class NetObjectManager : Node
+public partial class NetObjectInstance : Node
 {
-    private static NetObjectManager _instance;
-    public static NetObjectManager Instance { get => _instance ??= new(); set => _instance ??= value; }
+    private static NetObjectInstance _instance;
+    public static NetObjectInstance Instance { get => _instance ??= new(); set => _instance ??= value; }
 
     public Dictionary<int, PackedScene> m_PrefabDict = [];
 

@@ -100,7 +100,7 @@ public partial class SceneBase : Node3D
         foreach (var netObject in SceneData.NetObjectList)
         {
             if (netObject.PrefabHash == PlayerManager.Instance.PlayerHash) continue;
-            NetObjectManager.Instance.SpawnObject(netObject, netObject.Position, netObject.Rotation);
+            NetObjectInstance.Instance.SpawnObject(netObject, netObject.Position, netObject.Rotation);
         }
 
         IsReady = true;

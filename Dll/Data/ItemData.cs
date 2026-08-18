@@ -4,6 +4,7 @@ using System.Text.Json;
 using 途畔归所.Dll.Comp;
 using 途畔归所.Dll.Interface;
 using 途畔归所.Dll.Manager;
+using 途畔归所.Dll.NetWork;
 namespace 维修公司.Dll.data;
 
     /// <summary>注：物品数据资源类，定义所有物品的基础属性与装备特性。</summary>
@@ -148,7 +149,7 @@ namespace 维修公司.Dll.data;
         public void TryDropItem(Vector3 DropPos)
         {
             if (ToDrop() is not ItemComp drop) return;
-            NetObjectManager.Instance.SpawnObject(drop,DropPos, new Vector3());
+            NetObjectInstance.Instance.SpawnObject(drop,DropPos, new Vector3());
         }
 
         // ISerializable 接口实现

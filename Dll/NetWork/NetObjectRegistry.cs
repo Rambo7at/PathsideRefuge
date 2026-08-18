@@ -3,10 +3,10 @@ using System;
 using System.Collections.Generic;
 using 途畔归所.Dll.Core;
 using 途畔归所.Dll.Data;
-using 途畔归所.Dll.NetWork;
+using 途畔归所.Dll.Manager;
 using 途畔归所.Dll.Utils;
 
-namespace 途畔归所.Dll.Manager;
+namespace 途畔归所.Dll.NetWork;
 
 /// <summary>注：网络对象注册表，管理网络对象注册、同步及相关事件。</summary>
 public partial class NetObjectRegistry : Node
@@ -291,23 +291,29 @@ public partial class NetObjectRegistry : Node
 
 		NetID netID = new(peerID, localSeqId, sceneHash);
 
-		if (_netObjects.TryGetValue(netID, out var netObj))
-		{
-			RpcId(sendPeer, nameof(Rpc_ReceiveCustomData), peerID, localSeqId, sceneHash, netObj.DataRevision, netObj.CustomData);
-			CatLog.Ok($"[Registry] 服务器发出数据信息");
-		}
+		if (!_netObjects.TryGetValue(netID, out var netObj)) return;        // TODO: 未找到目标 NetID 时的处理逻辑
 
-		// TODO: 未找到目标 NetID 时的处理逻辑
+
+		CatLog.Ok($"[Rpc_RequestCustomData] 服务器发出数据信息,目标{sendPeer} 长度{netObj.CustomData.Length}");
+
+		RpcId(sendPeer, nameof(Rpc_ReceiveCustomData), peerID, localSeqId, sceneHash, netObj.DataRevision, netObj.CustomData);
 	}
 
 	/// <summary>注：服务器下发自定义数据，客户端接收并应用。</summary>
 	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
 	private void Rpc_ReceiveCustomData(long peerID, uint localSeqId, int sceneHash, uint revision, byte[] data)
 	{
+		if (NetCore.Instance.IsHost) return;
+		CatLog.Ok($"[Rpc_ReceiveCustomData] 收到：数据长度 {data.Length}，版本:{revision}，netID{peerID}+{localSeqId}+{sceneHash}");
 		NetID netID = new(peerID, localSeqId, sceneHash);
-		if (!_netObjects.TryGetValue(netID, out var netObj)) return;
+		if (!_netObjects.TryGetValue(netID, out var netObj))
+		{
+			CatLog.Ok($"[Rpc_ReceiveCustomData] 没有找到 netID {netID}");
+			return;
+		}
+
 		netObj.ApplyAuthoritativeData(revision, data);
-		CatLog.Ok($"[Registry] 收到版本数据，   。NetID:{netID} 收到:{revision} 本地:{netObj.DataRevision}");
+
 	}
 
 	/// <summary>注：客户端提交修改后的自定义数据给服务器。</summary>
