@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.Linq;
 using System.Text;
 using 途畔归所.Dll.Utils;
 
@@ -54,8 +55,17 @@ namespace 途畔归所.Dll.Core
 			}
 		}
 
-		#region 房间创建与加入
-		public Error StartLANHost()
+        public bool HasPeer(int peerId) => Multiplayer.GetPeers().ToList<int>().Contains(peerId);
+
+
+
+
+
+
+
+
+        #region 房间创建与加入
+        public Error StartLANHost()
 		{
 			ENetMultiplayerPeer peer = new();
 			Error err = peer.CreateServer(m_Port, Max_Player);
@@ -119,19 +129,15 @@ namespace 途畔归所.Dll.Core
 		#endregion
 
 
-
-
-
-
-		private void OnPeerConnected(long id) => GD.Print($"[NetCore] 玩家连接: {id}");
+		private void OnPeerConnected(long id) => CatLog.Ok($"[NetCore] 玩家连接: {id}");
 
 		private void OnPeerDisconnected(long id)
 		{
-			GD.Print($"[NetObjectRegistry] Peer {id} 断开连接，尚未实现清理逻辑");
+            SceneOwnerManager.Instance.HandlePlayerDisconnected(id);
+            CatLog.Ok($"[NetCore] 已处理掉线删除");
+        }
 
-		}
-
-		private void OnConnectedToServer()
+        private void OnConnectedToServer()
 		{
 			GD.Print("[NetCore] 成功连接服务器");
 			// 客户端连接后，可在此处触发请求玩家生成（或由 MainWorld 控制）

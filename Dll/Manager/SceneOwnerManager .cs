@@ -14,6 +14,11 @@ public partial class SceneOwnerManager : Node
     /// <summary>注：场景哈希 → 当前拥有者 PeerID</summary>
     private Dictionary<int, long> _sceneOwners = [];
 
+    /// <summary>注：玩家 PeerID → 所在场景哈希</summary>
+    private Dictionary<long, int> _playerSceneDict = [];
+
+
+
     public override void _Ready()
     {
         _instance = this;
@@ -38,11 +43,50 @@ public partial class SceneOwnerManager : Node
         }
     }
 
+    /// <summary>注：清空所有场景拥有权（用于主机启动新游戏会话时重置）</summary>
+    public void ClearAll()
+    {
+        _sceneOwners.Clear();
+        CatLog.Debug("[SceneOwnerManager] 所有场景拥有权已清空");
+    }
+
+    public void HandlePlayerDisconnected(long peer)
+    {
+        if (NetCore.Instance.IsClient) return;
+
+        if (!_playerSceneDict.TryGetValue(peer, out var sceneHash)) return;
+
+        _sceneOwners.TryGetValue(sceneHash, out var ownerPeer);
+
+        if (ownerPeer == peer)
+        {
+            _sceneOwners.Remove(sceneHash);
+            BroadcastQuerySceneActive(sceneHash, ownerPeer);
+        }
+
+        _playerSceneDict.Remove(peer);
+    }
+
+
+    public bool IsPlayerInScene(long peer, int sceneHash)
+    {
+        if (!_playerSceneDict.TryGetValue(peer, out int hash)) return false;
+
+        return sceneHash == hash;
+    }
+
+
+    public bool IsPlayerConnected(long id) => !NetCore.Instance.HasPeer((int)id);
+
+
+
     /// <summary>注：服务器接收拥有权请求，无主则分配，有主则通知或夺取</summary>
     [Rpc(MultiplayerApi.RpcMode.AnyPeer, TransferMode = TransferModeEnum.Reliable, CallLocal = true)]
     private void Rpc_RequestSceneOwnership(int sceneHash, long sendPeer)
     {
         if (NetCore.Instance.IsClient) return;
+
+        _playerSceneDict[sendPeer] = sceneHash;   // 这里是玩家进入场景的铁证，所有进入场景都要经过这里
 
         if (!_sceneOwners.TryGetValue(sceneHash, out long peer))
         {
@@ -94,10 +138,5 @@ public partial class SceneOwnerManager : Node
         RequestSceneOwnership(sceneHash, NetCore.Instance.LocalPeerID);
     }
 
-    /// <summary>注：清空所有场景拥有权（用于主机启动新游戏会话时重置）</summary>
-    public void ClearAll()
-    {
-        _sceneOwners.Clear();
-        CatLog.Debug("[SceneOwnerManager] 所有场景拥有权已清空");
-    }
+
 }
