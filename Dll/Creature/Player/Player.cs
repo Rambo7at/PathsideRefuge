@@ -6,6 +6,7 @@ using 途畔归所.Dll.Core;
 using 途畔归所.Dll.Data;
 using 途畔归所.Dll.Interface;
 using 途畔归所.Dll.Manager;
+using 途畔归所.Dll.NetWork;
 using 途畔归所.Dll.Utils;
 using 途畔归所.Dll.View;
 namespace 途畔归所.Dll.Creature;
@@ -63,12 +64,15 @@ public partial class Player : Humanoid, IInventoryHolder
     public override void _ExitTree()
     {
         base._ExitTree();
-        PlayerManager.Instance.SaveLocalPlayerData();
 
-        if (NetCore.Instance.IsHost && IsOwner && m_NetSyncBase.NetObj != null)
-        {
-            NetObjectRegistry.Instance.BroadcastDestroyNetObject(m_NetSyncBase.NetObj);
+		if (IsOwner)
+		{
+            PlayerManager.Instance.SaveLocalPlayerData();
+            NetObjectRegistry.Instance.RemoveNet(m_NetSyncBase.NetID);
+            return;
         }
+
+
     }
 
     /// <summary>注：视线射线检测交互对象</summary>
@@ -90,7 +94,8 @@ public partial class Player : Humanoid, IInventoryHolder
 			SetPhysicsRay(from, to, m_SelfExclude);
 
 			var result = spaceState.IntersectRay(m_PhysicsRay);
-			if (result.TryGetValue("collider", out var node) && node.As<Node3D>() is IInteractable i)
+
+            if (result.TryGetValue("collider", out var node) && node.As<Node3D>() is IInteractable i)
 			{
 				CatLog.Ok($"已发现{i.ObjectName}");
 				i.PlayerInteract(true, false, this);

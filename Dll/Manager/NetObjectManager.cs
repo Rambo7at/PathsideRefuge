@@ -24,7 +24,7 @@ public partial class NetObjectManager : Node
         if (NetObjectRegistry.Instance != null)
         {
             NetObjectRegistry.Instance.OnSpawned += HandleSpawned;
-            NetObjectRegistry.Instance.OnDestroyed += HandleDestroyed;
+            NetObjectRegistry.Instance.OnDestroyed += RemoveObject;
         }
         else
         {
@@ -108,12 +108,23 @@ public partial class NetObjectManager : Node
     {
         if (netObject == null) return false;
         if (GetPrefab(netObject.PrefabHash) == null) return false;
-
         var netId = NetObjectRegistry.Instance.RegisterAndSpawn(netObject, pos, rot);
-
-
         HandleSpawned(netId);
         return true;
+    }
+
+    public void RemoveObject(NetID id)
+    {
+        if (_netObjectInstances.TryGetValue(id, out Node node))
+        {
+            _netObjectInstances.Remove(id);
+
+            // 安全清理：如果节点还有效且未销毁，就移除它
+            if (IsInstanceValid(node) && node.IsInsideTree())
+            {
+                node.QueueFree();
+            }
+        }
     }
 
     /// <summary>注：处理网络对象生成，实例化节点并添加到当前场景</summary>
@@ -176,38 +187,6 @@ public partial class NetObjectManager : Node
         currentScene.CallDeferred("add_child", node3D);    // 标记：这里延迟了一帧生成，未来待考虑 优化
 
         CatLog.Net($"[NetObjectManager] 生成网络对象：{node3D.Name}，NetID：{netId}");
-    }
-
-
-
-    /// <summary>注：网络对象注销时，从管理器中移除并清理场景实例。</summary>
-    private void HandleDestroyed(NetID id)
-    {
-        if (_netObjectInstances.TryGetValue(id, out Node node))
-        {
-            _netObjectInstances.Remove(id);
-
-            // 安全清理：如果节点还有效且未销毁，就移除它
-            if (GodotObject.IsInstanceValid(node) && node.IsInsideTree())
-            {
-                node.QueueFree();
-            }
-        }
-    }
-
-    /// <summary>注：打印网络实例的调试信息，包括数量及对象类型。</summary>
-    private void DebugPrintNetInstances(NetID id)
-    {
-
-        int count = _netObjectInstances.Count;
-
-        GD.PrintErr($"[NetObjectManager]：[目标对象是：{NetCore.Instance.LocalPeerID}]-[数量：{count}]");
-
-        foreach (var item in _netObjectInstances)
-        {
-            GD.PrintErr($"[NetObjectManager]：[目标对象是：{NetCore.Instance.LocalPeerID}]-[对象：{item.Value.GetType().Name}]");
-
-        }
     }
 
 }

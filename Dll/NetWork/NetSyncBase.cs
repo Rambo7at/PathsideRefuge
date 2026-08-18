@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using 途畔归所.Dll.Base;
 using 途畔归所.Dll.Core;
+using 途畔归所.Dll.Creature;
 using 途畔归所.Dll.Manager;
 using 途畔归所.Dll.Utils;
 
@@ -39,6 +40,12 @@ public partial class NetSyncBase : Node
 
 	public override void _Ready() => RegisterManual();
 
+	public override void _ExitTree()
+	{
+		NetObjectManager.Instance.RemoveObject(NetID);
+
+	}
+
 	private bool ValidateDeps()
 	{
 		
@@ -63,6 +70,14 @@ public partial class NetSyncBase : Node
 
 	private void RegisterManual()
 	{
+
+		if (!IsOwner && NetID.IsNone)
+		{
+			CatLog.Ok($"[NetSyncBase]：销毁前检测 NetID:{NetID}，{_node3D.Name}");
+			CatUtils.StopAndExit(_node3D);
+			return;
+		}
+
 		if (_scene.SceneData.IsNewScene && NetID.IsNone)
 		{
 			NetObjectManager.Instance.SpawnObject(_nodeHash, _node3D.GlobalPosition, _node3D.GlobalRotation);
@@ -74,8 +89,6 @@ public partial class NetSyncBase : Node
 			CatLog.Ok($"[NetSyncBase]：销毁前检测 NetID:{NetID}，{_node3D.Name}");
 			CatUtils.StopAndExit(_node3D);
 		}
-
-
 	}
 
 	/// <summary>请求最新权威数据，数据就绪后执行回调</summary>

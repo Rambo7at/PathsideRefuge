@@ -11,6 +11,8 @@ public partial class MainWorld : SceneBase
 
     public override void _Ready()
     {
+
+
         Vector3 spawnPos;
         Vector3 spawnrot;
 
@@ -25,7 +27,5 @@ public partial class MainWorld : SceneBase
             spawnrot = SpawnPian.GlobalRotation;
         }
         PlayerManager.Instance.SpawnLocalPlayer(spawnPos, spawnrot);
-
-        CatLog.Ok("场景 _EnterTree 已完成 " + this.Name);
     }
 }

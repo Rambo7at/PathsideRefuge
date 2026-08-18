@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://ifxi4iqpfig5" path="res://Dll/Scene/MainWorld.cs" id="1_07fpy"]
 [ext_resource type="Script" uid="uid://dyn84wa2w7odt" path="res://Dll/NetWork/NetObject.cs" id="2_4ajan"]
 [ext_resource type="Script" uid="uid://bcrc0qpx746xk" path="res://Dll/Data/SceneData.cs" id="2_ly1fj"]
-[ext_resource type="PackedScene" uid="uid://ct46j2cpb5n6w" path="res://Prefab/Piece/7at_传送测试2.tscn" id="3_s8p1x"]
+[ext_resource type="PackedScene" uid="uid://byjqoun1xmmr0" path="res://Prefab/Piece/7at_传送测试.tscn" id="4_4ajan"]
 
 [sub_resource type="Resource" id="Resource_fouew"]
 script = ExtResource("2_ly1fj")
@@ -5127,5 +5127,6 @@ shape = SubResource("ConcavePolygonShape3D_s8p1x")
 [node name="Node3D" type="Node3D" parent="." unique_id=666241174]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6012237, 0)
 
-[node name="7at_传送测试" parent="." unique_id=370073041 instance=ExtResource("3_s8p1x")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.144077, 2.5, -4.7035275)
+[node name="7at_传送测试" parent="." unique_id=2068691155 instance=ExtResource("4_4ajan")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 2, -5)
+targetScene = "测试场景"

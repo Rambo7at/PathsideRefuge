@@ -35,8 +35,7 @@ public partial class SceneBase : Node3D
     public long SyncDataTargetPeer { get; set; }
 
     public System.Collections.Generic.Dictionary<string, Action<long, Variant>> RpcDict { get; set; } = [];
-                       
-
+                      
     public override  void _EnterTree()
     {
         WorldManager.Instance.SetCurrentSceneType(this);
@@ -48,14 +47,20 @@ public partial class SceneBase : Node3D
         }
 
         SceneOwnerManager.Instance.RequestSceneOwnership(SceneData.SceneHash, NetCore.Instance.LocalPeerID);
-
     }
 
-
-
-
-    public void OnOwnershipAcquired(long ownerPeer)
+    public override void _ExitTree()
     {
+        if (IsViewScene) return;
+        if (OwnerPeerID != NetCore.Instance.LocalPeerID) return;
+
+        SceneOwnerManager.Instance.TransferOwnership(SceneData.SceneHash, NetCore.Instance.LocalPeerID);
+    }
+
+    public void OnOwnershipGranted(long ownerPeer)
+    {
+        OwnerPeerID = ownerPeer;
+
         if (NetCore.Instance.IsHost)
         {
             RestoreNetObjects();
@@ -73,6 +78,7 @@ public partial class SceneBase : Node3D
         {
             IsReady = true;
             SceneData.IsNewScene = false;
+            CatLog.Warn($"[RestoreNetObjects] 从内存恢复加载");
             return;
         }
 
@@ -107,15 +113,7 @@ public partial class SceneBase : Node3D
         IsReady = true;
     }
 
-    public override void _ExitTree()
-    {
-        if (IsViewScene) return;
-        if (OwnerPeerID != NetCore.Instance.LocalPeerID) return;
 
-        // 拥有者离开场景，转移所有权
-        SceneOwnerManager.Instance.TransferOwnership(SceneData.SceneHash, NetCore.Instance.LocalPeerID);
-        CatLog.Ok($"[SceneBase] 场景拥有者 {OwnerPeerID} 离开场景 {SceneData.SceneHash}，已触发所有权转移");
-    }
 
     /// <summary>注：由 RpcGateway.Rpc_SceneReliable 调用，分发场景级 RPC</summary>
     public void DispatchRpc(string name, Variant variant)
@@ -131,36 +129,5 @@ public partial class SceneBase : Node3D
         }
     }
 
-    /// <summary>注：调试打印场景数据详情（仅 debug 构建）</summary>
-    private void DebugPrintSceneData()
-    {
-        if (SceneData == null)
-        {
-            CatLog.Debug("[SceneBase] SceneData 为空");
-            return;
-        }
 
-        CatLog.Debug($"[SceneBase] ┌─ 场景数据详情 ──");
-        CatLog.Debug($"[SceneBase] │ SceneName   : {SceneData.SceneName}");
-        CatLog.Debug($"[SceneBase] │ SceneHash   : {SceneData.SceneHash}");
-        CatLog.Debug($"[SceneBase] │ IsNewScene  : {SceneData.IsNewScene}");
-        CatLog.Debug($"[SceneBase] │ NetObjectCount : {SceneData.NetObjectList.Count}");
-
-        if (SceneData.NetObjectList.Count > 0)
-        {
-            for (int i = 0; i < SceneData.NetObjectList.Count; i++)
-            {
-                var obj = SceneData.NetObjectList[i];
-                if (obj != null)
-                {
-                    CatLog.Debug($"[SceneBase] │ [{i}] PrefabHash={obj.PrefabHash}, {obj.netId}, Pos={obj.Position}");
-                }
-                else
-                {
-                    CatLog.Debug($"[SceneBase] │ [{i}] null");
-                }
-            }
-        }
-        CatLog.Debug($"[SceneBase] └─────────────────");
-    }
 }

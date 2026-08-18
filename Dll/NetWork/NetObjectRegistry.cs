@@ -59,8 +59,6 @@ public partial class NetObjectRegistry : Node
 	{
 		NetID id = GetNetID();
 
-
-
 		netobj.netId = id;
 		_netObjects[id] = netobj;
 
@@ -78,7 +76,6 @@ public partial class NetObjectRegistry : Node
 
 		_netObjects[netid] = netobj;
 		OnSpawned?.Invoke(netid, null);
-		SyncRegister(netid.PeerID, netid.LocalSeqId, netid.SceneHash, netobj.PrefabHash, netobj.Position, netobj.Rotation);
 
 		return;
 	}
@@ -117,7 +114,15 @@ public partial class NetObjectRegistry : Node
 	/// <summary>注：空重载，预留扩展。</summary>
 	public bool LoadNetObjects(int sceneHash)
 	{
-		if (!_sceneNetObjectsList.TryGetValue(sceneHash, out var netids)) return false;
+		CatLog.Warn($"[LoadNetObjects] 尝试加载场景 {sceneHash} 的网络对象列表");
+
+		if (!_sceneNetObjectsList.TryGetValue(sceneHash, out var netids))
+		{
+			CatLog.Warn($"[LoadNetObjects] 场景 {sceneHash} 在 _sceneNetObjectsList 中无数据");
+			return false;
+		}
+
+		CatLog.Warn($"[LoadNetObjects] 场景 {sceneHash} 找到 {netids.Count} 个 NetID，触发 OnSpawned");
 
 		foreach (var id in netids)
 		{
@@ -129,6 +134,43 @@ public partial class NetObjectRegistry : Node
 
 	/// <summary>注：客户端向服务器请求场景存档数据。</summary>
 	public void RequestSceneData(int sceneHash) => RpcId(NetCore.ServerID, nameof(Rpc_RequestSceneData), sceneHash);
+
+
+
+	public void RemoveNet(NetID ID)
+	{
+		if (!_netObjects.TryGetValue(ID, out var netObj)) return;
+
+		OnDestroyed?.Invoke(ID);
+		_netObjects.Remove(ID);
+
+		BroadcastDestroy(ID.PeerID, ID.LocalSeqId, ID.SceneHash);
+	}
+
+	private void BroadcastDestroy(long ownerPeer, uint seqId, int sceneHash)
+	{
+		var peers = Multiplayer.GetPeers();
+		foreach (var peer in peers)
+		{
+			if (peer == NetCore.Instance.LocalPeerID) continue;
+			RpcId(peer, nameof(Rpc_DestroyNetObject), ownerPeer, seqId, sceneHash);
+		}
+	}
+
+	[Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
+	public void Rpc_DestroyNetObject(long ownerPeer, uint seqId, int sceneHash)
+	{
+		NetID id = new(ownerPeer, seqId, sceneHash);
+		if (!_netObjects.TryGetValue(id, out var netObj)) return;
+		OnDestroyed?.Invoke(id);
+		_netObjects.Remove(id);
+	}
+
+
+
+
+
+
 
 
 	#region 同步
@@ -146,11 +188,14 @@ public partial class NetObjectRegistry : Node
 			foreach (var netid in netIDs)
 			{
 				if (!_netObjects.TryGetValue(netid, out var netobj)) continue;
+
 				RpcId(sendPeer, nameof(Rpc_SendNetObject), netid.PeerID, netid.LocalSeqId, netid.SceneHash, netobj.PrefabHash, netobj.Position, netobj.Rotation);
 			}
+
 			RpcId(sendPeer, nameof(Rpc_SceneDataReady), false);
 			return;
 		}
+
 
 		// 从世界管理 加载场景存档数据
 		if (WorldManager.Instance.LoadSceneData(sceneHash) is SceneData sceneData)
@@ -214,6 +259,12 @@ public partial class NetObjectRegistry : Node
 
 		if (!_netObjects.ContainsKey(netId)) _netObjects[netId] = netobj;
 
+		if (!_sceneNetObjectsList.ContainsKey(sceneHash)) _sceneNetObjectsList[sceneHash] = [];
+
+		_sceneNetObjectsList[sceneHash].Add(netId); // 标记 之后_sceneNetObjectsList 会修改成字典形式 方便索引重复值
+
+
+
 		foreach (long peerId in Multiplayer.GetPeers())
 		{
 			if (peerId != senderId && peerId != NetCore.ServerID)
@@ -225,22 +276,8 @@ public partial class NetObjectRegistry : Node
 		OnSpawned?.Invoke(netId, null);
 	}
 
-	/// <summary>注：通知所有客户端销毁指定网络对象。</summary>
-	[Rpc(MultiplayerApi.RpcMode.Authority, CallLocal = false)]
-	public void Rpc_DestroyNetObject(long ownerPeer, uint seqId, int sceneHash)
-	{
-		if (NetCore.Instance.IsHost) return;
 
-		NetID id = new(ownerPeer, seqId, sceneHash);
 
-		if (!_netObjects.ContainsKey(id))
-		{
-			CatLog.Debug($"[NetObjectRegistry] 对象 {id} 已被销毁或不存在");
-			return;
-		}
-
-		RemoveNet(id);
-	}
 	#endregion
 
 	#region 自定义数据传输
@@ -316,24 +353,7 @@ public partial class NetObjectRegistry : Node
 
 	#endregion
 
-	/// <summary>注：主机广播销毁网络对象。</summary>
-	public void BroadcastDestroyNetObject(NetObject netObject)
-	{
-		if (netObject == null) return;
-		if (!NetCore.Instance.IsHost) return;
 
-		NetID id = netObject.netId;
-		Rpc(nameof(Rpc_DestroyNetObject), id.PeerID, id.LocalSeqId, id.SceneHash);
-		CatLog.Net($"[NetObjectRegistry] 主机广播销毁对象：{id}");
-	}
-
-	/// <summary>注：从注册表中移除指定 NetID 的网络对象。</summary>
-	public void RemoveNet(NetID ID)
-	{
-		if (!_netObjects.TryGetValue(ID, out var netObj)) return;
-		_netObjects.Remove(ID);
-		OnDestroyed?.Invoke(ID);
-	}
 
 	/// <summary>注：根据 NetID 获取对应的 NetObject。</summary>
 	public NetObject GetNetObject(NetID id) => _netObjects.TryGetValue(id, out var netobj) ? netobj : null;
@@ -355,16 +375,15 @@ public partial class NetObjectRegistry : Node
 	/// <summary>注：获取所有场景的 NetObject 字典（场景哈希 → NetObject 列表）。</summary>
 	public Dictionary<NetID, NetObject> GetNetObjectsDict() => _netObjects;
 
-
-
-
 	/// <summary>注：调试方法，打印所有 NetObject 信息。</summary>
 	public void Debug_GetAllNetObjects()
 	{
 		foreach (var netObj in _netObjects)
 		{
-			CatLog.Warn($"[NetObjectRegistry]: NetID: {netObj.Key}, PrefabHash: {netObj.Value.PrefabHash}，ObjNetID：{netObj.Value.netId}");
-			CatLog.Warn($"[NetObjectRegistry]: 数据检测 {netObj.Value.CustomData?.Length}");
+			CatLog.Warn($"[NetObjectRegistry]: NetID: {netObj.Key}, 哈希: {netObj.Value.PrefabHash}，数据 {netObj.Value.CustomData?.Length}");
 		}
 	}
+
+
+
 }

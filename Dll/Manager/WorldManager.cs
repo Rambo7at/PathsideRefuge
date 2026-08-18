@@ -110,6 +110,8 @@ public class WorldManager
 		{
 			sceneBase.SceneData.SceneName = sceneBase.Name;
 			sceneBase.SceneData.SceneHash = hash;
+			CatLog.Warn($"执行哈希载入，当前 SceneHash = {sceneBase.SceneData.SceneHash}");
+
 		}
 
 		return sceneBase;
@@ -166,8 +168,6 @@ public class WorldManager
 			CatLog.Err("[WorldManager.LoadSaveData]：WorldManager没有存档数据，但是触发了加载场景，问题严重，请排查");
 			return null;
 		}
-
-		CatLog.Ok($"load调用场景哈希：{scene.SceneData.SceneHash}");
 
 		if (CurrentWorld.SceneDataDict.TryGetValue(scene.SceneData.SceneHash, out var sceneData))
 		{
@@ -267,11 +267,16 @@ public class WorldManager
 		{
 			if (!CurrentWorld.SceneDataDict.TryGetValue(data.Key, out _))
 			{
-				CurrentWorld.SceneDataDict[data.Key] = new SceneData();
+				CurrentWorld.SceneDataDict[data.Key] = new SceneData()
+				{
+					SceneHash = data.Key,
+				};
 			}
 
 			CurrentWorld.SceneDataDict[data.Key].NetObjectList.Clear();
 			CurrentWorld.SceneDataDict[data.Key].NetObjectList.AddRange(data.Value);
 		}
 	}
+
+
 }

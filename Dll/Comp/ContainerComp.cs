@@ -234,7 +234,6 @@ public partial class ContainerComp : PlacedBase, IInteractable, IInventoryHolder
 		return true;
 	}
 
-
 	private void Debug_ItemArr(Array<ItemData> items)
 	{
 		foreach (var item in items)
@@ -246,8 +245,5 @@ public partial class ContainerComp : PlacedBase, IInteractable, IInventoryHolder
 		}
 
 	}
-
-
-
 
 }

@@ -26,8 +26,14 @@ public partial class RpcGateway : Node
     {
         NetID targetId = new(ownerPeer, seqId, sceneHash);
 
-        var node = NetObjectManager.Instance.GetNetObject(targetId);
-        if (node == null) return;
+        if (WorldManager.Instance.CurrentSceneHash != sceneHash) return;
+        if (NetObjectManager.Instance.GetNetObject(targetId) is not Node node) return;
+
+        if (!node.IsInsideTree())
+        {
+            NetObjectManager.Instance.RemoveObject(targetId);
+            return;
+        }
 
         if (CatUtils.FindChildNode<NetSyncBase>(node) is not NetSyncBase sync) return;
 
@@ -40,8 +46,14 @@ public partial class RpcGateway : Node
     {
         NetID targetId = new(ownerPeer, seqId, sceneHash);
 
-        var node = NetObjectManager.Instance.GetNetObject(targetId);
-        if (node == null) return;
+        if (WorldManager.Instance.CurrentSceneHash != sceneHash) return;
+        if (NetObjectManager.Instance.GetNetObject(targetId) is not Node node) return;
+
+        if (!node.IsInsideTree())
+        {
+            NetObjectManager.Instance.RemoveObject(targetId);
+            return;
+        }
 
         if (CatUtils.FindChildNode<NetSyncBase>(node) is not NetSyncBase sync) return;
 
