@@ -1,16 +1,10 @@
 using Godot;
-using Godot.Collections;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 using 途畔归所.Dll.Core;
 using 途畔归所.Dll.Data;
 using 途畔归所.Dll.Manager;
 using 途畔归所.Dll.NetWork;
 using 途畔归所.Dll.Utils;
-using static System.Collections.Specialized.BitVector32;
 
 namespace 途畔归所.Dll.Base;
 
@@ -23,20 +17,20 @@ public partial class SceneBase : Node3D
         ViewScene = 1,
     }
 
-    [Export] public SceneData SceneData { get; set; }          
+    [Export] public SceneData SceneData { get; set; }
     [Export] public E_SceneType SceneType { get; set; }
     private bool IsGameScene => SceneType == E_SceneType.GameScene;
     private bool IsViewScene => SceneType == E_SceneType.ViewScene;
     /// <summary>注：场景是否已完成初始化/加载 </summary>
     public bool IsReady { get; private set; } = false;
     /// <summary>注：场景拥有者的PeerID </summary>
-    public long OwnerPeerID { get;  set; }
+    public long OwnerPeerID { get; set; }
 
     public long SyncDataTargetPeer { get; set; }
 
     public System.Collections.Generic.Dictionary<string, Action<long, Variant>> RpcDict { get; set; } = [];
-                      
-    public override  void _EnterTree()
+
+    public override void _EnterTree()
     {
         WorldManager.Instance.SetCurrentSceneType(this);
 
@@ -112,8 +106,6 @@ public partial class SceneBase : Node3D
         SceneData.IsNewScene = isNewScene;
         IsReady = true;
     }
-
-
 
     /// <summary>注：由 RpcGateway.Rpc_SceneReliable 调用，分发场景级 RPC</summary>
     public void DispatchRpc(string name, Variant variant)

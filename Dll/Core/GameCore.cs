@@ -21,13 +21,13 @@ public partial class GameCore : Node
 
     public override void _Process(double delta)
     {
+        // 每帧驱动世界时间推进（WorldManager 内部按游戏状态决定是否走表）
+        WorldManager.Instance.UpdateTime((float)delta);
 
         if (Input.IsActionJustPressed("cat_F6"))
         {
             NetObjectRegistry.Instance.Debug_GetAllNetObjects();
-
         }
-           
     }
 
     /// <summary>注：从主菜单进入游戏，加载玩家最后所在场景或默认场景</summary>
@@ -41,11 +41,6 @@ public partial class GameCore : Node
         }
     }
 
-
-
-
-
-
     /// <summary>注：初始化全部管理器 </summary>
     private void InitManagers()
     {
@@ -58,15 +53,8 @@ public partial class GameCore : Node
         ResourceManager.Instance.Init();
         AddChild(NetObjectInstance.Instance);
 
-
-
-        TimeManager timeMgr = new();
-        TimeManager.Instance = timeMgr;
-        AddChild(timeMgr);
-
         ConsoleManager consoleMgr = new();
         ConsoleManager.Instance = consoleMgr;
         AddChild(consoleMgr);
     }
-
 }

@@ -11,27 +11,10 @@
     <EmbeddedResource Remove="Prefab\**" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="addons\cat_snapicon\Plugin_scripts\CatSnapIconPlugin.cs" />
-    <Compile Include="addons\cat_snapicon\Plugin_scripts\SnapWindowComp.cs" />
-    <Compile Include="addons\cat_snapicon\Plugin_scripts\UiFloatFieldView.cs" />
-    <Compile Include="addons\cat_snapicon\Plugin_scripts\UiVector3View.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="addons\cat_snapicon\LICENSE.txt" />
     <Content Include="LICENSE" />
     <Content Include="RPC改造大纲.md" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="addons\cat_snapicon\plugin.cfg" />
-    <None Include="addons\cat_snapicon\Plugin_scenes\snap_window.tscn" />
-    <None Include="addons\cat_snapicon\Plugin_scenes\UiFloatField.tscn" />
-    <None Include="addons\cat_snapicon\Plugin_scenes\ui_Vector3.tscn" />
-    <None Include="addons\cat_snapicon\Plugin_scripts\CatSnapIconPlugin.cs.uid" />
-    <None Include="addons\cat_snapicon\Plugin_scripts\SnapWindowComp.cs.uid" />
-    <None Include="addons\cat_snapicon\Plugin_scripts\UiFloatFieldView.cs.uid" />
-    <None Include="addons\cat_snapicon\Plugin_scripts\UiVector3View.cs.uid" />
-    <None Include="addons\cat_snapicon\README.md" />
-    <None Include="addons\cat_snapicon\Theme.tres" />
     <None Include="README.md" />
     <None Include="开发计划.md" />
     <None Include="日志信息.md" />

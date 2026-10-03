@@ -12,6 +12,9 @@ public partial class WorldData : Resource
 
     [Export] public Dictionary<int, SceneData> SceneDataDict { get; set; } = [];  // 场景哈希 → 场景数据
 
+    /// <summary>注：世界当前时刻（0~86400 秒），持久化预留字段，暂未接入存档读写</summary>
+    [Export] public float TimeOfDay { get; set; } = 0f;
+
     public int WorldID { get => _worldID; }                 // 只读，由 EnsureWorldID 生成
     public string Name { get => _name; set { _name = value; EnsureWorldID(); } }  // 设置名称时自动补全ID
 

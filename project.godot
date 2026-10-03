@@ -24,10 +24,6 @@ config/icon="uid://dwfqgfvwjgure"
 
 [autoload]
 
-AmbientAPI="*uid://cmbh88h6yljhy"
-AmbientParser="*uid://dcdrqnwmpgvk4"
-AmbientFileHandler="*uid://dnh8sqjyu74hs"
-AmbientMaterialMaker="*uid://nig0lamfd3mv"
 GameCore="*uid://bp1obuegbifbd"
 
 [display]
@@ -42,7 +38,7 @@ project/assembly_name="途畔归所"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/ambientcg/plugin.cfg", "res://addons/cat_snapicon/plugin.cfg", "res://addons/terrain_3d/plugin.cfg")
+enabled=PackedStringArray("res://addons/cat_snapicon/plugin.cfg", "res://addons/terrain_3d/plugin.cfg")
 
 [input]
 

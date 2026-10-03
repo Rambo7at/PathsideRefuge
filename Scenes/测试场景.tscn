@@ -131,12 +131,10 @@ texture_list = Array[Terrain3DTextureAsset]([SubResource("Terrain3DTextureAsset_
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_e120r"]
 
-[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ykqoc"]
-sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
-ground_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
+[sub_resource type="PhysicalSkyMaterial" id="PhysicalSkyMaterial_8v1ak"]
 
 [sub_resource type="Sky" id="Sky_a8joc"]
-sky_material = SubResource("ProceduralSkyMaterial_ykqoc")
+sky_material = SubResource("PhysicalSkyMaterial_8v1ak")
 
 [sub_resource type="Environment" id="Environment_eihmu"]
 background_mode = 2
@@ -169,7 +167,7 @@ metadata/_edit_lock_ = true
 environment = SubResource("Environment_eihmu")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1699673310]
-transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, 0, 16.802343, 0)
+transform = Transform3D(-4.371139e-08, 0.997564, -0.06975657, 0, 0.06975657, 0.997564, 1, 4.3604906e-08, -3.0491565e-09, 0, 0, 0)
 shadow_enabled = true
 
 [node name="playerSpawn" type="Node3D" parent="." unique_id=373272656]
