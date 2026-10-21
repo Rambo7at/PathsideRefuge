@@ -1,0 +1,52 @@
+[gd_scene format=3 uid="uid://dngdrhukbvjup"]
+
+[ext_resource type="Script" uid="uid://ifxi4iqpfig5" path="res://Dll/Scene/MainWorld.cs" id="1_04x88"]
+[ext_resource type="Script" uid="uid://bcrc0qpx746xk" path="res://Dll/Data/SceneData.cs" id="2_e120r"]
+[ext_resource type="Script" uid="uid://dyn84wa2w7odt" path="res://Dll/NetWork/NetObject.cs" id="2_luoyv"]
+[ext_resource type="Script" uid="uid://0frts36xy2yh" path="res://addons/TerraEnv-Editor/Terrain/TerrainRegion.cs" id="4_04x88"]
+[ext_resource type="Material" uid="uid://cpaar3g8mwflm" path="res://addons/TerraEnv-Editor/Shader/地形材质.tres" id="5_qutry"]
+[ext_resource type="Resource" uid="uid://bkvmww111w4h2" path="res://Data/Terrain/地形Data.tres" id="6_04x88"]
+[ext_resource type="PackedScene" uid="uid://caqvflm2nwv80" path="res://addons/TerraEnv-Editor/Env/sky_day_night.tscn" id="7_3ycm5"]
+[ext_resource type="PackedScene" uid="uid://ccyut3db0phlt" path="res://Prefab/Npc/Npc.tscn" id="8_qutry"]
+[ext_resource type="Script" uid="uid://d4bxp6xl03i6o" path="res://addons/TerraEnv-Editor/Decoration/ClutterManager.cs" id="9_e120r"]
+[ext_resource type="Script" uid="uid://fpltfslb3s8k" path="res://addons/TerraEnv-Editor/Data/ClutterData.cs" id="10_luoyv"]
+[ext_resource type="ArrayMesh" uid="uid://b837hmafl2rnp" path="res://addons/TerraEnv-Editor/Mesh/default_mesha.tres" id="11_8v1ak"]
+
+[sub_resource type="Resource" id="Resource_o6hn0"]
+script = ExtResource("2_e120r")
+metadata/_custom_type_script = "uid://bcrc0qpx746xk"
+
+[sub_resource type="Resource" id="Resource_q5k7f"]
+script = ExtResource("10_luoyv")
+Name = "cao"
+Mesh = ExtResource("11_8v1ak")
+Amount = 12000
+ScaleMin = 0.8
+ScaleMax = 1.2
+metadata/_custom_type_script = "uid://fpltfslb3s8k"
+
+[node name="测试场景" type="Node3D" unique_id=1047784342 node_paths=PackedStringArray("SpawnPian", "skyEditor")]
+script = ExtResource("1_04x88")
+SpawnPian = NodePath("playerSpawn")
+skyEditor = NodePath("Sky_DayNight")
+SceneData = SubResource("Resource_o6hn0")
+
+[node name="playerSpawn" type="Node3D" parent="." unique_id=373272656]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 56.964863, 0)
+
+[node name="TerrainRegion" type="Node3D" parent="." unique_id=538204995]
+script = ExtResource("4_04x88")
+PaintMaterial = ExtResource("5_qutry")
+Data = ExtResource("6_04x88")
+metadata/_custom_type_script = "uid://0frts36xy2yh"
+
+[node name="Sky_DayNight" parent="." unique_id=1840186162 instance=ExtResource("7_3ycm5")]
+
+[node name="Npc" parent="." unique_id=1650011338 instance=ExtResource("8_qutry")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.848645, 58.278675, -1.0580717)
+
+[node name="ClutterManager" type="Node3D" parent="." unique_id=105762555 node_paths=PackedStringArray("Region")]
+script = ExtResource("9_e120r")
+Clutters = Array[ExtResource("10_luoyv")]([SubResource("Resource_q5k7f")])
+Region = NodePath("../TerrainRegion")
+metadata/_custom_type_script = "uid://d4bxp6xl03i6o"

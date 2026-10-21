@@ -1,0 +1,86 @@
+[gd_scene format=3 uid="uid://dpb5h6q5qsdkv"]
+
+[ext_resource type="Theme" uid="uid://tylbqoml3vbx" path="res://addons/TerraEnv-Editor/Tool_UI_Theme.tres" id="1_qtd8q"]
+[ext_resource type="Script" uid="uid://bv1gqs48fj033" path="res://addons/TerraEnv-Editor/UI/EditorSliderUI.cs" id="1_vmr34"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_gi6af"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8xvcd"]
+bg_color = Color(0.105882354, 0.105882354, 0.105882354, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_q5k7f"]
+
+[node name="EditorSliderUI" type="HBoxContainer" unique_id=563647819 node_paths=PackedStringArray("NameText", "ValueEdit", "Slider", "UnitLabel")]
+offset_right = 278.0
+offset_bottom = 17.0
+theme_override_constants/separation = 0
+script = ExtResource("1_vmr34")
+SpinName = "输入信息"
+NameText = NodePath("PanelContainer2/NameLabel")
+ValueEdit = NodePath("PanelContainer/HBoxContainer/Panel-1/ValueLabel")
+Slider = NodePath("PanelContainer/HBoxContainer/Panel-2/HSlider")
+UnitLabel = NodePath("PanelContainer/HBoxContainer/Unit")
+
+[node name="PanelContainer2" type="PanelContainer" parent="." unique_id=225233080]
+custom_minimum_size = Vector2(114, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+theme_override_styles/panel = SubResource("StyleBoxEmpty_gi6af")
+
+[node name="NameLabel" type="Label" parent="PanelContainer2" unique_id=1101147945]
+layout_mode = 2
+theme = ExtResource("1_qtd8q")
+theme_override_constants/line_spacing = 3
+text = "输入信息"
+horizontal_alignment = 1
+
+[node name="PanelContainer" type="PanelContainer" parent="." unique_id=1459481026]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_8xvcd")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer" unique_id=670995197]
+layout_mode = 2
+
+[node name="Panel-1" type="PanelContainer" parent="PanelContainer/HBoxContainer" unique_id=658191290]
+custom_minimum_size = Vector2(32, 20)
+custom_maximum_size = Vector2(32, -1)
+layout_mode = 2
+size_flags_horizontal = 2
+offset_transform_enabled = true
+offset_transform_position = Vector2(2, 0)
+theme_override_styles/panel = SubResource("StyleBoxEmpty_gi6af")
+
+[node name="ValueLabel" type="LineEdit" parent="PanelContainer/HBoxContainer/Panel-1" unique_id=2145551849]
+layout_mode = 2
+theme = ExtResource("1_qtd8q")
+text = "0"
+alignment = 2
+virtual_keyboard_enabled = false
+
+[node name="Unit" type="Label" parent="PanelContainer/HBoxContainer" unique_id=1800729224]
+layout_mode = 2
+theme = ExtResource("1_qtd8q")
+theme_override_colors/font_color = Color(0.44705883, 0.44705883, 0.44705883, 1)
+theme_override_font_sizes/font_size = 8
+text = "m"
+horizontal_alignment = 2
+
+[node name="Panel-2" type="PanelContainer" parent="PanelContainer/HBoxContainer" unique_id=1428037884]
+custom_minimum_size = Vector2(128, 0)
+layout_mode = 2
+size_flags_horizontal = 6
+theme_override_styles/panel = SubResource("StyleBoxEmpty_q5k7f")
+
+[node name="HSlider" type="HSlider" parent="PanelContainer/HBoxContainer/Panel-2" unique_id=1924505821]
+layout_mode = 2
+size_flags_vertical = 1
+offset_transform_enabled = true
+offset_transform_position = Vector2(-2.21, 0)
+theme = ExtResource("1_qtd8q")
+min_value = -100.0
+allow_greater = true
+allow_lesser = true

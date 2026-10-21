@@ -1,0 +1,26 @@
+[gd_resource type="ArrayMesh" format=4 uid="uid://b837hmafl2rnp"]
+
+[ext_resource type="Shader" uid="uid://do642n557hxu6" path="res://addons/TerraEnv-Editor/Shader/草着色器.gdshader" id="1_nb1ul"]
+[ext_resource type="Texture2D" uid="uid://b0g0si5w1iuk5" path="res://addons/TerraEnv-Editor/Mesh/grassbushcc008.png" id="2_nb1ul"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_wgvir"]
+render_priority = 0
+shader = ExtResource("1_nb1ul")
+shader_parameter/grass_texture = ExtResource("2_nb1ul")
+shader_parameter/wind_strength = 0.15200000722
+shader_parameter/wind_speed = 2.0050000952375
+
+[resource]
+_surfaces = [{
+"aabb": AABB(-0.5, 0, -0.5, 1, 1, 1),
+"attribute_data": PackedByteArray("/wAA/wAAAAAAAAAAAAAA/wAAgD8AAIA/AAAA/wAAAAAAAIA//wAA/wAAgD8AAAAA/wAA/wAAAAAAAAAAAAAA/wAAgD8AAIA/AAAA/wAAAAAAAIA//wAA/wAAgD8AAAAA"),
+"format": 34359742495,
+"index_count": 12,
+"index_data": PackedByteArray("AAABAAIAAwABAAAABAAFAAYABwAFAAQA"),
+"material": SubResource("ShaderMaterial_wgvir"),
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 8,
+"vertex_data": PackedByteArray("AAAAvwAAgD8AAAAAAAAAPwAAAAAAAAAAAAAAvwAAAAAAAAAAAAAAPwAAgD8AAAAAAAAAAAAAgD8AAAC/AAAAAAAAAAAAAAA/AAAAAAAAAAAAAAC/AAAAAAAAgD8AAAA//3//f////7//f/9/////v/9//3////+//3//f////78AAP9//3//vwAA/3//f/+/AAD/f/9//78AAP9//3//vw==")
+}]
+metadata/GodotVersion = "4.7.1-stable (official)"

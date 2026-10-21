@@ -1,0 +1,28 @@
+[gd_scene format=3 uid="uid://e7qf1e5vukk0"]
+
+[ext_resource type="Script" uid="uid://4mosjn0tu8ro" path="res://Dll/View/InventoryView.cs" id="1_yoisx"]
+[ext_resource type="Theme" uid="uid://deadb5j65etkc" path="res://Theme/背包UI.tres" id="2_xs1sw"]
+
+[node name="BackpackView" type="CanvasLayer" unique_id=756481574 node_paths=PackedStringArray("m_gridContainer")]
+script = ExtResource("1_yoisx")
+m_gridContainer = NodePath("PanelContainer/GridContainer")
+metadata/_custom_type_script = "uid://4mosjn0tu8ro"
+
+[node name="PanelContainer" type="PanelContainer" parent="." unique_id=2002482144]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -350.0
+offset_top = 437.0
+offset_right = 349.5
+offset_bottom = 515.25
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("2_xs1sw")
+
+[node name="GridContainer" type="GridContainer" parent="PanelContainer" unique_id=487971680]
+layout_mode = 2
+theme = ExtResource("2_xs1sw")
+columns = 10

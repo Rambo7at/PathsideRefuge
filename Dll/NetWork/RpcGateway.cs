@@ -1,0 +1,194 @@
+using Godot;
+using System;
+using System.Collections.Generic;
+using 途畔归所.Dll.Base;
+using 途畔归所.Dll.Core;
+using 途畔归所.Dll.Manager;
+using 途畔归所.Dll.Utils;
+
+namespace 途畔归所.Dll.NetWork;
+
+/// <summary>注：RPC 网关，提供发送、接收与委托工厂能力</summary>
+public partial class RpcGateway : Node
+{
+    private static RpcGateway _instance;
+    public static RpcGateway Instance => _instance ??= new();
+
+    public override void _Ready()
+    {
+        _instance = this;
+        CatLog.Ok("[RpcGateway] 初始化完成");
+    }
+
+    /// <summary>注：对象级可靠 RPC 接收入口</summary>
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = true)]
+    public void Rpc_Reliable(long ownerPeer, uint seqId, int sceneHash, string name, Variant variant)
+    {
+        NetID targetId = new(ownerPeer, seqId, sceneHash);
+
+        if (WorldManager.Instance.CurrentSceneHash != sceneHash) return;
+        if (NetObjectInstance.Instance.GetNetObject(targetId) is not Node node) return;
+
+        if (!node.IsInsideTree())
+        {
+            NetObjectInstance.Instance.RemoveObject(targetId);
+            return;
+        }
+
+        if (CatUtils.FindChildNode<NetSyncBase>(node) is not NetSyncBase sync) return;
+
+        sync.DispatchRpc(name, variant);
+    }
+
+    /// <summary>注：对象级不可靠 RPC 接收入口</summary>
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false, TransferMode = MultiplayerPeer.TransferModeEnum.Unreliable)]
+    public void Rpc_Unreliable(long ownerPeer, uint seqId, int sceneHash, string name, Variant variant)
+    {
+        NetID targetId = new(ownerPeer, seqId, sceneHash);
+
+        if (WorldManager.Instance.CurrentSceneHash != sceneHash) return;
+        if (NetObjectInstance.Instance.GetNetObject(targetId) is not Node node) return;
+
+        if (!node.IsInsideTree())
+        {
+            NetObjectInstance.Instance.RemoveObject(targetId);
+            return;
+        }
+
+        if (CatUtils.FindChildNode<NetSyncBase>(node) is not NetSyncBase sync) return;
+
+        sync.DispatchRpc(name, variant);
+    }
+
+    /// <summary>注：场景级可靠 RPC 接收入口</summary>
+    [Rpc(MultiplayerApi.RpcMode.AnyPeer, CallLocal = false)]
+    public void Rpc_SceneReliable(string name, int sceneHash, Variant variant)
+    {
+        if (WorldManager.Instance.CurrentSceneHash != sceneHash) return;
+        if (WorldManager.Instance.GetCurrentScene() is not SceneBase scene) return;
+
+        scene.DispatchRpc(name, variant);
+    }
+
+
+
+
+    /// <summary>注：创建 0 参数 RPC 委托</summary>
+    public Action<long, Variant> MakeRpcHandler(Action action) => (id, _) => action();
+
+    /// <summary>注：创建 1 参数 RPC 委托（仅发送者ID）</summary>
+    public Action<long, Variant> MakeRpcHandler(Action<long> action) => (id, _) => action(id);
+
+    /// <summary>注：创建 1 参数 RPC 委托（带值）</summary>
+    public Action<long, Variant> MakeRpcHandler<[MustBeVariant] T1>(Action<long, T1> action) => (id, value) => action(id, value.As<T1>());
+
+    /// <summary>注：创建 2 参数 RPC 委托</summary>
+    public Action<long, Variant> MakeRpcHandler<[MustBeVariant] T1, [MustBeVariant] T2>(Action<long, T1, T2> action)
+    {
+        return (id, value) =>
+        {
+            var arr = value.As<Godot.Collections.Array>();
+            if (arr == null || arr.Count < 2) return;
+            action(id, arr[0].As<T1>(), arr[1].As<T2>());
+        };
+    }
+
+    /// <summary>注：创建 3 参数 RPC 委托</summary>
+    public Action<long, Variant> MakeRpcHandler<[MustBeVariant] T1, [MustBeVariant] T2, [MustBeVariant] T3>(Action<long, T1, T2, T3> action)
+    {
+        return (id, value) =>
+        {
+            var arr = value.As<Godot.Collections.Array>();
+            if (arr == null || arr.Count < 3) return;
+            action(id, arr[0].As<T1>(), arr[1].As<T2>(), arr[2].As<T3>());
+        };
+    }
+
+    /// <summary>注：创建 4 参数 RPC 委托</summary>
+    public Action<long, Variant> MakeRpcHandler<[MustBeVariant] T1, [MustBeVariant] T2, [MustBeVariant] T3, [MustBeVariant] T4>(Action<long, T1, T2, T3, T4> action)
+    {
+        return (id, value) =>
+        {
+            var arr = value.As<Godot.Collections.Array>();
+            if (arr == null || arr.Count < 4) return;
+            action(id, arr[0].As<T1>(), arr[1].As<T2>(), arr[2].As<T3>(), arr[3].As<T4>());
+        };
+    }
+
+    /// <summary>注：创建 5 参数 RPC 委托</summary>
+    public Action<long, Variant> MakeRpcHandler<[MustBeVariant] T1, [MustBeVariant] T2, [MustBeVariant] T3, [MustBeVariant] T4, [MustBeVariant] T5>(Action<long, T1, T2, T3, T4, T5> action)
+    {
+        return (id, value) =>
+        {
+            var arr = value.As<Godot.Collections.Array>();
+            if (arr == null || arr.Count < 5) return;
+            action(id, arr[0].As<T1>(), arr[1].As<T2>(), arr[2].As<T3>(), arr[3].As<T4>(), arr[4].As<T5>());
+        };
+    }
+
+    
+    /// <summary>注：可靠发送 RPC 给主机</summary>
+    public void SendRpcToHost(NetID target, string name, params Variant[] args)
+    {
+        Variant payload = args.Length == 0 ? default : (args.Length == 1 ? args[0] : new Godot.Collections.Array(args));
+        RpcId(1, nameof(Rpc_Reliable), target.PeerID, target.LocalSeqId, target.SceneHash, name, payload);
+    }
+
+    /// <summary>注：可靠发送 RPC 给指定对等端</summary>
+    public void SendRpcToPeer(NetID target, string name, long targetPeerId, params Variant[] args)
+    {
+        Variant payload = args.Length == 0 ? default : (args.Length == 1 ? args[0] : new Godot.Collections.Array(args));
+        RpcId(targetPeerId, nameof(Rpc_Reliable), target.PeerID, target.LocalSeqId, target.SceneHash, name, payload);
+    }
+
+    /// <summary>注：可靠广播 RPC 给所有客户端</summary>
+    public void SendRpcBroadcast(NetID target, string name, params Variant[] args)
+    {
+        Variant payload = args.Length == 0 ? default : (args.Length == 1 ? args[0] : new Godot.Collections.Array(args));
+        Rpc(nameof(Rpc_Reliable), target.PeerID, target.LocalSeqId, target.SceneHash, name, payload);
+    }
+
+    /// <summary>注：不可靠发送 RPC 给主机</summary>
+    public void SendFastRpcToHost(NetID target, string name, params Variant[] args)
+    {
+        Variant payload = args.Length == 0 ? default : (args.Length == 1 ? args[0] : new Godot.Collections.Array(args));
+        RpcId(1, nameof(Rpc_Unreliable), target.PeerID, target.LocalSeqId, target.SceneHash, name, payload);
+    }
+
+    /// <summary>注：不可靠发送 RPC 给指定对等端</summary>
+    public void SendFastRpcToPeer(NetID target, string name, long targetPeerId, params Variant[] args)
+    {
+        Variant payload = args.Length == 0 ? default : (args.Length == 1 ? args[0] : new Godot.Collections.Array(args));
+        RpcId(targetPeerId, nameof(Rpc_Unreliable), target.PeerID, target.LocalSeqId, target.SceneHash, name, payload);
+    }
+
+    /// <summary>注：不可靠广播 RPC 给所有客户端</summary>
+    public void SendFastRpcBroadcast(NetID target, string name, params Variant[] args)
+    {
+        Variant payload = args.Length == 0 ? default : (args.Length == 1 ? args[0] : new Godot.Collections.Array(args));
+        Rpc(nameof(Rpc_Unreliable), target.PeerID, target.LocalSeqId, target.SceneHash, name, payload);
+    }
+
+
+
+    /// <summary>注：发送场景级 RPC 给主机</summary>
+    public void SendSceneRpcToHost(string name, int sceneHash, params Variant[] args)
+    {
+        Variant payload = args.Length == 0 ? default : (args.Length == 1 ? args[0] : new Godot.Collections.Array(args));
+        RpcId(1, nameof(Rpc_SceneReliable), name, sceneHash, payload);
+    }
+
+    /// <summary>注：发送场景级 RPC 给指定对等端</summary>
+    public void SendSceneRpcToPeer(string name, int sceneHash, long targetPeerId, params Variant[] args)
+    {
+        Variant payload = args.Length == 0 ? default : (args.Length == 1 ? args[0] : new Godot.Collections.Array(args));
+        RpcId(targetPeerId, nameof(Rpc_SceneReliable), name, sceneHash, payload);
+    }
+
+    /// <summary>注：广播场景级 RPC 给所有客户端</summary>
+    public void SendSceneRpcBroadcast(string name, int sceneHash, params Variant[] args)
+    {
+        Variant payload = args.Length == 0 ? default : (args.Length == 1 ? args[0] : new Godot.Collections.Array(args));
+        Rpc(nameof(Rpc_SceneReliable), name, sceneHash, payload);
+    }
+}

@@ -1,0 +1,42 @@
+[gd_resource type="Theme" format=3 uid="uid://cxjqe8iwko2rk"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ci0tf"]
+bg_color = Color(0.85882354, 0.44313726, 0.627451, 0.6039216)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.74815744, 0.018454822, 0.33776614, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4pb4f"]
+bg_color = Color(0, 0, 0, 0.41960785)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.9607843, 0.2627451, 0.9098039, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(1.1533674, 0.31596968, 0.38424796, 0.6)
+
+[resource]
+Button/colors/font_color = Color(0.6889096, 0.6833903, 0.986589, 1)
+Button/colors/font_hover_pressed_color = Color(0.033853278, 0.033853278, 0.033853274, 1)
+Button/constants/outline_size = 10
+Button/font_sizes/font_size = 40
+Button/styles/normal = SubResource("StyleBoxFlat_ci0tf")
+Label/colors/font_color = Color(0.39393985, 0.79588807, 0.8771001, 1)
+Label/colors/font_outline_color = Color(0.57364583, 0.15149093, 0.27518892, 1)
+Label/colors/font_shadow_color = Color(0.20392157, 0.20392157, 0.20392157, 0.9843137)
+Label/constants/line_spacing = -24
+Label/constants/outline_size = 10
+Label/font_sizes/font_size = 65
+LineEdit/font_sizes/font_size = 40
+PanelContainer/styles/panel = SubResource("StyleBoxFlat_4pb4f")
+VBoxContainer/constants/separation = 10

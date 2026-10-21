@@ -1,0 +1,70 @@
+<Project Sdk="Godot.NET.Sdk/4.7.1">
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<TargetFramework Condition=" '$(GodotTargetPlatform)' == 'android' ">net9.0</TargetFramework>
+		<EnableDynamicLoading>true</EnableDynamicLoading>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<!-- 排除这些目录下的文件参与C#编译 -->
+		<Compile Remove=".godot\**" />
+		<Compile Remove="addons\terrain_3d\**" />
+		<Compile Remove="Prefab\**" />
+
+		<EmbeddedResource Remove=".godot\**" />
+		<EmbeddedResource Remove="addons\terrain_3d\**" />
+		<EmbeddedResource Remove="Prefab\**" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Content Include="addons\cat_snapicon\LICENSE.txt" />
+		<Content Include="addons\TerraEnv-Editor\Mesh\grassbushcc008.png" />
+		<Content Include="LICENSE" />
+		<Content Include="RPC改造大纲.md" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="addons\cat_snapicon\plugin.cfg" />
+		<None Include="addons\cat_snapicon\Plugin_scenes\snap_window.tscn" />
+		<None Include="addons\cat_snapicon\Plugin_scenes\UiFloatField.tscn" />
+		<None Include="addons\cat_snapicon\Plugin_scenes\ui_Vector3.tscn" />
+		<None Include="addons\cat_snapicon\Plugin_scripts\CatSnapIconPlugin.cs.uid" />
+		<None Include="addons\cat_snapicon\Plugin_scripts\SnapWindowComp.cs.uid" />
+		<None Include="addons\cat_snapicon\Plugin_scripts\UiFloatFieldView.cs.uid" />
+		<None Include="addons\cat_snapicon\Plugin_scripts\UiVector3View.cs.uid" />
+		<None Include="addons\cat_snapicon\README.md" />
+		<None Include="addons\cat_snapicon\Theme.tres" />
+
+		<None Include="addons\TerraEnv-Editor\Data\ClutterData.cs.uid" />
+		<None Include="addons\TerraEnv-Editor\Data\RegionData.cs.uid" />
+		<None Include="addons\TerraEnv-Editor\Data\WeatherData.cs.uid" />
+		<None Include="addons\TerraEnv-Editor\Decoration\ClutterManager.cs.uid" />
+		<None Include="addons\TerraEnv-Editor\Decoration\TerrainDecoration.cs.uid" />
+		<None Include="addons\TerraEnv-Editor\Env\SkyEditor.cs.uid" />
+		<None Include="addons\TerraEnv-Editor\Env\sky_day_night.tscn" />
+		<None Include="addons\TerraEnv-Editor\Mesh\default_mesha.tres" />
+		<None Include="addons\TerraEnv-Editor\Mesh\grassbushcc008.png.import" />
+		<None Include="addons\TerraEnv-Editor\plugin.cfg" />
+		<None Include="addons\TerraEnv-Editor\Shader\sky_simple.gdshader" />
+		<None Include="addons\TerraEnv-Editor\Shader\sky_simple.gdshader.uid" />
+		<None Include="addons\TerraEnv-Editor\Shader\地形材质.gdshader" />
+		<None Include="addons\TerraEnv-Editor\Shader\地形材质.gdshader.uid" />
+		<None Include="addons\TerraEnv-Editor\Shader\地形材质.tres" />
+		<None Include="addons\TerraEnv-Editor\Shader\草着色器.gdshader" />
+		<None Include="addons\TerraEnv-Editor\Shader\草着色器.gdshader.uid" />
+		<None Include="addons\TerraEnv-Editor\TerraEnvEditorPlugin.cs.uid" />
+		<None Include="addons\TerraEnv-Editor\Terrain\TerraEditorDock.cs.uid" />
+		<None Include="addons\TerraEnv-Editor\Terrain\TerrainRegion.cs.uid" />
+		<None Include="addons\TerraEnv-Editor\Terrain\TerrainTile.cs.uid" />
+		<None Include="addons\TerraEnv-Editor\Terrain\TerraRegionInspectorPlugin.cs.uid" />
+		<None Include="addons\TerraEnv-Editor\Tool_UI_Theme.tres" />
+		<None Include="addons\TerraEnv-Editor\UI\EditorSliderUI.cs.uid" />
+		<None Include="addons\TerraEnv-Editor\UI\EditorSliderUI.tscn" />
+		<None Include="addons\TerraEnv-Editor\View\TerraEditorDockView.cs.uid" />
+		<None Include="addons\TerraEnv-Editor\View\TerraEditorDockView.tscn" />
+
+		<None Include="README.md" />
+		<None Include="开发计划.md" />
+		<None Include="日志信息.md" />
+	</ItemGroup>
+</Project>

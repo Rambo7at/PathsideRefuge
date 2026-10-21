@@ -1,0 +1,64 @@
+[gd_scene format=3 uid="uid://clgsigd6aomb6"]
+
+[ext_resource type="Theme" uid="uid://w0u2fax6mlw8" path="res://Theme/Cat_Theme_A.tres" id="1_ke6cx"]
+[ext_resource type="Script" uid="uid://5rhrd0f2eht2" path="res://Dll/UI/ButtonUi.cs" id="2_lej0x"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_y2d0l"]
+bg_color = Color(0.6392157, 0.5647059, 0.43529412, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.36862746, 0.2901961, 0.19607843, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_nd54m"]
+bg_color = Color(0.54901963, 0.4745098, 0.34901962, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.2901961, 0.22745098, 0.15686275, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3frbg"]
+bg_color = Color(0.70980394, 0.63529414, 0.49803922, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.43137255, 0.34509805, 0.23529412, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+shadow_color = Color(0.9411765, 0.7647059, 0.41568628, 0.2509804)
+shadow_size = 2
+
+[node name="Button_UI_A" type="Button" unique_id=136969625]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -30.5
+offset_top = -15.5
+offset_right = 30.5
+offset_bottom = 15.5
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_ke6cx")
+theme_override_colors/font_color = Color(0.16862746, 0.12941177, 0.09411765, 1)
+theme_override_colors/font_pressed_color = Color(0.12156863, 0.09411765, 0.07058824, 1)
+theme_override_colors/font_hover_color = Color(0.16862746, 0.12941177, 0.09411765, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_y2d0l")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_nd54m")
+theme_override_styles/hover = SubResource("StyleBoxFlat_3frbg")
+text = "button"
+script = ExtResource("2_lej0x")

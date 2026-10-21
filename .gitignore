@@ -1,0 +1,51 @@
+# Godot 4
+.godot/
+.import/
+*.gdignore
+*.uid
+
+# VS
+.vs/
+
+# 资源素材，不上传
+Asset/
+Mat/
+外接素材/
+
+# addons控制：默认忽略addons里全部，只放行TerraEnv-Editor
+addons/*
+!addons/TerraEnv-Editor/
+addons/cat_snapicon/
+
+# 导出产物
+export/
+/android/
+.ios/
+.windows/
+.macos/
+.linux/
+
+# 存档、临时文件
+Save/
+*.log
+*.tmp
+Thumbs.db
+.DS_Store
+
+
+# 大型模型
+*.glb
+*.gltf
+*.glb.bin
+
+# PBR贴图资源
+Mat/**/*.png
+Mat/**/*.jpg
+Mat/**/*.exr
+
+# 地形大数据缓存
+Data/Terrain/*.tres
+
+# Godot 临时、导入缓存
+.import/
+*.import

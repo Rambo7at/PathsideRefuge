@@ -1,0 +1,106 @@
+[gd_scene format=3 uid="uid://c0mnfer32o5c0"]
+
+[ext_resource type="Theme" uid="uid://tylbqoml3vbx" path="res://addons/TerraEnv-Editor/Tool_UI_Theme.tres" id="1_gqvj2"]
+[ext_resource type="Script" uid="uid://e1mr1nn3gkca" path="res://addons/TerraEnv-Editor/View/TerraEditorDockView.cs" id="1_hqeok"]
+[ext_resource type="PackedScene" uid="uid://dpb5h6q5qsdkv" path="res://addons/TerraEnv-Editor/UI/EditorSliderUI.tscn" id="2_tn01m"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_bcheq"]
+
+[sub_resource type="ButtonGroup" id="ButtonGroup_pxny2"]
+
+[node name="TerrainEditorToolView" type="PanelContainer" unique_id=349666967 node_paths=PackedStringArray("TargetHeightSlider", "HeightDeltaSlider", "SmoothSlider", "RadiusSlider", "ModifyButton", "SetHeightButton", "SmoothButton", "FlattenButton")]
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 619.69464
+offset_bottom = 139.0
+theme_override_styles/panel = SubResource("StyleBoxEmpty_bcheq")
+script = ExtResource("1_hqeok")
+TargetHeightSlider = NodePath("HBoxContainer/VBoxContainer/TargetHeightSlider")
+HeightDeltaSlider = NodePath("HBoxContainer/VBoxContainer/HeightDeltaSlider")
+SmoothSlider = NodePath("HBoxContainer/VBoxContainer/SmoothHeightSlider")
+RadiusSlider = NodePath("HBoxContainer/VBoxContainer/RadiusSlider")
+ModifyButton = NodePath("HBoxContainer/VBoxContainer/HBoxContainer/ModifyButton")
+SetHeightButton = NodePath("HBoxContainer/VBoxContainer/HBoxContainer/SetHeightButton")
+SmoothButton = NodePath("HBoxContainer/VBoxContainer/HBoxContainer/SmoothButton")
+FlattenButton = NodePath("HBoxContainer/VBoxContainer/HBoxContainer/FlattenButton")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=171961245]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="HBoxContainer" unique_id=843134144]
+layout_mode = 2
+size_flags_horizontal = 0
+offset_transform_enabled = true
+
+[node name="HBoxContainer" type="HBoxContainer" parent="HBoxContainer/VBoxContainer" unique_id=1576238279]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="ModifyButton" type="Button" parent="HBoxContainer/VBoxContainer/HBoxContainer" unique_id=86076085]
+custom_minimum_size = Vector2(66, 25)
+custom_maximum_size = Vector2(66, 25)
+layout_mode = 2
+theme = ExtResource("1_gqvj2")
+toggle_mode = true
+button_pressed = true
+button_group = SubResource("ButtonGroup_pxny2")
+text = "修改地形"
+
+[node name="SetHeightButton" type="Button" parent="HBoxContainer/VBoxContainer/HBoxContainer" unique_id=1718354907]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme = ExtResource("1_gqvj2")
+toggle_mode = true
+button_group = SubResource("ButtonGroup_pxny2")
+text = "指定高度"
+
+[node name="SmoothButton" type="Button" parent="HBoxContainer/VBoxContainer/HBoxContainer" unique_id=1918017624]
+custom_minimum_size = Vector2(66, 25)
+custom_maximum_size = Vector2(66, 25)
+layout_mode = 2
+theme = ExtResource("1_gqvj2")
+toggle_mode = true
+button_group = SubResource("ButtonGroup_pxny2")
+text = "平滑地形"
+
+[node name="FlattenButton" type="Button" parent="HBoxContainer/VBoxContainer/HBoxContainer" unique_id=89132635]
+custom_minimum_size = Vector2(66, 25)
+custom_maximum_size = Vector2(66, 25)
+layout_mode = 2
+theme = ExtResource("1_gqvj2")
+toggle_mode = true
+button_group = SubResource("ButtonGroup_pxny2")
+text = "平整地形"
+
+[node name="HSeparator" type="HSeparator" parent="HBoxContainer/VBoxContainer" unique_id=1014176933]
+layout_mode = 2
+
+[node name="RadiusSlider" parent="HBoxContainer/VBoxContainer" unique_id=1110993425 instance=ExtResource("2_tn01m")]
+layout_mode = 2
+SpinName = "范围"
+MaxValue = 64.0
+
+[node name="HeightDeltaSlider" parent="HBoxContainer/VBoxContainer" unique_id=1611594193 instance=ExtResource("2_tn01m")]
+layout_mode = 2
+SpinName = "增幅"
+MinValue = -2.0
+MaxValue = 2.0
+Step = 0.1
+
+[node name="TargetHeightSlider" parent="HBoxContainer/VBoxContainer" unique_id=563647819 instance=ExtResource("2_tn01m")]
+layout_mode = 2
+SpinName = "目标高度"
+MinValue = -200.0
+MaxValue = 200.0
+
+[node name="SmoothHeightSlider" parent="HBoxContainer/VBoxContainer" unique_id=1946954174 instance=ExtResource("2_tn01m")]
+layout_mode = 2
+SpinName = "平滑度"
+Unit = " L "
+MaxValue = 2.0
+Step = 0.1
+
+[node name="VSeparator" type="VSeparator" parent="HBoxContainer" unique_id=1311070634]
+layout_mode = 2
