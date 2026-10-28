@@ -1,9 +1,8 @@
 using Godot;
-using Godot.Collections;
 using System;
-using System.Text;
+using System.Collections.Generic;
+using System.Linq;
 using 途畔归所.Dll.Utils;
-
 
 namespace 途畔归所.Dll.Core;
 
@@ -20,7 +19,17 @@ public class LanCore
 
     private float _Time;
 
-    public string LatestRoomIP { get; private set; }
+    /// <summary>注：搜到的所有局域网房间（key = 房间 IP）</summary>
+    private readonly Dictionary<string, RoomInfo> _rooms = new();
+
+    /// <summary>注：房间信息</summary>
+    public class RoomInfo
+    {
+        public string IP;
+        public string RoomName;
+        public int MaxPlayers;
+        public double LastSeenTime;
+    }
 
     public LanCore(string roomName, int maxPlayer)
     {
@@ -31,7 +40,6 @@ public class LanCore
     }
 
     public LanCore() => StartListening();
-
 
 
     public void Start(double delta)
@@ -48,7 +56,6 @@ public class LanCore
         }
         else
         {
-
             while (m_packetPeerUdp.GetAvailablePacketCount() > 0)
             {
                 byte[] bytes = m_packetPeerUdp.GetPacket();
@@ -56,9 +63,9 @@ public class LanCore
                 ProcessBroadcastData(bytes, ip);
             }
 
-
+            // 清理超过 5 秒没收到广播的过期房间
+            CleanExpiredRooms(5.0);
         }
-
     }
 
 
@@ -78,7 +85,7 @@ public class LanCore
     private void SendBroadcastPacket()
     {
         if (m_packetPeerUdp == null) return;
-        Dictionary<string, Variant> data = [];
+        Godot.Collections.Dictionary<string, Variant> data = [];
 
         data.Add("room_Name", _roomName);
         data.Add("max_Player", _maxPlayer);
@@ -100,34 +107,72 @@ public class LanCore
     }
 
 
-    private string ProcessBroadcastData(byte[] bytes, string senderIP)
+    private void ProcessBroadcastData(byte[] bytes, string senderIP)
     {
-        if (bytes == null || bytes.Length < 4) return null;
+        if (bytes == null || bytes.Length < 4) return;
 
         Variant data = GD.BytesToVar(bytes);
-        if (data.Obj == null) return string.Empty;
+        if (data.Obj == null) return;
 
         try
         {
             var dict = data.AsGodotDictionary();
-            if (dict == null) return string.Empty;
-            if (!dict.ContainsKey("room_Name")) return string.Empty;
+            if (dict == null) return;
+            if (!dict.ContainsKey("room_Name")) return;
 
-            LatestRoomIP = senderIP;
-            return senderIP;
+            string roomName = dict["room_Name"].AsString();
+            int maxPlayers = dict["max_Player"].AsInt32();
+
+            // 更新或添加房间（同一个 IP 会覆盖旧信息）
+            if (_rooms.TryGetValue(senderIP, out var room))
+            {
+                room.RoomName = roomName;
+                room.MaxPlayers = maxPlayers;
+                room.LastSeenTime = Time.GetTicksMsec() / 1000.0;
+            }
+            else
+            {
+                _rooms[senderIP] = new RoomInfo
+                {
+                    IP = senderIP,
+                    RoomName = roomName,
+                    MaxPlayers = maxPlayers,
+                    LastSeenTime = Time.GetTicksMsec() / 1000.0
+                };
+            }
         }
         catch (Exception e)
         {
             CatLog.Warn($"[LanCore] 无效广播包: {e.Message}");
-            return string.Empty;
         }
-
     }
 
 
+    /// <summary>注：清理过期房间（超过 timeout 秒没收到广播的）</summary>
+    private void CleanExpiredRooms(double timeoutSec)
+    {
+        double now = Time.GetTicksMsec() / 1000.0;
+        List<string> expiredKeys = new();
+
+        foreach (var kv in _rooms)
+        {
+            if (now - kv.Value.LastSeenTime > timeoutSec)
+            {
+                expiredKeys.Add(kv.Key);
+            }
+        }
+
+        foreach (var key in expiredKeys)
+        {
+            _rooms.Remove(key);
+        }
+    }
 
 
-
-
-
+    /// <summary>注：获取当前搜到的所有房间列表</summary>
+    public List<RoomInfo> GetRooms()
+    {
+        return _rooms.Values.ToList();
+    }
 }
+

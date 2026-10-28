@@ -5,98 +5,98 @@ using 途畔归所.Dll.Utils;
 
 namespace 途畔归所.Dll.View
 {
-	public partial class PlayMenuView : Control
-	{
-		[Export] private Control m_MainMenuView;
-		[Export] private Label m_RoomInfo;
-		[Export] public Control 输入框;
-		private string m_ip { get => NetCore.Instance.m_RoomIP; }
+    public partial class PlayMenuView : Control
+    {
+        [Export] private Control m_MainMenuView;
+        [Export] private Label m_RoomInfo;
+        [Export] public Control 输入框;
+        private string m_ip { get => NetCore.Instance.m_RoomIP; }
 
-		public override void _Ready()
-		{
-			this.Visible = false;
-			输入框.Visible = false;
-		}
+        public override void _Ready()
+        {
+            this.Visible = false;
+            输入框.Visible = false;
+        }
 
-		/// <summary>回调函数：返回开始主界面</summary>
-		private void ReturnToStart()
-		{
-			m_MainMenuView.Visible = true;
-			this.Visible = false;
-		}
-
-
-		/// <summary>回调函数：本地游戏 </summary>
-		public void LocalGame()
-		{
-			if (CheckSaveDataBeforeAction() == false) return;
-
-			WorldManager.Instance.ChangeScene("测试场景");
-		}
-
-		/// <summary>回调函数：在线游戏 </summary>
-		public  void MultiplayerGame()
-		{
-            if (CheckSaveDataBeforeAction() == false) return;
-
-            NetCore.Instance.StartLANHost();
-             GameCore.Instance.EnterGame();
+        /// <summary>回调函数：返回开始主界面</summary>
+        private void ReturnToStart()
+        {
+            m_MainMenuView.Visible = true;
+            this.Visible = false;
         }
 
 
-		/// <summary>回调函数：搜索大厅 </summary>
-		public async void FindLobby()
-		{
+        /// <summary>回调函数：本地游戏 </summary>
+        public void LocalGame()
+        {
+            if (CheckSaveDataBeforeAction() == false) return;
+
+            WorldManager.Instance.ChangeScene("测试场景");
+        }
+
+        /// <summary>回调函数：在线游戏 </summary>
+        public void MultiplayerGame()
+        {
+            if (CheckSaveDataBeforeAction() == false) return;
+
+            NetCore.Instance.StartLANHost();
+            GameCore.Instance.EnterGame();
+        }
+
+
+        /// <summary>回调函数：搜索大厅 </summary>
+        public async void FindLobby()
+        {
             if (CheckSaveDataBeforeAction() == false) return;
 
 
             NetCore.Instance.FindLANRoom();
-		}
+        }
 
 
-		public void JoinRoom()
-		{
-			//NetCore.Instance.StopListening();
-			var OK = NetCore.Instance.JoinLAN(m_ip);
-			NetCore.Instance.StopLANDiscovery();
+        public void JoinRoom()
+        {
+            //NetCore.Instance.StopListening();
+            var OK = NetCore.Instance.JoinLAN(m_ip);
+            NetCore.Instance.StopLANDiscovery();
 
-			m_RoomInfo.Text = $"正在连接 {m_ip}...";
+            m_RoomInfo.Text = $"正在连接 {m_ip}...";
 
-			if (OK == Error.Ok) WaitForConnectionAndRequest();
-			else
-			{
-				CatLog.Warn($"连接 {m_ip}...失败");
-				m_RoomInfo.Text = string.Empty;
-			}
-		}
+            if (OK == Error.Ok) WaitForConnectionAndRequest();
+            else
+            {
+                CatLog.Warn($"连接 {m_ip}...失败");
+                m_RoomInfo.Text = string.Empty;
+            }
+        }
 
-		private async void WaitForConnectionAndRequest()
-		{
-			// 等待直到 peer 状态真正变为 Connected
-			while (Multiplayer.MultiplayerPeer == null || Multiplayer.MultiplayerPeer.GetConnectionStatus() != MultiplayerPeer.ConnectionStatus.Connected)
-			{
-				await ToSignal(GetTree(), "process_frame");
-			}
-              GameCore.Instance.EnterGame();
-		}
+        private async void WaitForConnectionAndRequest()
+        {
+            // 等待直到 peer 状态真正变为 Connected
+            while (Multiplayer.MultiplayerPeer == null || Multiplayer.MultiplayerPeer.GetConnectionStatus() != MultiplayerPeer.ConnectionStatus.Connected)
+            {
+                await ToSignal(GetTree(), "process_frame");
+            }
+            GameCore.Instance.EnterGame();
+        }
 
 
-		private bool CheckSaveDataBeforeAction()
-		{
+        private bool CheckSaveDataBeforeAction()
+        {
             if (PlayerManager.Instance.HasPlayers == false)
             {
                 WorldManager.Instance.ChangeScene("角色创建");
-				return false;
+                return false;
             }
 
-			if (WorldManager.Instance.HasWorlds == false)
-			{
-				输入框.Visible = true;
+            if (WorldManager.Instance.HasWorlds == false)
+            {
+                输入框.Visible = true;
                 return false;
             }
 
             return true;
         }
 
-	}
+    }
 }

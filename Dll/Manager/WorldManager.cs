@@ -85,7 +85,7 @@ public class WorldManager
     public void ReturnToMenu() => GameTime.Instance.ReturnToMenu();
 
     /// <summary>注：获取当前世界数据（如选中索引无效，则自动指向第一个有效世界）</summary>
-    private WorldData GetCurrentWorld()
+    public WorldData GetCurrentWorld()
     {
         if (WorldDataDict.TryGetValue(SelWorldIdx, out var worldData)) return worldData;
         if (WorldDataDict.Count == 0) return null;
@@ -118,6 +118,47 @@ public class WorldManager
         return ids;
     }
 
+    public Dictionary<int, string> GetAllWorldNames()
+    {
+        Dictionary<int, string> dict = [];
+
+        foreach (var wdData in WorldDataDict)
+        {
+            if (wdData.Key == default || wdData.Value == null) continue;
+
+            dict.Add(wdData.Key, wdData.Value.Name);
+        }
+
+        return dict;
+    }
+
+
+    public bool IsValidWorldName(string worldName)
+    {
+        foreach (var wdData in WorldDataDict)
+        {
+            if (wdData.Value.Name != worldName)
+            {
+                return true;
+            }
+        }
+
+        return false;
+
+    }
+
+
+    /// <summary>注：验证指定ID的玩家存档是否存在</summary>
+    public bool IsValidWorld(int worldID) => WorldDataDict.TryGetValue(worldID, out var _);
+
+    /// <summary>注：删除指定ID的玩家存档数据</summary>
+    public bool RemoveWorldData(int worldID)
+    {
+        if (!WorldDataDict.TryGetValue(worldID, out var data)) return false;
+
+        WorldDataDict.Remove(worldID);
+        return true;
+    }
 
 
     /// <summary>注：根据哈希获取场景实例，并补全场景数据中的名称和哈希</summary>

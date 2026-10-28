@@ -1,0 +1,328 @@
+[gd_scene format=3 uid="uid://in0l83oscxrn"]
+
+[ext_resource type="Theme" uid="uid://w0u2fax6mlw8" path="res://Theme/Cat_Theme_A.tres" id="1_dkrhx"]
+[ext_resource type="Script" uid="uid://cc35vylemxdye" path="res://Dll/View/WorldSelectView.cs" id="2_nxxwh"]
+[ext_resource type="Theme" uid="uid://d3fvobqpc2x5c" path="res://Theme/Cat_Theme_B.tres" id="3_thlxm"]
+[ext_resource type="Script" uid="uid://plk35ydat3v8" path="res://Dll/UI/VBoxUI.cs" id="4_k84s5"]
+[ext_resource type="PackedScene" uid="uid://b3ch74tv2bekn" path="res://Prefab/UI/标签/inner_Label.tscn" id="5_vnr5j"]
+[ext_resource type="PackedScene" uid="uid://d3ppj0q4hikg7" path="res://Prefab/UI/按钮/InnerPrimaryButton.tscn" id="6_u5hlq"]
+[ext_resource type="PackedScene" uid="uid://clgsigd6aomb6" path="res://Prefab/UI/按钮/PrimaryButton.tscn" id="7_su8j4"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3chox"]
+bg_color = Color(0.22745098, 0.17254902, 0.11764706, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0, 0, 0, 1)
+border_blend = true
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+shadow_color = Color(0.16862746, 0.12941177, 0.09411765, 1)
+shadow_size = 2
+
+[node name="WorldSelectView" type="PanelContainer" unique_id=2140852545 node_paths=PackedStringArray("LocalGameButton", "MultiplayerButton", "WorldInfoButton", "CreateWorldButton", "ManageWorldButton", "SearchRoomButton", "WorldInfoBox", "SaveManageContainer", "RoomInfoContainer", "CreateWorldBox", "NullLabel")]
+custom_minimum_size = Vector2(0, 750)
+custom_maximum_size = Vector2(-1, 750)
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -285.0
+offset_top = -375.0
+offset_right = 795.0
+offset_bottom = 375.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_dkrhx")
+script = ExtResource("2_nxxwh")
+LocalGameButton = NodePath("MarginContainer/VBoxContainer/PanelContainer/MarginContainer/世界信息/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/本地游戏")
+MultiplayerButton = NodePath("MarginContainer/VBoxContainer/PanelContainer/MarginContainer/世界信息/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer/多人游戏")
+WorldInfoButton = NodePath("MarginContainer/VBoxContainer/HBoxContainer/世界信息")
+CreateWorldButton = NodePath("MarginContainer/VBoxContainer/HBoxContainer/创建世界")
+ManageWorldButton = NodePath("MarginContainer/VBoxContainer/HBoxContainer/管理世界")
+SearchRoomButton = NodePath("MarginContainer/VBoxContainer/HBoxContainer/搜索房间")
+WorldInfoBox = NodePath("MarginContainer/VBoxContainer/PanelContainer/MarginContainer/世界信息")
+SaveManageContainer = NodePath("MarginContainer/VBoxContainer/PanelContainer/MarginContainer/存档管理")
+RoomInfoContainer = NodePath("MarginContainer/VBoxContainer/PanelContainer/MarginContainer/房间信息")
+CreateWorldBox = NodePath("MarginContainer/VBoxContainer/PanelContainer/MarginContainer/创建世界")
+NullLabel = NodePath("MarginContainer/VBoxContainer/PanelContainer/MarginContainer/房间信息/PanelContainer/load")
+
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=1965527582]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer" unique_id=1060558973]
+layout_mode = 2
+theme_override_constants/separation = 20
+
+[node name="PanelContainer" type="PanelContainer" parent="MarginContainer/VBoxContainer" unique_id=428985]
+custom_minimum_size = Vector2(0, 630)
+layout_mode = 2
+theme = ExtResource("3_thlxm")
+
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/VBoxContainer/PanelContainer" unique_id=719188208]
+layout_mode = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 4
+
+[node name="房间信息" type="VBoxContainer" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer" unique_id=203543670 node_paths=PackedStringArray("ControlDict")]
+layout_mode = 2
+theme_override_constants/separation = 8
+script = ExtResource("4_k84s5")
+ControlDict = {
+"Load": NodePath("PanelContainer/load"),
+"房间列表": NodePath("PanelContainer/MarginContainer/房间列表")
+}
+
+[node name="Name" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer/房间信息" unique_id=1052790330 instance=ExtResource("5_vnr5j")]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "房间信息"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PanelContainer" type="PanelContainer" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer/房间信息" unique_id=50534109]
+custom_minimum_size = Vector2(0, 545)
+custom_maximum_size = Vector2(-1, 545)
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer/房间信息/PanelContainer" unique_id=493159341]
+layout_mode = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 4
+
+[node name="房间列表" type="VBoxContainer" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer/房间信息/PanelContainer/MarginContainer" unique_id=1172770657]
+layout_mode = 2
+theme_override_constants/separation = 7
+
+[node name="load" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer/房间信息/PanelContainer" unique_id=1841459552 instance=ExtResource("5_vnr5j")]
+layout_mode = 2
+theme_override_font_sizes/font_size = 46
+text = "搜索中。。。。。"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="创建世界" type="VBoxContainer" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer" unique_id=1695128587 node_paths=PackedStringArray("ControlDict")]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 8
+script = ExtResource("4_k84s5")
+ControlDict = {
+"确认按钮": NodePath("PanelContainer/VBoxUI/确认按钮"),
+"输入框": NodePath("PanelContainer/VBoxUI/HBoxContainer/输入框")
+}
+
+[node name="name" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer/创建世界" unique_id=1833202391 instance=ExtResource("5_vnr5j")]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "创建世界"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PanelContainer" type="PanelContainer" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer/创建世界" unique_id=414874146]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_3chox")
+
+[node name="VBoxUI" type="VBoxContainer" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer/创建世界/PanelContainer" unique_id=1417663511]
+layout_mode = 2
+script = ExtResource("4_k84s5")
+metadata/_custom_type_script = "uid://plk35ydat3v8"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer/创建世界/PanelContainer/VBoxUI" unique_id=216825187]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer/创建世界/PanelContainer/VBoxUI/HBoxContainer" unique_id=1122858241]
+layout_mode = 2
+theme = ExtResource("3_thlxm")
+theme_override_font_sizes/font_size = 32
+text = "世界名称："
+
+[node name="输入框" type="LineEdit" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer/创建世界/PanelContainer/VBoxUI/HBoxContainer" unique_id=315103366]
+layout_mode = 2
+size_flags_horizontal = 3
+theme = ExtResource("3_thlxm")
+theme_override_font_sizes/font_size = 28
+placeholder_text = "输入世界名称"
+
+[node name="确认按钮" type="Button" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer/创建世界/PanelContainer/VBoxUI" unique_id=1193055757]
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+theme = ExtResource("3_thlxm")
+theme_override_font_sizes/font_size = 32
+text = "确认"
+
+[node name="世界信息" type="VBoxContainer" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer" unique_id=1319715710 node_paths=PackedStringArray("ControlDict")]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 16
+script = ExtResource("4_k84s5")
+ControlDict = {
+"ID": NodePath("PanelContainer/MarginContainer/VBoxContainer/ID"),
+"WorldName": NodePath("PanelContainer/MarginContainer/VBoxContainer/WorldName")
+}
+
+[node name="标题" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer/世界信息" unique_id=468159868 instance=ExtResource("5_vnr5j")]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "世界信息"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PanelContainer" type="PanelContainer" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer/世界信息" unique_id=846932597]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer/世界信息/PanelContainer" unique_id=1671258489]
+layout_mode = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 4
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer/世界信息/PanelContainer/MarginContainer" unique_id=361217550]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="WorldName" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer/世界信息/PanelContainer/MarginContainer/VBoxContainer" unique_id=1419739903 instance=ExtResource("5_vnr5j")]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "世界名："
+
+[node name="ID" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer/世界信息/PanelContainer/MarginContainer/VBoxContainer" unique_id=812724041 instance=ExtResource("5_vnr5j")]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "游戏时间："
+
+[node name="预留选项" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer/世界信息/PanelContainer/MarginContainer/VBoxContainer" unique_id=1036696935 instance=ExtResource("5_vnr5j")]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "预留选项："
+
+[node name="预留选项2" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer/世界信息/PanelContainer/MarginContainer/VBoxContainer" unique_id=1241102436 instance=ExtResource("5_vnr5j")]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "预留选项："
+
+[node name="预留选项3" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer/世界信息/PanelContainer/MarginContainer/VBoxContainer" unique_id=175424084 instance=ExtResource("5_vnr5j")]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "预留选项："
+
+[node name="预留选项4" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer/世界信息/PanelContainer/MarginContainer/VBoxContainer" unique_id=35498149 instance=ExtResource("5_vnr5j")]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "预留选项："
+
+[node name="预留选项5" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer/世界信息/PanelContainer/MarginContainer/VBoxContainer" unique_id=641500783 instance=ExtResource("5_vnr5j")]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "预留选项："
+
+[node name="预留选项6" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer/世界信息/PanelContainer/MarginContainer/VBoxContainer" unique_id=666437990 instance=ExtResource("5_vnr5j")]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "预留选项："
+
+[node name="预留选项7" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer/世界信息/PanelContainer/MarginContainer/VBoxContainer" unique_id=1703898724 instance=ExtResource("5_vnr5j")]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "预留选项："
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer/世界信息/PanelContainer/MarginContainer/VBoxContainer" unique_id=1551982597]
+layout_mode = 2
+theme_override_constants/separation = 70
+alignment = 1
+
+[node name="本地游戏" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer/世界信息/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer" unique_id=136969625 instance=ExtResource("6_u5hlq")]
+custom_minimum_size = Vector2(470, 45)
+custom_maximum_size = Vector2(-1, 45)
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "本地游戏"
+icon_alignment = 1
+
+[node name="多人游戏" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer/世界信息/PanelContainer/MarginContainer/VBoxContainer/HBoxContainer" unique_id=1633134143 instance=ExtResource("6_u5hlq")]
+custom_minimum_size = Vector2(470, 45)
+custom_maximum_size = Vector2(-1, 45)
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "多人游戏"
+
+[node name="存档管理" type="VBoxContainer" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer" unique_id=1544549007 node_paths=PackedStringArray("ControlDict")]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 8
+script = ExtResource("4_k84s5")
+ControlDict = {
+"存档列表": NodePath("PanelContainer/MarginContainer/存档列表")
+}
+
+[node name="Name" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer/存档管理" unique_id=1463974262 instance=ExtResource("5_vnr5j")]
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "存档管理"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PanelContainer" type="PanelContainer" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer/存档管理" unique_id=1148304844]
+custom_minimum_size = Vector2(0, 545)
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer/存档管理/PanelContainer" unique_id=1658915432]
+layout_mode = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 4
+
+[node name="存档列表" type="VBoxContainer" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer/存档管理/PanelContainer/MarginContainer" unique_id=1829447355]
+layout_mode = 2
+theme_override_constants/separation = 7
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer" unique_id=1449974313]
+layout_mode = 2
+theme_override_constants/separation = 48
+alignment = 1
+
+[node name="世界信息" parent="MarginContainer/VBoxContainer/HBoxContainer" unique_id=1590880935 instance=ExtResource("7_su8j4")]
+custom_minimum_size = Vector2(220, 60)
+custom_maximum_size = Vector2(220, 60)
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "世界信息"
+
+[node name="创建世界" parent="MarginContainer/VBoxContainer/HBoxContainer" unique_id=1817883816 instance=ExtResource("7_su8j4")]
+custom_minimum_size = Vector2(220, 60)
+custom_maximum_size = Vector2(220, 60)
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "创建世界"
+
+[node name="管理世界" parent="MarginContainer/VBoxContainer/HBoxContainer" unique_id=1163821799 instance=ExtResource("7_su8j4")]
+custom_minimum_size = Vector2(220, 60)
+custom_maximum_size = Vector2(220, 60)
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "管理世界"
+
+[node name="搜索房间" parent="MarginContainer/VBoxContainer/HBoxContainer" unique_id=793455308 instance=ExtResource("7_su8j4")]
+custom_minimum_size = Vector2(220, 60)
+custom_maximum_size = Vector2(220, 60)
+layout_mode = 2
+theme_type_variation = &"FlatButton"
+theme_override_font_sizes/font_size = 40
+text = "搜索房间
+"

@@ -15,27 +15,39 @@ public class PlayerManager
     private static PlayerManager _instance;
     public static PlayerManager Instance => _instance ??= new PlayerManager();
 
-    private PackedScene _playerPacked;                              // 缓存的玩家预制体
+    /// <summary>注：玩家预制体资源</summary>
+    private PackedScene _playerScene;
 
-    private Dictionary<int, CreatureData> PlayerDataDict { get; set; } = [];  // 所有玩家数据
+    /// <summary>注：所有玩家数据的映射字典</summary>
+    private Dictionary<int, CreatureData> PlayerDataDict { get; set; } = [];
 
-    public int SelPlayerIdx { get; set; }                          // 当前选中的玩家索引
+    /// <summary>注：当前选中的玩家ID</summary>
+    public int SelectedPlayerID { get; set; }
 
-    public int PlayerHash { get; private set; }                    // 玩家预制体哈希值
+    /// <summary>注：玩家预制体的哈希值</summary>
+    public int PlayerHash { get; private set; }
 
-    public bool HasPlayers => PlayerDataDict.Count > 0;            // 是否存在玩家数据
+    /// <summary>注：是否存在玩家数据</summary>
+    public bool HasPlayers => PlayerDataDict.Count > 0;
 
-    public Player LocalPlayer { get; set; }                        // 本地玩家实例
-    public CreatureData LocalPlayerData => GetLocalPlayerData();   // 本地玩家数据（只读）
+    /// <summary>注：玩家数量是否已达上限（超过9个）</summary>
+    public bool IsPlayerFull => PlayerDataDict.Count > 9;
 
-    public bool IsHost => NetCore.Instance.IsHost;                  // 是否为主机
+
+    /// <summary>注：本地玩家实例</summary>
+    public Player LocalPlayer { get; set; }
+
+    /// <summary>注：本地玩家数据（只读，自动获取当前选中项）</summary>
+    public CreatureData LocalPlayerData => GetLocalPlayerData();
+
+    /// <summary>注：是否为主机</summary>
+    public bool IsHost => NetCore.Instance.IsHost;
 
 
     private PlayerManager()
     {
         PlayerDataDict = SaveManager.Instance.GetPlayerDataDict();
-        SelPlayerIdx = SaveManager.Instance.GetSelectedPlayerIndex();
-
+        SelectedPlayerID = SaveManager.Instance.GetSelectedPlayerIndex();
 
         CatLog.Ok("[PlayerManager] 初始化完成");
     }
@@ -43,7 +55,7 @@ public class PlayerManager
     /// <summary>注：注册玩家预制体及其哈希值</summary>
     public void RegisterPlayer(int hash, PackedScene packedScene)
     {
-        _playerPacked = packedScene;
+        _playerScene = packedScene;
         PlayerHash = hash;
     }
 
@@ -60,9 +72,16 @@ public class PlayerManager
         return ints;
     }
 
+    /// <summary>注：验证指定ID的玩家存档是否存在</summary>
+    public bool IsValidPlayer(int playerID) => PlayerDataDict.TryGetValue(playerID, out var _);
+
+
     /// <summary>注：创建新玩家并添加到数据字典中</summary>
     public void CreatePlayer(string playerName)
     {
+        if (IsPlayerFull) return;
+        if (string.IsNullOrWhiteSpace(playerName)) return;
+
         CreatureData data = new()
         {
             Name = playerName,
@@ -73,16 +92,27 @@ public class PlayerManager
         PlayerDataDict.Add(data.PlayerID, data);
     }
 
-    /// <summary>注：获取本地玩家数据（如选中索引无效则自动指向第一个有效玩家）</summary>
+
+    /// <summary>注：删除指定ID的玩家存档数据</summary>
+    public bool RemovePlayerData(int playerID)
+    {
+        if (!PlayerDataDict.TryGetValue(playerID, out var data)) return false;
+
+        PlayerDataDict.Remove(playerID);
+        return true;
+    }
+
+
+    /// <summary>注：获取本地玩家数据（如选中ID无效则自动指向第一个有效玩家）</summary>
     public CreatureData GetLocalPlayerData()
     {
-        if (PlayerDataDict.TryGetValue(SelPlayerIdx, out var worldData)) return worldData;
+        if (PlayerDataDict.TryGetValue(SelectedPlayerID, out var playerData)) return playerData;
         if (PlayerDataDict.Count == 0) return null;
 
         foreach (var data in PlayerDataDict)
         {
             if (data.Value == null) continue;
-            SelPlayerIdx = data.Key;
+            SelectedPlayerID = data.Key;
             return data.Value;
         }
         return null;
@@ -102,6 +132,19 @@ public class PlayerManager
         return data;
     }
 
+    /// <summary>注：获取所有存档的玩家名（玩家ID -> 玩家名）</summary>
+    public Dictionary<int, string> GetAllPlayerNames()
+    {
+        Dictionary<int, string> data = [];
+
+        foreach (var save in PlayerDataDict)
+        {
+            if (save.Value == null) continue;
+
+            data.Add(save.Key, save.Value.Name);
+        }
+        return data;
+    }
 
 
     /// <summary>注：在指定位置生成本地玩家（若玩家实例无效则自动重建）</summary>
@@ -109,7 +152,7 @@ public class PlayerManager
     {
         if (LocalPlayer == null || !GodotObject.IsInstanceValid(LocalPlayer))
         {
-            if (_playerPacked.Instantiate() is not Player newPlayer) return;
+            if (_playerScene.Instantiate() is not Player newPlayer) return;
             LocalPlayer = newPlayer;
         }
         else
@@ -132,7 +175,7 @@ public class PlayerManager
     }
 
 
-
+    /// <summary>注：保存当前本地玩家实例的数据到玩家数据字典中</summary>
     public void SaveLocalPlayerData()
     {
         if (LocalPlayer == null) return;

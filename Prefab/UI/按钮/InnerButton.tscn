@@ -1,0 +1,22 @@
+[gd_scene format=3 uid="uid://372rjl477p6h"]
+
+[ext_resource type="Theme" uid="uid://d3fvobqpc2x5c" path="res://Theme/Cat_Theme_B.tres" id="1_kbtwx"]
+[ext_resource type="Script" uid="uid://urwfxy1jqpuh" path="res://Dll/UI/ButtonUI.cs" id="2_ip88m"]
+
+[node name="InnerButton" type="Button" unique_id=136969625]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -30.5
+offset_top = -15.5
+offset_right = 30.5
+offset_bottom = 15.5
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_kbtwx")
+theme_override_constants/h_separation = 12
+text = "button"
+alignment = 0
+script = ExtResource("2_ip88m")

@@ -1,0 +1,171 @@
+[gd_scene format=3 uid="uid://cm5sp037hvvyv"]
+
+[ext_resource type="Theme" uid="uid://w0u2fax6mlw8" path="res://Theme/Cat_Theme_A.tres" id="1_y0ucc"]
+[ext_resource type="Script" uid="uid://dywcpp0lbl4jm" path="res://Dll/View/PlayerSelectView.cs" id="2_06pqp"]
+[ext_resource type="Theme" uid="uid://d3fvobqpc2x5c" path="res://Theme/Cat_Theme_B.tres" id="3_peq1i"]
+[ext_resource type="Script" uid="uid://plk35ydat3v8" path="res://Dll/UI/VBoxUI.cs" id="4_kb48i"]
+[ext_resource type="PackedScene" uid="uid://b3ch74tv2bekn" path="res://Prefab/UI/标签/inner_Label.tscn" id="5_5wj2j"]
+[ext_resource type="PackedScene" uid="uid://clgsigd6aomb6" path="res://Prefab/UI/按钮/PrimaryButton.tscn" id="6_c7f06"]
+
+[node name="PlayerSelectView" type="PanelContainer" unique_id=1546566506 node_paths=PackedStringArray("NullLabel", "PlayerInfoBox", "SaveManageContainer", "CreateButton", "ManageButton")]
+custom_maximum_size = Vector2(480, 750)
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -240.0
+offset_top = -375.0
+offset_right = 240.0
+offset_bottom = 375.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_y0ucc")
+script = ExtResource("2_06pqp")
+NullLabel = NodePath("MarginContainer/VBoxContainer/PanelContainer/null")
+PlayerInfoBox = NodePath("MarginContainer/VBoxContainer/PanelContainer/MarginContainer/VBoxContainer")
+SaveManageContainer = NodePath("MarginContainer/VBoxContainer/PanelContainer/MarginContainer/存档管理")
+CreateButton = NodePath("MarginContainer/VBoxContainer/PanelContainer2/Buttons/创建")
+ManageButton = NodePath("MarginContainer/VBoxContainer/PanelContainer2/Buttons/管理")
+
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=1119274600]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer" unique_id=969943106]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/separation = 13
+
+[node name="PanelContainer" type="PanelContainer" parent="MarginContainer/VBoxContainer" unique_id=1932133453]
+custom_minimum_size = Vector2(450, 630)
+layout_mode = 2
+theme = ExtResource("3_peq1i")
+
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/VBoxContainer/PanelContainer" unique_id=130727980]
+layout_mode = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 4
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer" unique_id=1180669891 node_paths=PackedStringArray("ControlDict")]
+layout_mode = 2
+theme_override_constants/separation = 8
+script = ExtResource("4_kb48i")
+ControlDict = {
+"BackPack": NodePath("PanelContainer/MarginContainer/VBoxContainer/BackPack"),
+"Health": NodePath("PanelContainer/MarginContainer/VBoxContainer/Health"),
+"ID": NodePath("PanelContainer/MarginContainer/VBoxContainer/ID"),
+"Name": NodePath("Name"),
+"Stamina": NodePath("PanelContainer/MarginContainer/VBoxContainer/Stamina")
+}
+
+[node name="Name" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer/VBoxContainer" unique_id=1052790330 instance=ExtResource("5_5wj2j")]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "超级大野猫"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PanelContainer" type="PanelContainer" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer/VBoxContainer" unique_id=928866684]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer/VBoxContainer/PanelContainer" unique_id=1513711278]
+layout_mode = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 4
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer/VBoxContainer/PanelContainer/MarginContainer" unique_id=129346042]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Health" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer/VBoxContainer/PanelContainer/MarginContainer/VBoxContainer" unique_id=1363501588 instance=ExtResource("5_5wj2j")]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "生命: 100/100"
+vertical_alignment = 1
+
+[node name="Stamina" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer/VBoxContainer/PanelContainer/MarginContainer/VBoxContainer" unique_id=1028988071 instance=ExtResource("5_5wj2j")]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "耐力: 100/100"
+vertical_alignment = 1
+
+[node name="BackPack" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer/VBoxContainer/PanelContainer/MarginContainer/VBoxContainer" unique_id=1732707583 instance=ExtResource("5_5wj2j")]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "背包: 100/100"
+vertical_alignment = 1
+
+[node name="ID" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer/VBoxContainer/PanelContainer/MarginContainer/VBoxContainer" unique_id=735007443 instance=ExtResource("5_5wj2j")]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "ID：304437775"
+vertical_alignment = 1
+
+[node name="存档管理" type="VBoxContainer" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer" unique_id=654988465 node_paths=PackedStringArray("ControlDict")]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 12
+script = ExtResource("4_kb48i")
+ControlDict = {
+"存档列表": NodePath("PanelContainer/MarginContainer/存档列表")
+}
+
+[node name="Nmae_存档管理" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer/存档管理" unique_id=738955238 instance=ExtResource("5_5wj2j")]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "存档管理"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PanelContainer" type="PanelContainer" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer/存档管理" unique_id=786813377]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer/存档管理/PanelContainer" unique_id=1082354155]
+layout_mode = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 4
+
+[node name="存档列表" type="VBoxContainer" parent="MarginContainer/VBoxContainer/PanelContainer/MarginContainer/存档管理/PanelContainer/MarginContainer" unique_id=109725462]
+layout_mode = 2
+theme_override_constants/separation = 7
+
+[node name="null" parent="MarginContainer/VBoxContainer/PanelContainer" unique_id=1299793140 instance=ExtResource("5_5wj2j")]
+visible = false
+layout_mode = 2
+theme_override_font_sizes/font_size = 46
+text = "无内容"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PanelContainer2" type="PanelContainer" parent="MarginContainer/VBoxContainer" unique_id=756650896]
+custom_minimum_size = Vector2(450, 80)
+layout_mode = 2
+
+[node name="Buttons" type="HBoxContainer" parent="MarginContainer/VBoxContainer/PanelContainer2" unique_id=1376281638]
+layout_mode = 2
+theme_override_constants/separation = 30
+alignment = 1
+
+[node name="创建" parent="MarginContainer/VBoxContainer/PanelContainer2/Buttons" unique_id=136969625 instance=ExtResource("6_c7f06")]
+custom_minimum_size = Vector2(200, 60)
+custom_maximum_size = Vector2(200, 60)
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "创建"
+
+[node name="管理" parent="MarginContainer/VBoxContainer/PanelContainer2/Buttons" unique_id=1238508662 instance=ExtResource("6_c7f06")]
+custom_minimum_size = Vector2(200, 60)
+custom_maximum_size = Vector2(200, 60)
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "管理"

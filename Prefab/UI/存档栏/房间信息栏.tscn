@@ -1,0 +1,59 @@
+[gd_scene format=3 uid="uid://lel31mjbeiwb"]
+
+[ext_resource type="Theme" uid="uid://d3fvobqpc2x5c" path="res://Theme/Cat_Theme_B.tres" id="1_ntq7b"]
+[ext_resource type="Script" uid="uid://l3ghhqqpv34k" path="res://Dll/UI/SplitButtonUI.cs" id="2_qygsu"]
+[ext_resource type="PackedScene" uid="uid://372rjl477p6h" path="res://Prefab/UI/按钮/InnerButton.tscn" id="3_yhvev"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1nq0w"]
+bg_color = Color(0.22745098, 0.17254902, 0.11764706, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.35326353, 0.3430907, 0.22123125, 1)
+border_blend = true
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+shadow_color = Color(0.16862746, 0.12941177, 0.09411765, 1)
+shadow_size = 2
+
+[node name="SplitButtonUI" type="PanelContainer" unique_id=485662837 node_paths=PackedStringArray("MainButton", "ActionButton")]
+custom_minimum_size = Vector2(440, 60)
+custom_maximum_size = Vector2(440, 60)
+offset_right = 440.0
+offset_bottom = 66.0
+theme = ExtResource("1_ntq7b")
+theme_override_styles/panel = SubResource("StyleBoxFlat_1nq0w")
+script = ExtResource("2_qygsu")
+MainButton = NodePath("MarginContainer/HBoxContainer/MainButton")
+ActionButton = NodePath("MarginContainer/HBoxContainer/ActionButton")
+
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=1299272654]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 10
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer" unique_id=166278446]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="MainButton" parent="MarginContainer/HBoxContainer" unique_id=136969625 instance=ExtResource("3_yhvev")]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 20
+text = "超级大野猫"
+
+[node name="VSeparator" type="VSeparator" parent="MarginContainer/HBoxContainer" unique_id=277820909]
+layout_mode = 2
+
+[node name="ActionButton" parent="MarginContainer/HBoxContainer" unique_id=1203381020 instance=ExtResource("3_yhvev")]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 16
+text = "删除"
+alignment = 1
